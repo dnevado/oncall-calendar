@@ -36,16 +36,17 @@ public class CalendarEventUtil {
 	Calendar service =null;
 	
 	String _EMAIL_GOOGLE_ACCOUNT = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_EMAIL_OWNER()).getValue();
+
 	
-	public CalendarEventUtil  CalendarEventUtil() throws IOException {
-		
-		CalendarEventUtil c = new CalendarEventUtil();
-		 if (service==null)
-	        {	
-	        	service = new CalendarService().configure();
-	        }
-		 return c;
-	        
+	public   void  InitCalendarService() throws IOException {
+	if (service==null)
+	{ 	
+		service = new CalendarService().configure();	       	
+	}
+	}
+	
+	public   CalendarEventUtil() throws IOException {
+
 	}
 	
 	public Event  CreateEvent(String Titulo, String Descripcion,String color,  java.util.Calendar Inicio,  java.util.Calendar Fin) throws IOException {
@@ -71,8 +72,8 @@ public class CalendarEventUtil {
         java.util.Calendar endCal = java.util.Calendar.getInstance();      
         Date endDate = Fin.getTime();
 
-
-        DateTime start = new DateTime(startDate);
+        //DateTime endDateTime = new DateTime("2015-05-28T17:00:00-07:00");
+        DateTime start = new DateTime(startDate);        
         event.setStart(new EventDateTime().setDateTime(start));
         DateTime end = new DateTime(endDate);
         event.setEnd(new EventDateTime().setDateTime(end));
@@ -141,7 +142,7 @@ public class CalendarEventUtil {
 		}
 		catch (Exception e)
 		{
-			System.out.println("Error borrando Event Calendario:" + EventId);
+			System.out.println("Error borrando Event Calendario:" + EventId +  ":" + e.getMessage() );
 		}
     	
 	}
@@ -177,6 +178,9 @@ public class CalendarEventUtil {
         String pageToken = null;
         
         service = new CalendarService().configure();
+        
+        service.events().delete("primary","kl7ngjjv85qjf9mg7ukn5nujbc").execute();
+        
              
                 
         do {

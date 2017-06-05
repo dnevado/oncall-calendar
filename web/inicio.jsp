@@ -2,546 +2,326 @@
     pageEncoding="UTF-8"%>
     
 <%@page import="com.guardias.*"%>
+<%@page import="com.guardias.Medico"%>
 <%@page import="com.guardias.database.*"%> 
 <%@page import="java.util.*"%>
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
 
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="">
+<meta name="author" content="">
 
-    <title>Distribución Guardias Médicos Inicio </title>
-	<link href='<%=request.getContextPath()%>/css/bootstrap.min.css' rel='stylesheet' />
-	<link href='<%=request.getContextPath()%>/css/jquery-ui.css' rel='stylesheet' />
-	<link href='<%=request.getContextPath()%>/css/fullcalendar.css' rel='stylesheet' />
-	<link href='<%=request.getContextPath()%>/css/fullcalendar.print.css' rel='stylesheet' media='print' />
-    <link href='<%=request.getContextPath()%>/css/custom.css?er4544423423423' rel='stylesheet'/> 
-	<!--  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" /> -->
-	<!-- Custom Fonts -->
-	<link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-	<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
-	<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
-	<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
-	<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
-	<script src='<%=request.getContextPath()%>/js/jquery-ui.js'></script>
-	<script src='<%=request.getContextPath()%>/js/jquery.ui.es.js'></script>
-	<script src='<%=request.getContextPath()%>/js/fullcalendar.min.js'></script>
-	<script src='<%=request.getContextPath()%>/js/locale-all.js'></script>
+<title>Distribución Guardias Médicos Inicio </title>
+<link href='<%=request.getContextPath()%>/css/bootstrap.min.css' rel='stylesheet' />
+<link href='<%=request.getContextPath()%>/css/jquery-ui.css' rel='stylesheet' />
+<!-- <link href="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet"> -->
+<link href="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
+<link href='<%=request.getContextPath()%>/css/fullcalendar.css' rel='stylesheet' />
+<link href='<%=request.getContextPath()%>/css/custom.css?er4544423423423' rel='stylesheet'/> 
+<link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
+<link href="<%=request.getContextPath()%>/css/introjs.css" rel="stylesheet">
+<link href="<%=request.getContextPath()%>/css/introjs-modern.css" rel="stylesheet">
+<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
+<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
+<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
+<script src='<%=request.getContextPath()%>/js/jquery-ui.js'></script>
+<script src='<%=request.getContextPath()%>/js/jquery.ui.es.js'></script>
+<script src='<%=request.getContextPath()%>/js/fullcalendar.min.js'></script>
+<script src='<%=request.getContextPath()%>/js/locale-all.js'></script>
+<script src="<%=request.getContextPath()%>/vendor/datatables/js/jquery.dataTables.patched.es.js"></script>
+<!--  <script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>-->
+<script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
+<script src='<%=request.getContextPath()%>/js/guardias.js?timestamp=3131236574567567'></script>
+<script src='<%=request.getContextPath()%>/js/interact.min.js'></script>
+<script src='<%=request.getContextPath()%>/js/ga.js'></script>
+<script src='<%=request.getContextPath()%>/js/intro.js'></script>
 
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
+
 
 </head>
 <script>  var obj = {};
+		var _CANCELADA= '<%=Util.eEstadoCambiosGuardias.CANCELADA.toString()%>';
+		var _APROBADA= '<%=Util.eEstadoCambiosGuardias.APROBADA.toString()%>';
 		var _PRESENCIA = '<%=Util.eTipoGuardia.PRESENCIA.toString().toLowerCase()%>';
 		var _LOCALIZADA= '<%=Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase()%>';
 		var _REFUERZO= '<%=Util.eTipoGuardia.REFUERZO.toString().toLowerCase()%>';
 		var _ADJUNTO= '<%=Util.eTipo.ADJUNTO.toString().toLowerCase()%>';
 		var _RESIDENTE= '<%=Util.eTipo.RESIDENTE.toString().toLowerCase()%>';
+		var _SIMULADO= '<%=Util.eSubtipoResidente.SIMULADO.toString().toLowerCase()%>';		
+		var _REQUEST_CONTEXT ='<%=request.getContextPath()%>/';
+		var _REQUEST_URI ="<%=request.getRequestURI()%>";
+		var _USER_LOGGED ='<%=MedicoLogged.getID()%>';		
+		var _IS_A = $.parseJSON('<%=MedicoLogged.isAdministrator()%>');
+
 </script>
 
 <%
 
-	/* por defecto de la base de datos si hay */
-	
-	String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL()).getValue();	
-	
-	String _PageToFill="get_guardias.jsp";
-	String _SelectedMonth = "";
-	
-	boolean _bCalculating = false;
-	
-	
-	
+/* por defecto de la base de datos si hay */
+String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL()).getValue();	
+String _PageToFill="get_guardias.jsp";
+String _SelectedMonth = "";
+boolean _bCalculating = false;
 
-	if (request.getParameter("fecha")!=null) 
-	{		
-			_PageToFill="fill_agenda.jsp";
-			_SelectedMonth = request.getParameter("fecha");
-	}
-	if (request.getParameter("start_calc")!=null)  // se rellena con los huecos  
-	{
-		_PageToFill="calc_agenda.jsp";
-		_SelectedMonth = request.getParameter("start_calc");
-		_bCalculating = true;
-		
-		if (request.getParameter("festivo1")!=null)
-		{%>
-			<script>
-						obj["start_calc"] = '<%=request.getParameter("start_calc")%>';	
-						obj["end_calc"] = '<%=request.getParameter("end_calc")%>';
-		   </script>
-	<%
-			for (int j=1;j<=31;j++)
-			{
-				String _param = "poolday" + j;
-				String _param1 = "festivo" + j;
-				//out.println (request.getParameter(_param1));
-				if (request.getParameter(_param1)!=null)
-				{
-%>
-					<script>
-						obj["poolday<%=j%>"] = '<%=request.getParameter(_param)%>';	
-						obj["festivo<%=j%>"] = '<%=request.getParameter(_param1)%>';
-					</script>
+if (request.getParameter("fecha")!=null) 
+{		
+		_PageToFill="fill_agenda.jsp";
+		_SelectedMonth = request.getParameter("fecha");
+}
+if (request.getParameter("start_calc")!=null)  // se rellena con los huecos  
+{
+	_PageToFill="calc_agenda.jsp";
+	_SelectedMonth = request.getParameter("start_calc");
+	_bCalculating = true;
+	
+	if (request.getParameter("festivo1")!=null)
+	{%>
+		<script>
+					obj["start_calc"] = '<%=request.getParameter("start_calc")%>';	
+					obj["end_calc"] = '<%=request.getParameter("end_calc")%>';
+	   </script>
 <%
-				}
-				
-				
+		for (int j=1;j<=31;j++)
+		{
+			String _param = "poolday" + j;
+			String _param1 = "festivo" + j;
+			//out.println (request.getParameter(_param1));
+			if (request.getParameter(_param1)!=null)
+			{
+%>
+				<script>
+					obj["poolday<%=j%>"] = '<%=request.getParameter(_param)%>';	
+					obj["festivo<%=j%>"] = '<%=request.getParameter(_param1)%>';
+				</script>
+<%
 			}
 		}
-		
-	
-	}	
+	}
+}	
 %>
-
-
 <script>
 
-function sortMe(a, b) {	
-	  return a.className < b.className;
-	}
 
-/* class=orden1 orden2 DE LOS TIPOS DE GUARDIAS */
-function _OrdenarGuardias()
-{
-	
-	$('.fc-title').each(function( index ) {
-		  // obtenemos el #residente #tipo A / B
-		 var elem= $(this).find("div").sort(sortMe);
-		  
-         $(this).append(elem); 			  
-		})
+var _Start;
+var _Duration;
+var cancelDrag = false;
 
-}
 
-function _FillDataDays()
-{
-	// recorremos la tabla de datos de medicos y buscamos en el grid de calendario
+function _DropEvent(event, delta, revertFunc){
 	
-	// quitamos opcion de excel
-	
-	if ($("#calendar div.adjunto").length>0)
-	{				
-		$("#toExcel").show();		
-	}
-	else
-	{		
-		$("#toExcel").hide();
-	}
-	
-	
-	$( "#doctor_list table tr" ).each(function( index ) { 
-		
-		Guardias = $("div."+ _ADJUNTO + "[id=" + $(this).attr("id") +"]").length;
-		var ID_INICIAL = $(this).attr("id");
-		//console.log("Id Medico:" + ID_INICIAL);		
-		Localizada =0;
-		Presencia =0;
-		Refuerzo =0;
-		LocalizadaF =0;
-		PresenciaF =0;
-		RefuerzoF =0;
-		ID = -1;	
-		// recorremos todos los dias 
-		$( ".fc-title div."+ _ADJUNTO + "[id=" + ID_INICIAL +"]").each(function( index ) 
-		{ 					  
-		      if ($(this).hasClass(_REFUERZO))
-		      {	  
-		    	  if ($(this).hasClass("festivoc"))
-		    		  RefuerzoF+=1;
-		    	  else
-		    	  	Refuerzo +=1;
-		      }
-		      if ($(this).hasClass(_LOCALIZADA))
-		      {
-		    	  if ($(this).hasClass("festivoc"))
-		    		  LocalizadaF+=1;
-		    	  else
-		    	  	Localizada +=1;
-		      }
-		    	  
-		      if ($(this).hasClass(_PRESENCIA))
-		      {
-		    	  if ($(this).hasClass("festivoc"))
-		    		  PresenciaF+=1;
-		    	  else
-		    	  Presencia +=1;
-		      }	  
-		    	  			  
-		});    		
-		if (ID_INICIAL!=-1)
-		{				
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mespresencia").html(Presencia);			
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.meslocalizada").html(Localizada);
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mesrefuerzo").html(Refuerzo);
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mespresenciaf").html(PresenciaF);			
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.meslocalizadaf").html(LocalizadaF);
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mesrefuerzof").html(RefuerzoF);
-			$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mestotaladjunto").html(Presencia+Localizada+Refuerzo+PresenciaF+LocalizadaF+RefuerzoF);
-			
-			
-			//alert($(ID_INICIAL + "_data").html());			
-			Localizada =0;
-			Presencia =0;
-			Refuerzo =0;
-			LocalizadaF =0;
-			PresenciaF =0;
-			RefuerzoF =0;
-		}
-		// RESIDENTES 
-		Guardias = $("div."+ _RESIDENTE + "[id=" + $(this).attr("id") +"]").length;
-		FestivosR = 0;
-		// recorremos todos los dias 
-		$( ".fc-title div."+ _RESIDENTE + "[id=" + ID_INICIAL +"]").each(function( index ) 
-		{ 					  
-		      if ($(this).hasClass("festivoc"))
-		    	  FestivosR+=1;
-		    	  
-		});
-		$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mestotalresidente").html(Guardias);
-		$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mesfestivos").html(FestivosR);
-		$("#doctor_list table tr[id=" +ID_INICIAL +"] td.mesdiario").html(Guardias-FestivosR);
-		
-		
-		
-	});
-	
-	
-
-}
-
-function fSaveDatabaseOrExcel(Operation){
-	
-	
-	
-	var _page="medico/grabar_guardias.jsp";
-	
-	if (Operation=='excel' || Operation=='excelmail') 
-		_page="toExcel.jsp";
-	
-	var aGuardias = [];
-	
-	
-	//var _Date = $('#calendar').fullCalendar('getDate').format("YYYY-MM-DD");
-	
-	
-	var LastIDADJUNTOPRESENCIA=0;  // para saber el ultimo y reordenar la secuecia
-	
-	
-	/* CADA DIA */
-	var contador=0;
-	var _Date;
-	
-	
-	
-	var _Date = $('#calendar').fullCalendar('getDate');
-	
-	var dayWrapper = moment(_Date);
-	/* METEMOS EL DIA A 1 */
-	dayWrapper.date(1);
-	
-	$('.fc-title').each(function( index ) {
-	
-		
-		
-		fguardia = dayWrapper.format("YYYY-MM-DD");
-		
-		$(this).find("div").each(function( index2 ) 
-				{
-					
-					  var _oGuardia = {};
-					  
-					 _oGuardia["DiaGuardia"]=fguardia;
-
-					  _oGuardia["IdMedico"]=$(this).attr("id");	
-					  _oGuardia[_ADJUNTO]=0;
-					  
-					  /* ultimo adjunto de presencia */
-					  if ($(this).hasClass(_ADJUNTO) && $(this).hasClass(_PRESENCIA)) 
-					  		LastIDADJUNTOPRESENCIA = $(this).attr("id");					  
-				      if ($(this).hasClass(_ADJUNTO))
-				      {	  
-				    	  _oGuardia[_ADJUNTO]=1;
-				    	  
-				    	  
-				    	  
-				      }
-				      _oGuardia["Festivo"]=0;
-				      if ($(this).hasClass("festivoc"))
-				      {	  
-				    	  _oGuardia["Festivo"]=1;
-				      }
-				      _oGuardia["Tipo"]=_PRESENCIA;
-				       if ($(this).hasClass(_RESIDENTE))
-				      {	  
-				    	   _oGuardia["Tipo"]="";
-				      }				      
-				      if ($(this).hasClass(_LOCALIZADA))
-				      {	  
-				    	  _oGuardia["Tipo"]=_LOCALIZADA;
-				      }				      
-				      if ($(this).hasClass(_REFUERZO))
-				      {	  				    	  
-				    	  _oGuardia["Tipo"]=_REFUERZO;
-				      }
-				    	 				     
-				      aGuardias[contador] = _oGuardia;
-				      contador++;
-				    	  			  
-				});
-		
-			dayWrapper.add(1,"d");
-
-		});
-	
-	  var _urlPage ="<%=request.getContextPath()%>/" + _page;
-	
-	  // por ajax parece que no me lo fuerza la descarga
-	  
-	  _paramExcelMail= "0";
-	  if (Operation=='excel')
-	  {
-		  $("#guardias").val(JSON.stringify(aGuardias));
-		  var _Date1 = $('#calendar').fullCalendar('getDate').date(1).format("YYYY-MM-DD");
-		  $("#MesGuardia").val(_Date1);		  		  
-		  $("#ff3").submit();
-		  
-	  }	  
-	  else
-	  {		  
-		  	  
-	  
-	  	var _IdLoadiongDiv = "loading";
-	  	_paramExcelMail= "1";
-	  	if (Operation=='excelmail')
-		  _IdLoadiongDiv = "loadingmail";
-	  
-	  	
-	 			  
-		  
-	   $("#" + _IdLoadiongDiv).modal("show");  
-	   var _Date1 = $('#calendar').fullCalendar('getDate').date(1).format("YYYY-MM-DD");
-	   $.ajax({
-          data: {guardias: JSON.stringify(aGuardias), MesGuardia : _Date1, ByEmail: _paramExcelMail}, //stringify is important,
-          type: 'POST',
-          dataType: 'JSON',
-          url: _urlPage,          
-  		 complete: function(data) {	  			 
-  			 if (data.responseText.indexOf("Error")==0)
-  			 {
-  				$("#" + _IdLoadiongDiv).modal("hide");
-  				$('#loaded #loadedtitle').html("Incorrecto");
-  			  	$('#loaded #loadedbody').html(data.responseText);
-  			    $('#loaded').modal("show");
-  			 }	 
-  			 else
-  			 {
-  				if (data.responseText.indexOf("OK")>=0)
-  				{
-  					
-  				$("#" + _IdLoadiongDiv).modal("hide");
-  		  	  	$('#loaded #loadedtitle').html("Correcto");
-  			  	
-  			  	if (Operation!='excelmail')
-  			  	{
-  			  		$('#loaded #loadedbody').html("Los datos han sido almacenados correctamente");
-  			  	   _fn_OrdenarSecuenciaAdjuntos(LastIDADJUNTOPRESENCIA);
-  			  	}	
-  			  	else
-  			  		$('#loaded').modal('show');
-  				}
-  				else  // auth issue
-  						window.location.href='<%=request.getContextPath()%>/login.jsp';
-  			  			 
-  			 }	 
-	  		          	  	          	  
-			},
-          fail: function(data) {   
-        	  alert("error");
-        	/*   $('#loading').modal("hide");
-        	  $('#loaded #loadedtitle').html("Error");
-    		  $('#loaded #loadedbody').html(data.responseText);
-    		  $('#loaded').modal('show'); */
-          }
-      });
-	  
-	  } // fin de ajax call y frame target
-	
-	
-}
-
-	var _DateClicked= "";
-	var _EventToChange;
-
-	
-	/* hay que ordenar para que aparezca en el orden correcto */ 
-	function _fn_OrdenarSecuenciaAdjuntos(IDMEDICO)
+	if (cancelDrag)
 	{
-		$.ajax({
-	          data: {lastidmedico: IDMEDICO}, //stringify is important,
-	          type: 'POST',	          
-	          url: '<%=request.getContextPath()%>/medico/reordenar_grabar_guardias.jsp',
-	          complete: function(data) {	        	  
-	        	  $('#loading').modal('hide');
-	        	  $('#loaded').modal('show');
+		
+		// si viene del drop de eventos internos, la tengo, de externos, no
+		try
+		 {
+			revertFunc();
+		 }
+		catch(e){}
+		
+		return false;
+	}
+	
+	
+ 	console.log(event.title + " was dropped on " + event.start.format());
+		
+     $("#modalCambioGuardias").modal("show");
+     
+     _Start =  event.start.format();
+     _Duration =  delta.days();
+     /* QUITAMOS LAS LLAMADAS PREVIAS */
+     $('#btCancelChange').off('click');
+     $('#btCancelChange').unbind("click");	        
+     
+     $('#btAcceptChange').off('click');
+     $('#btAcceptChange').unbind("click");
+     
+     
+     $('#btCancelChange').on('click',function(evt){
+     	$("#modalCambioGuardias").modal ("hide");
+     	try
+		 {
+			revertFunc();
+		 }
+		catch(e){}
+ 		return false;
+     });
+     
+     $('#btAcceptChange').on('click',function(evt){
+     	
+     	
+     	$("#modalCambioGuardias").modal ("hide");
+     	    try
+     	    {
+    			revertFunc();
+    			// borramos de la zona de drag 
+    			$('#external-events .fc-event').each(function() {
+    				$(this).remove();
+    			});
+    		}
+    		catch(e){}
+			$.ajax({
+			data: 'start=' + _Start + '&duration=' + _Duration,
+		    //contentType: "application/json",
+		    dataType: "json",
+           type: 'POST',
+           url: '<%=request.getContextPath()%>/medico/cambio_guardia.jsp',
+	        complete: function(data) {
+	        	 	
+	        	/* 	dataRESULT = JSON.stringify(data.responseText);
+	        		console.log(JSON.stringify(dataRESULT.medico)); */
+	        		if (data.responseText.indexOf("NOOK")>=0)
+	        		{
+	        			$('#loadedbody span').html(data.responseText);
+	  	        		$('#loadedtitle').html("Información");
+		        	  	$('#loaded').modal('show');
+	        		}	  	        			
+	        		else
+	        		{
+	        			var _oCAMBIOJSON = $.parseJSON(data.responseText);
+	        	  	    var oCambio = new Object ();
+	        	  		oCambio.idmedico = _oCAMBIOJSON.medico;
+	        	  		oCambio.inicio = _oCAMBIOJSON.start;
+	        	  		oCambio.end = _oCAMBIOJSON.end;
+	        	  		 
+	        			_newChange (oCambio.idmedico,oCambio.inicio , oCambio.end );
+	        			
+	        		}
+	        	
+	        		// segundo paso, llamas por ajax al formulario 
+	        		 
+	        	
+	        	//	alert(data.responseText);
+	        		/*$('#loadedbody span').html(data.responseText);
+	        		$('#loadedtitle').html("Información");
+	        	  	$('#loaded').modal('show');*/
+	        	  	
 	          },
-	          fail: function(data) {
+	        fail: function(data) {
 	        	
 	        	  alert("Error" + data);
 	          }
-	      });
-		
-	}
-		
+       	});
+			
+     });
 	
+}
+
+function _DragExternalEvents(event, delta, revertFunc)
+{
 	
-	function fn_Save(){
-		
-		  
-		  
-		  var _myindex = 1;
+$('#external-events .fc-event').each(function() {
+
+    // store data so the calendar knows to render an event upon drop
+    $(this).data('event', {
+        title: $.trim($(this).val()), // use the element's text as the event title
+        stick: true // maintain when user navigates (see docs on the renderEvent method)
+    });
+
+    // make the event draggable using jQuery UI
+    $(this).draggable({
+        zIndex: 999,
+        revert: true,      // will cause the event to go back to its
+        revertDuration: 0  //  original position after the drag
+    });
+
+});
+}
+
+
+/* METEMOS UN 5% DE MARGEN */
+
+var isEventOverDiv = function(x, y) {
+
+    var external_events = $( '#external-events' );
+    //var position = external_events.getBoundingClientRect();
+   
+    var offset = external_events.offset();
+    offset.right = external_events.width() + offset.left;
+    offset.bottom = external_events.height() + offset.top;
+	
+    var AbsX = x + document.body.scrollLeft;
+    var AbsY = y + document.body.scrollTop;
+    
+    
+    // Compare
+    if (AbsX >= (offset.left - offset.left*0.15)
+        && AbsY >= (offset.top - offset.top*0.15)
+        && AbsX <= (offset.right + offset.right*0.15)
+        && AbsY <= (offset.bottom + offset.bottom*0.15)) { return true; }
+    return false;
+
+}
+
+
+function allowDrop(ev) {
+	console.log("allowDrop");
+    //ev.preventDefault();
+    console.log("allowDrop2");
+}
+
+function drag(ev) {
+	console.log("drag");
+   // ev.dataTransfer.setData("text", ev.target.id);
+    console.log("drag2");
+}
+
+function drop(ev) {
+	console.log("dropev");
+    //ev.preventDefault();
+    //var data = ev.dataTransfer.getData("text");
+    //ev.target.appendChild(document.getElementById(data));
+    console.log("dropev2");
+}
+
+
+var _dateExternalEvent="";
+	
+$(document).ready(function() {
+			
+
+		//jQuery.event.props.push('dataTransfer');
+
+		$.event.addProp('dataTransfer');
+	
+		 var _defaultDate= new Date();
 		 
-		  var obj = {};
-		  
-		  
-		  $('<input>').attr({
-			    type: 'hidden',
-			    id: 'start_calc',
-			    name: 'start_calc',
-			    value: $('#calendar').fullCalendar('getDate').format("YYYY-MM-DD")
-			}).appendTo('#fSave');
-
-		 /*  obj["start"] = $('#calendar').fullCalendar('getDate').format("YYYY-MM-DD");
-		  obj["end"] = $('#calendar').fullCalendar('getDate').format("YYYY-MM-DD");
-		  */
-		  $('<input>').attr({
-			    type: 'hidden',
-			    id: 'end_calc',
-			    name: 'end_calc',
-			    value: $('#calendar').fullCalendar('getDate').format("YYYY-MM-DD")
-			}).appendTo('#fSave');		  		 
-
-		  	  
-		  $('.fc-title').each(function( index ) {
-			  // obtenemos el #residente #tipo A / B
-			  var _Tipo= $(this).find("#poolday #pool:checked");
-			 // alert(_Tipo);
-			  // obtenemos si es festivo
-			  var _Festivo= $(this).find(".festivo input");
-			  
-			  
-			  //console.log( $(this).find(".festivo input:checked"));
-			  
-			  $('<input>').attr({
-				    type: 'hidden',				    
-				    name: 'poolday' + _myindex,
-				    value: _Tipo.val()
-			  
-				}).appendTo('#fSave');
-			  
-			  	//obj["tipo" + _myindex] = _Tipo.val();
-			  
-			  			  
-			//  _GET_DATA += ",tipo" + _myindex + "=" _Tipo.val();
-			  var _festivoValue = false;
-			  if ($(_Festivo).is(':checked')) {  
-			  //if (_Festivo.val()=="V")
-				  _festivoValue = true;
-			  }		  
-			  
-			  $('<input>').attr({
-				    type: 'hidden',				    
-				    name: 'festivo' + _myindex,
-				    value: _festivoValue
-			  
-				}).appendTo('#fSave');
-			  
-			  
-			  //obj["festivo" + _myindex] = _festivoValue;
-			  _myindex++;
-			//  console.log( index + ": " + $( this ).text() );
-			});
-		  
-		  
-		  $("#fSave").submit();
-		  
-
-	}
-	
-	
-
-	function fn_FillMonth(){
+		 
 		
-				
-		// todos seleccionados
-		// todos seleccionados
+		<% if (!_SelectedMonth.equals("")) { %>
+			
+		   _defaultDate = '<%=_SelectedMonth%>';
 		
-		/* hay datos previos, avisamos y submit */
-		if (<%=_bCalculating%>)
-		{
-		 $( function() {
-			    $( "#dialog-confirm" ).dialog({
-			      resizable: false,
-			      height: "auto",
-			   //   width: 400,
-			      modal: true,
-			      buttons: {
-			        "Continuar": function() {
-			          $( this ).dialog( "close" );
-			            var _pageTo = "<%=request.getRequestURI()%>";
-			  			$("#fecha").val($('#calendar').fullCalendar('getDate').format("YYYY-MM-DD"));
-			  			//alert($("#fecha").val());
-			  			$("#ff").submit();
-			        },
-			        "Cancelar": function() {
-			          $( this ).dialog( "close" );
-			        }
-			      }
-			    });
-			    var buttons = $('.ui-dialog-buttonpane div').children('button');
-			    buttons.removeClass().addClass('btn btn-block btn-primary');
-			    var buttonsCAPA = $('.ui-dialog-buttonset').removeClass();			    
-			  } );
-  
-		}
-		else // normal
-		{
-			var _pageTo = "<%=request.getRequestURI()%>";
-  			$("#fecha").val($('#calendar').fullCalendar('getDate').format("YYYY-MM-DD"));
-  			//alert($("#fecha").val());
-  			$("#ff").submit();
-		}	
-				
-		 		
-
+		<% } %>
 		
-	}
-
-	$(document).ready(function() {
 		
 		$('#calendar').fullCalendar({
 			header: {
-			     left: 'prev,next today',
+			        left: 'prev,next today',
 	                center: 'title',
-	                right: 'month,basicWeek,basicDay'
+	                right: 'year,month,basicWeek,basicDay'
 			},
-		//	defaultDate: '2016-09-19',
+			defaultDate: _defaultDate,
+			fixedWeekCount : false, // solo semanas del mes
+			aspectRatio: 2,
 			navLinks: true, // can click day/week names to navigate views
+			height:600,
+			droppable: true,		
+			 dragRevertDuration: 0,
 			editable: true,			 
 			eventLimit: true, // allow "more" link when too many events
 			color: "yellow",   // an option!
 		    textColor: "black", // an option!
+		    selectHelper : true,
 		    locale: 'es',
 			events:   {
 				url: '<%=_PageToFill%>',
@@ -551,49 +331,96 @@ function fSaveDatabaseOrExcel(Operation){
 					$('#script-warning').show();
 				}
 			},
-			 loading: function (bool) {
+			eventReceive  : function( event ) 
+			{ 
+				//console.log("eventReceive");
+				$("#calendar").fullCalendar('removeEvents', event._id); //replace 123 with reference to a real ID
+
+			}, 
+			drop : function( date, jsEvent, ui, resourceId ) { 
+
+				// event.preventDefault();
+			   // var data = event.dataTransfer.getData("text");
+			    console.log("drop");
+			 	var _Date1= moment(date.format('YYYY-MM-DD'));
+			 	var _Date2= moment(jsEvent.target.innerHTML);
+				
+			 	var objEvent = new Object();				
+				 objEvent.title= jsEvent.target.innerHTML;  //
+				 objEvent.start= _Date1;
+				 
+				 var objDelta = new Object();
+				 objDelta.days =  function () {  return _Date1.diff(_Date2,'days') };
+				 
+				 
+				 _DropEvent(objEvent,objDelta, function () {});
+			 },
+			eventDragStop: function( event, jsEvent, ui, view ) {
+	            
+	        	console.log("eventDragStop");
+	        	
+	        	$("#external-events-listing").removeClass("borderdrop");
+                $("#external-events-listing").addClass("sinborde");
+	        	
+	            if(isEventOverDiv(jsEvent.clientX, jsEvent.clientY)) {
+	               // $('#calendar').fullCalendar('removeEvents', event._id);
+	              // <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+
+	                var el = $( "<div  draggable='true'  id='ExEvent' ondragstart='drag(event)'  class='fc-event'>" ).appendTo( '#external-events-listing' ).text( event.start.format());
+	                //el.
+	                el.draggable({
+	                  zIndex: 999,
+	                  revert: true, 
+	                  revertDuration: 0 
+	                });
+	                el.data('event', { title: event.title, id :event.id, stick: false});                
+	            }
+	        },
+			loading: function (bool) {
 				if (bool)
 					    
 					    $('#loading').modal('show');
 					  else 
 					    $('#loading').modal('hide');
 			 } ,
-			    eventAfterAllRender: function (view) {
-			    	_FillDataDays();
-			    	_OrdenarGuardias();
-			    },
-			    eventRender: function (event, element) {
-			    	element.find('.fc-title').html(event.title);
-			    	if (event.title.indexOf("poolday")>=0)
-			    		element.addClass('poolday');
-			    }
+		    eventAfterAllRender: function (view) {
+		    	_FillDataDays();
+		    	_OrdenarGuardias();
+		    },
+		    eventRender: function (event, element) {
+		    	element.find('.fc-title').html(event.title); // si encuentra input?
+		    	if (event.title.indexOf("input")>=0)
+		    		element.addClass('poolday');
+		    },
+		 /*   eventRender: function (event, element) {
+		    	event.editable = false;
+		    },*/
+		      
+		    eventDragStart: function (event, jsEvent, ui, view) {
+	                console.log(event);
+	                cancelDrag =   !_IsMedicoONCall(_USER_LOGGED,event.title) && !_IS_A;
+	                $("#external-events-listing").addClass("borderdrop");
+	                $("#external-events-listing").removeClass("sinborde");
+	              
+	            	  
+	               // var dragged = [ui.helper[0], event];
+	            },    
+		    eventDrop: function(event, delta, revertFunc) {
+				
+		    	_DropEvent(event,delta,revertFunc);
+		    	
+		    }	
+			    
+			    
+			    
 		});
 		
-		<% if (!_SelectedMonth.equals("")) { %>
-			
-		$('#calendar').fullCalendar('gotoDate','<%=_SelectedMonth%>');
-		
-		<% } %>
-		
-		
-		
-			
-		
 	});
-
-	
-	
-	
-	
-
 </script>
-
 <body>
-
     <div id="wrapper">
-
+       <jsp:include page="common/init.jsp"/>
        <jsp:include page="common/navigation.jsp"/>
-
     </div>
     <!-- /#wrapper -->
     <div id="page-wrapper">
@@ -601,13 +428,13 @@ function fSaveDatabaseOrExcel(Operation){
                 <div class="col-lg-12">
                     <h1 class="page-header">Calendario </h1>
                 </div>
-                 <div class="panel-heading">
-                           <div class="row">
-                               <div class="col-xs-10">	
+                 <div class="panel-heading">                 		 
+                          <div class="row">
+                               <div class="col-lg-10">	                               		
                                		<p>(* Recuerda generar el primer mes correcto. No se permite almacenar guardias pasadas.)</p>								        	   	                                                                     
                                    <div id='calendar'></div>
                                    <!--  hay resultados -->
-                                   <%  if (request.getParameter("fecha")==null)  {  // se rellena con los huecos o viene de BBDD                                	   
+                                   <%  if (request.getParameter("fecha")==null && MedicoLogged.isAdministrator())  {  // se rellena con los huecos o viene de BBDD                                	   
                                    %>                                                                                                          		
                                    <div class="panel panel-default">
 				                        <div class="panel-heading">
@@ -616,7 +443,7 @@ function fSaveDatabaseOrExcel(Operation){
 				                        <!-- /.panel-heading -->
 				                        <div class="panel-body">
 	                            			<div class="row">
-	                                			<div class="col-xs-11"> 
+	                                			<div class="col-lg-11"> 
 	                                    			<div id="doctor_list" class="table-responsive">		                                          
 				                            				<jsp:include page="medico/results_doctor.jsp"/>                            				                          	    	
 	                                    			</div>
@@ -628,16 +455,23 @@ function fSaveDatabaseOrExcel(Operation){
 			                        <!-- /.panel-body -->			                  
 			                    	<% } %>                       
                              </div>
-                               <div class="col-xs-2">
+                             
+                               
+                               <div class="col-lg-2">
+                               		 
+				                 
+                               
                                		<div class="panel panel-yellow colorsguardias"><div class="panel-heading">Presencia</div></div> 
                                		<div class="panel panel-green colorsguardias"><div class="panel-heading">Localizada</div></div>                               		
                                		<div class="panel panel-primary colorsguardias"><div class="panel-heading">Refuerzo</div></div>
                                		<div class="panel panel-red colorsguardias"><div class="panel-heading">Residente</div></div>
-                               		
+                               		<%	
+	                               		if (MedicoLogged.isAdministrator()) {
+	                               	%>		
                                                                                                     
                                     <div class="panel panel-green">
-				                        <div class="panel-heading">
-				                            <i class="fa fa-bar-chart-o fa-fw"></i> Configurar Mes
+				                        <div class="panel-heading">				                        
+				                            <i class="fa fa-calendar-minus-o"></i> Configurar Mes
 				                        </div>
 				                        <div class="panel-body">				                            
 				                            <form  id=ff method=post ><!--  onsubmit="return  fn_FillMonth()" -->
@@ -645,10 +479,10 @@ function fSaveDatabaseOrExcel(Operation){
 												<div  hidden="true" id="dialog-confirm" title="Datos previos">
 													  	<p>Esto perderá los cálculos de pantalla que no estén correctamente almacenados.¿Deseas continuar?</p>
 												</div>
-												<a href="javascript:void(0)" onclick="fn_FillMonth()">
+												<a href="javascript:void(0)" onclick="fn_FillMonth(<%=_bCalculating%>)">
 												<div class="panel-footer">
-					                                <span class="pull-left">Empezar</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-left">Planificar</span>
+					                                <span class="pull-right"><i class="glyphicon glyphicon-check"></i></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
@@ -666,7 +500,7 @@ function fSaveDatabaseOrExcel(Operation){
 				                                <a  href="javascript:void(0)" onclick="fn_Save()">																					
 												<div class="panel-footer">
 					                                <span class="pull-left">Calcular</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-right"><i class="glyphicon glyphicon-send"></i></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
@@ -686,14 +520,14 @@ function fSaveDatabaseOrExcel(Operation){
 												<a href="javascript:void(0)"  onclick="fSaveDatabaseOrExcel('save')">
 												<div class="panel-footer">
 					                                <span class="pull-left">Guardar</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-right"><i class="glyphicon glyphicon-floppy-saved"></i></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
 												<a href="#doctor_list">
 												<div class="panel-footer">
-					                                <span class="pull-left">Ver</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-left">Revisar</span>
+					                                <span class="pull-right"><i class="glyphicon glyphicon-exclamation-sign"></i></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
@@ -702,6 +536,7 @@ function fSaveDatabaseOrExcel(Operation){
 										</div>
 									</div>
 									<% } %>
+									<% if (!_bCalculating) { %>
 									<div id="toExcel" class="panel panel-yellow">
 				                        <div class="panel-heading">
 				                            <i class="fa fa-bar-chart-o fa-fw"></i> Excel
@@ -714,8 +549,8 @@ function fSaveDatabaseOrExcel(Operation){
 												<!--   <a href="javascript:fn_Excel()">-->
 												<a href="javascript:fSaveDatabaseOrExcel('excel')">												 
 												<div class="panel-footer">
-					                                <span class="pull-left">Descargar</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-left">Descargar</span>					                                
+					                                <span class="pull-right glyphicon glyphicon-download"></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
@@ -726,8 +561,8 @@ function fSaveDatabaseOrExcel(Operation){
 												<a href="javascript:fSaveDatabaseOrExcel('excelmail')">
 												<!--  <a href="javascript:fn_ExcelMail()"> -->
 												<div class="panel-footer">
-					                                <span class="pull-left">Enviar Email</span>
-					                                <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+					                                <span class="pull-left">Enviar</span>
+					                                <span class="pull-right glyphicon glyphicon-envelope"></span>
 					                                <div class="clearfix"></div>
 					                            </div>
 												</a>
@@ -738,9 +573,38 @@ function fSaveDatabaseOrExcel(Operation){
 											
 										</div>
 									</div>
+									<% } %>
 									
-                        			<!-- /.panel-body -->
-                    				</div><!-- class="col-xs-2"> -->
+                    				<% 
+                    				}                    				
+                    				if (!_bCalculating) { %>
+			                 		<jsp:include page="tour/tour.jsp"/>
+			                 		
+			                 		<div class="panel panel-primary ">
+				                        <div class="panel-heading">
+				                            <i class="fa fa-hand-o-right" aria-hidden="true"></i>  Arrastra aquí tu cambio
+				                            <i class="fa fa-drivers-license-o"></i> 
+				                        </div>
+				                        <div class="panel-body pad3">	
+					                        <div id='external-events' data-step='31'  data-intro='Arrastra aquí los días que desees cambiar entre meses distintos (navegando con la flecha -> y <- del calendario)'>
+										          <div id='external-events-listing'>
+										            <!-- <div class='fc-event'>My Event 1</div> -->										           
+										          </div>										          										       
+											</div>
+										</div>	
+										<a href=javascript:void(0);" onclick="startIntro();">												 
+												<div class="panel-footer">
+					                                <span class="pull-left">Muéstrame cómo</span>					                                
+					                                <i class="pull-right fa fa-eye" aria-hidden="true"></i>
+					                                <div class="clearfix"></div>
+					                            </div>
+										</a>
+										
+										
+									</div><% } %>
+			                 	<!-- class="col-xs-2"> -->
+                        			
+                    				
                                </div>
                            </div>
                   </div>
@@ -754,17 +618,10 @@ function fSaveDatabaseOrExcel(Operation){
 				      </div>
 				      <div class="modal-body">
 				        <span>Por favor, espere..</span>
-				      </div>
-				      <!--  <div class="modal-footer">
-				        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				        <button type="button" class="btn btn-primary">Save changes</button>
-				      </div> -->
+				      </div>				      
 				    </div>
 				  </div>
 				</div>
-				
-				
-				
 				<div class="modal fade" id="loading" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				  <div class="modal-dialog" role="document">
 				    <div class="modal-content">
@@ -780,23 +637,35 @@ function fSaveDatabaseOrExcel(Operation){
 				      <div class="modal-body">
 				        <span>Por favor, espere..</span>
 				      </div>
-				      <!--  <div class="modal-footer">
-				        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-				        <button type="button" class="btn btn-primary">Save changes</button>
-				      </div> -->
 				    </div>
 				  </div>
-				</div>                
-<!-- 				<div id="loading2" class="progress">	      
-					  <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-					    <span>Ejecutando, por favor, espere..</span>
-				  	</div>
-				</div> -->
+				</div>
+				<!-- Modal CAMBIO DE GUARDIAS  -->
+				<div id="modalCambioGuardias" class="modal fade" role="dialog">
+				  <div class="modal-dialog modal-sm">
+				
+				    <!-- Modal content-->
+				    <div class="modal-content">
+				      <div class="modal-header">
+				        <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+				        <h4 class="modal-title">Información</h4>
+				      </div>
+				      <div class="modal-body">
+				        <p>¿Estás seguro de quieres proceder con este cambio de guardia?</p>
+				      </div>
+				      <div class="modal-footer">
+				        <button id="btAcceptChange" type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+				        <button id="btCancelChange" type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
+				      </div>
+				    </div>				
+				  </div>
+				</div>                 			
+				<!-- FIN  Modal CAMBIO DE GUARDIAS  -->
 				<div class="modal fade" id="loaded" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 				  <div class="modal-dialog" role="document">
 				    <div class="modal-content">
 				      <div class="modal-header">
-				        <h5 class="modal-title" id="loadedtitle">Correcto</h5>
+				        <h5 class="modal-title" id="loadedtitle"></h5>
 				        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 				          <span aria-hidden="true">&times;</span>
 				        </button>
@@ -805,17 +674,17 @@ function fSaveDatabaseOrExcel(Operation){
 				        <span>Los datos han sido almacenados y enviados  correctamente</span>
 				      </div>
 				      <div class="modal-footer">
-				        <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>
-				      <!--    <button type="button" class="btn btn-primary">Save changes</button>
-				      </div> -->
+				        <button type="button" class="btn btn-primary" data-dismiss="modal">Cerrar</button>				      
 				    </div>
 				  </div>
-				</div> 
+				</div>
+				<!--  CAMBIO DE GUARDIAS --> 
+			
 				<div style="display:none" id="loaded2" title="Correcto"><p>Datos almacenados satisfactoriamente</p></div>
+				
       </div>    
-            	  
-	  
 		<div id="frame1"></div>
+		<div id=confirmar_cambio></div>
 </body>
 </html>
 

@@ -40,7 +40,8 @@
 	<script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
 	<script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
 	<script src='<%=request.getContextPath()%>/js/form/validator.js'></script>
-	<script src='<%=request.getContextPath()%>/js/jquery-ui.multidatespicker.js'></script>
+	<script src='<%=request.getContextPath()%>/js/ga.js'></script>
+	<script src='<%=request.getContextPath()%>/js/guardias.js'></script>
 	
 	
 	
@@ -56,7 +57,7 @@
 <body>
 
      <div id="wrapper">
-
+   	   <jsp:include page="common/init.jsp"/>
        <jsp:include page="common/navigation.jsp"/>
 
     </div>

@@ -32,7 +32,7 @@
 	    
 	    _oMedico.setOrden(new Long(j));
 	    
-	    MedicoDBImpl.UpdateMedico(Long.parseLong(ID_MEDICO), _oMedico);	    
+	    MedicoDBImpl.UpdateMedico(Long.parseLong(ID_MEDICO), _oMedico, false);	    
 	    
 	    //oUtilMedicos.GrabarMedico(_Path, ID_MEDICO, _oMedico);
 	    

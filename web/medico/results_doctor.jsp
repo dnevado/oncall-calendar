@@ -22,10 +22,10 @@
 
 	 %>
 	
-<!--  METEMOS DOS TABLAS, ADJUNTOS Y RESIDENTES  -->	
-<table class="table table-bordered table-hover table-striped">
+<!--  METEMOS DOS TABLAS, ADJUNTOS Y RESIDENTES  -->		
+<table class="table responsive table-bordered table-hover table-striped"  style="width: 100%;"  role="grid">
 <thead>
-    <tr>
+    <tr role="row">
         <th></th>
         <th>Nombre Apellidos</th>
         <th>Presencias</th>
@@ -35,6 +35,7 @@
         <th>Localizadas F.</th>
         <th>Refuerzos F.</th>                
         <th>Total</th>
+        <th>Simulados</th>
     </tr>
 </thead>
 <tbody>
@@ -50,7 +51,7 @@
 		//if (!oMedico.getTipo().equals(Util.eTipo.ADJUNTO)) continue;
 	%>
 	
-    <tr id="<%=oMedico.getID()%>">
+    <tr role="row" id="<%=oMedico.getID()%>">
     <td class="datad"></td>
     <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
     <td class="mespresencia"></td>
@@ -60,6 +61,7 @@
     <td class="meslocalizadaf"></td>
     <td class="mesrefuerzof"></td>
     <td class="mestotaladjunto"></td>
+    <td class="messimulados_adjunto"></td>
     </tr>
 		
 	<% }
@@ -67,7 +69,7 @@
 	<tbody>
 </table>
 <!--  METEMOS DOS TABLAS, ADJUNTOS Y RESIDENTES  -->	
-<table class="table table-bordered table-hover table-striped">
+<table class="table responsive table-bordered table-hover table-striped">
 <thead>
     <tr>
         <th></th>
@@ -101,3 +103,4 @@
 	%>	
 	<tbody>
 </table>
+<script>$('tresultsd').DataTable( {   responsive: true} );</script>

@@ -1,3 +1,5 @@
+<%@page import="guardias.security.SecurityUtil"%>
+<%@page import="com.guardias.database.MedicoDBImpl"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
     
@@ -16,19 +18,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge"> 
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="Distribuye eficientemente a todo tu servicio médico de manera ágil y organizada.Olvida la rutina de cuadrar turnos manualmente. Con medONcalls  te facilitamos esta tarea ahorrando la gestión y el coste de tiempo para ello.Recordatorios en tu calendario.Turnos equitativos entre los integrantes del servicio para un remuneración homogénea.En un solo click, podrás solicitar cambios en tu turno">
+    <meta name="author" content="medONcalls">
+    <meta name="keywords" content="agilidad,organización,eficiencia,oncalls,médicos,turnos,cambios de turnos,guardias,médicas,justas,remuneración,calendario,doctores,vacaciones,residente,adjunto,presencia,refuerzo,localizada">
 
-    <title>Login </title>
+    <title>Login medONcalls.Turnos de guardias ágiles, justas , eficientes y equitativas</title>
 	<link href='<%=request.getContextPath()%>/css/bootstrap.min.css' rel='stylesheet' />
 	<link href='<%=request.getContextPath()%>/css/jquery-ui.css' rel='stylesheet' />
 	<link href='<%=request.getContextPath()%>/css/fullcalendar.css' rel='stylesheet' />
 	<link href='<%=request.getContextPath()%>/css/fullcalendar.print.css' rel='stylesheet' media='print' />
-     
-	<!--  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" /> -->
-	<!-- Custom Fonts -->
-	<!-- DataTables Responsive CSS -->
     <link href="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
+    <link rel="icon"   type="image/png"  href="<%=request.getContextPath()%>/public/images/medoncalls4_s_ico.jpg">
     <link href="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
 	<link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 	<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
@@ -45,6 +45,7 @@
 	<script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
 	<script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
 	<script src='<%=request.getContextPath()%>/js/form/validator.js'></script>
+	<script src='<%=request.getContextPath()%>/js/ga.js'></script>
 	
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -61,26 +62,40 @@
 <%
 String Error ="";
 
-if (request.getParameter("email")!=null)
+if (request.getParameter("email")!=null && request.getParameter("password")!=null)
 {
 	String User =  request.getParameter("email");
 	String Password=  request.getParameter("password");
-	if (User.contains("ana.maria.castano.leon@gmail.com") && Password.equals("102030"))
+	
+	//System.out.println(request.getServerName());
+	
+	//if (request.getServerName().contains("demo.")  ||  (User.contains("ana.maria.castano.leon@gmail.com") && Password.equals("102030")))
+	if (User!=null && Password!=null)	
 	{
-		request.getSession().setAttribute("User", User);
 		
-		final MessageDigest messageDigest = MessageDigest.getInstance("MD5");
-		messageDigest.reset();
-		messageDigest.update(User.getBytes("UTF8"));
-		final byte[] resultByte = messageDigest.digest();
-		final String result = new String(Hex.encodeHex(resultByte));
 		
-		Cookie cookie = new Cookie("UserCookie",result);
-		
-		cookie.setHttpOnly(true);
-		cookie.setMaxAge(0);
-		response.addCookie(cookie);
-		response.sendRedirect(request.getContextPath() +"/inicio.jsp");
+		String resultPassword = SecurityUtil.GenerateEncriptedRandomPassword(Password);
+		String resultUser = SecurityUtil.GenerateEncriptedRandomPassword(User);
+		Medico oMLogged = MedicoDBImpl.getMedicoByEmail(User);
+		// en bbdd, activo, contraseña correcta y confirmado 
+		if (oMLogged!=null &&  oMLogged.isActivo() && oMLogged.getPassWord().equals(resultPassword) && oMLogged.isConfirmado())
+		{
+			
+			HttpSession _session = request.getSession(false);
+			_session.setAttribute("User", User);
+			_session.setAttribute("MedicoLogged", oMLogged);
+			
+			
+			Cookie cookie = new Cookie("UserCookie",resultUser);
+			
+			cookie.setHttpOnly(true);
+			cookie.setMaxAge(0);
+			response.addCookie(cookie);
+			response.sendRedirect(request.getContextPath() +"/inicio.jsp");
+			
+		}
+		else
+			Error = "true";
 		
 	}
 	else
@@ -93,11 +108,25 @@ if (request.getParameter("email")!=null)
 %>
 
 <div class="container">
+		<div class="row">
+			<div class="col-md-12">
+            	<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">			
+					 <div class="navbar-header">                
+             			<a class="navbar-brand" href="inicio.jsp"><img src="/Guardias/public/images/medoncalls4_s.jpg"></a>
+            		</div>		            
+    		    </nav>
+    		 </div>   
+        </div>
+
         <div class="row">
             <div class="col-md-4 col-md-offset-4">
-                <div class="login-panel panel panel-default">
+            	
+            	 
+            	
+ 
+                <div class="auth login-panel panel panel-default">
                     <div class="panel-heading">
-                        <h3 class="panel-title">Tus datos</h3>
+                        <h3 class="panel-title">Entrar</h3>
                     </div>
                     <div  id=error  class="alert alert-danger" style="display:none">
                         
@@ -106,17 +135,32 @@ if (request.getParameter("email")!=null)
                     	 
 						<!--  SUCCESS -->    
                     
-                    <div class="panel-body">
-                        <form method=post id="login"role="form" data-toggle="validator" >
+                    <div class="panel-body auth-fields auth-fields-login" >
+                        <form method=post id="login" role="form" data-toggle="validator" >
                             <fieldset>
-                                <div class="form-group">
-                                    <input class="form-control" required maxlength="50"   placeholder="E-mail" name="email" type="email" autofocus>
-                                </div>
-                                <div class="form-group">
-                                    <input class="form-control" required maxlength="50" placeholder="Password" name="password" type="password" value="">
-                                </div>                              
+                               <div class="form-group ">  
+								  <div class="input-group">
+								   <div class="input-group-addon">
+									<span class="glyphicon glyphicon-envelope"></span> 
+								   </div>
+								   <input class="form-control" required  id="email" name="email" type="text" maxlength="50" placeholder="Introduce tu email"/>
+								  </div>
+								 </div> 
+								 <div class="form-group ">  
+								  <div class="input-group">
+								   <div class="input-group-addon">
+									<span class="glyphicon glyphicon-lock"></span> 
+								   </div>
+								    <input class="form-control" required maxlength="50" placeholder="Introduce tu contraseña" name="password" type="password" value="">
+								  </div>
+								 </div> 
+								                              
                                 <!-- Change this to a button or input when using this as a form -->
-                                <button type="submit" class="btn btn-block  btn-primary">Entrar</button>
+                                <div class="auth-button-container">
+                                	<button class="btn btn-primary btn-padded" type="submit">Entrar</button>
+                                	<a class="forgotten-password">Olvidé la contraseña</a></div>
+                                </div>
+                                <div class="auth-text"><a href="http://www.medoncalls.com/Guardias/public/inicio.jsp">¿No dispones de una cuenta todavía?</a></div>
                             </fieldset>
                         </form>
                     </div>
@@ -128,6 +172,8 @@ if (request.getParameter("email")!=null)
 $(document).ready(function() 
 {
 	$('#login').validator();
+	$('#login').removeAttr('novalidate');
+	fmedico
 	if ("<%=Error%>"=="true")
 		$("#error").show();
 		

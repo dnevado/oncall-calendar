@@ -74,25 +74,10 @@ System.out.println(_end);
 
 List lItems = new ArrayList();
 
-/*<xml version='1.0'/>
-<medicos>
-	<m nombre="M0" tipo="G">
-		<vacaciones>
-			<v>01-01-2016 / 01-01-2017</v>
-		</vacaciones>
-	</m>
-*/
-
-
-
-
 lItems = MedicoDBImpl.getMedicos();
 
 
 List<Long> lGenerada = new ArrayList();
-
-
-
 
 
 int _daysOfMonth = com.guardias.Util.daysDiff(_cINI.getTime(),_cFIN.getTime());
@@ -101,6 +86,10 @@ String _EventsJSON = "[";
 int _Index;
 
 boolean  bEncontrado = false;
+
+
+String poolDay = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY()).getValue();
+
 
 // para ir iterando por bloques 
 //for (int j=1;j<=_daysOfMonth;j+=(lItems.size()-1))
@@ -111,21 +100,7 @@ for (int j=1;j<=_daysOfMonth;j++)
 	
 	String _Title = "";
 	
-	
-	/* if (j>lItems.size())   // ya ha superado , cogemos el resto de la division entre el numero de dias y el numero de medicos
-	{
-		_Index=j % lItems.size();
-	}
-	else   // coincide el numero 
-	{
-		_Index=j;
-		
-	}	*/	
-	
 	String _esFestivo  = "";
-	
-	
-	//System.out.print(_cINI.get(Calendar.SUNDAY));
 	
 
 //	if (_cINI.get(Calendar.DAY_OF_WEEK))
@@ -159,7 +134,11 @@ for (int j=1;j<=_daysOfMonth;j++)
 			//_EventsJSON += "{\"title\": \"<div id=adjunto>"   + oM.getApellidos() + "," + oM.getNombre()+  "</div><div id=residente>R.A<input name=tipo" + x+1 + " id=tipo" + j + " type=radio value='A'>R.B<input id=tipo" + j  + " name=tipo" + j + " type=radio value=B></div><div id=refuerzo" + (j) + ">Con / Sin refuerzo</div><div class=festivo>Festivo<input name=vacaciones" + (x+1)  + " type=checkbox value=V></div>\",";
 			//_EventsJSON += "{\"title\": \"<div id=residente>RM<input name=tipo" + j + " id=tipo type=radio value='A'>Rm<input id=tipo name=tipo" + j + " type=radio value=B></div><div class=festivo>Festivo<input name=vacaciones" + (x+1)  + " type=checkbox value=V " + _esFestivo + "></div>\",";
 			// solo meto los festivos
-			_EventsJSON += "{\"title\": \"<div class=festivo>Festivo<input name=vacaciones" + (x+1)  + " type=checkbox value=V " + _esFestivo + "></div><div id=poolday>PoolDay<input name=pool" + j + " id=pool type=checkbox value='POOL'>\",";
+			_EventsJSON += "{\"title\": \"<div class=festivo>Festivo<input name=vacaciones" + (x+1)  + " type=checkbox value=V " + _esFestivo + "></div>";
+			if (poolDay.equals("S"))
+				_EventsJSON +="<div id=poolday>PoolDay<input name=pool" + j + " id=pool type=checkbox value='POOL'></div>";
+				
+			_EventsJSON +="\",";
 			_EventsJSON += "\"start\": \"" + _DATE + "\",";
 			_EventsJSON += "\"textEscape\": false";		 
 			_EventsJSON += "},";

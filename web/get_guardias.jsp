@@ -40,10 +40,13 @@ Calendar _cFIN = Calendar.getInstance();
 
 
 
-/* SUMAMOS UN MES */
+/* SUMAMOS UN MES siempore y cuando no sea el dia uno */
+
+
 _cINI.setTimeInMillis(_dINI.getTime());
 _cINI.set(Calendar.DAY_OF_MONTH, 1);
-_cINI.add(Calendar.MONTH, 1);
+if (_dINI.getDate()!=1)
+	_cINI.add(Calendar.MONTH, 1);
 
 _cFIN.setTimeInMillis(_dFIN.getTime());
 _cFIN.set(Calendar.DAY_OF_MONTH, 1);
@@ -109,7 +112,19 @@ for (int j=1;j<=_daysOfMonth;j++)
 			
 			Medico oM = (Medico) oLM.get(0);
 			
-			_EventsJSON += "<div class='orden" + classContador + " " + oM.getTipo().toString().toLowerCase()  +  " " + _classTipo+" " + sFestivo + "' id=" + oM.getID() + ">"   + oM.getApellidos()+ "," + oM.getNombre() + "</div>";
+			String _EsSimulado= "NO_" + Util.eSubtipoResidente.SIMULADO.toString();
+			if (oM.isResidenteSimulado())
+				_EsSimulado= Util.eSubtipoResidente.SIMULADO.toString();
+			
+			// PARA EL TOUR, SOLO AL PRIMER Y ULTIMO DIA */
+			String _classINTROTour ="";
+			if (j==1)			
+				_classINTROTour ="data-step='" + j +  "' data-intro='Selecciona el día que estés de guardias y desees cambiar o ceder. Un icono aparecerá sobre el día del calendario'";
+			if (j==28)			
+				_classINTROTour ="data-step='" + j +  "' data-intro='Arrastra con el ratón el día seleccionado hasta el elegido. Se aplicarán validaciones para verificar que todo está OK'";		
+			
+			
+			_EventsJSON += "<div " + _classINTROTour + " class='orden" + classContador + " " + oM.getTipo().toString().toLowerCase()  +  " " + _classTipo+" " + _EsSimulado.toLowerCase() + " " +  sFestivo + "' id=" + oM.getID() + ">"   + oM.getApellidos()+ "," + oM.getNombre() + "</div>";
 			
 			classContador+=1;
 								

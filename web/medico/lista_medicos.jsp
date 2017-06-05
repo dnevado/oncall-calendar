@@ -9,25 +9,7 @@
 
 var _DoctorTableList;
 
-function EditarMedico(ID){
-	
-	
-		
-	$( "#editarmedico" ).load( "medico/detallemedico.jsp?q=12123&id="  + ID);
-	
-	$( "#editarmedico" ).dialog(
-		    {
-		        title: 'Datos del médico',
-		        position: { my: 'top', at: 'top+150' },
-		        width: '400px',
-		        close: function(event, ui)
-		        {
-		        //	 $("#editarmedico").dialog("destroy");
-		            
-		        }
-		    });		
-	
-}
+
 
 function fn_callOrdenDoctorList() {
 	//Return a helper with preserved width of cells	
@@ -60,9 +42,13 @@ function fn_callOrdenDoctorList() {
 	$( "#doctor_list tbody" ).disableSelection();
 } 
 
+
+
  $( document ).ready(function() {			
 	 fn_callOrdenDoctorList();
-	 _DoctorTableList=$("#doctor_list").DataTable();
+	 _DoctorTableList=$("#doctor_list").DataTable( {
+		    responsive: true
+	 } );
 }); 
 
 </script>
@@ -73,13 +59,15 @@ function fn_callOrdenDoctorList() {
 </div>
 </div>	
 	
-<table id="doctor_list" class="table table-bordered table-hover table-striped ui-sortable">
+<table id="doctor_list" class="table responsive table-bordered table-hover table-striped"  style="width: 100%;"  role="grid">
 <thead>
     <tr>
     	<th>#</th>
-        <th>Identificador</th>
+        <th>Ident.</th>
         <th>Nombre Apellidos</th>               
-        <th>Máx. Número Guardias</th>
+        <th>Email</th>
+        <th>Máx Guardias</th>
+        <th>Confirmado</th>
         <th></th>
         <th>Activo</th>
         <th></th>
@@ -121,7 +109,9 @@ function fn_callOrdenDoctorList() {
     <td><%=oMedico.getOrden()%></td>    
     <td><%=oMedico.getIDMEDICO()%></td>
     <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
+    <td><%=oMedico.getEmail()%></td>
     <td><%=oMedico.getMax_NUM_Guardias()%></td>
+    <td><%=oMedico.isConfirmado() ? 'S' : 'N'%></td>
     <td><%=oMedico.getTipo()%></td>
     <td><%=oMedico.isActivo() ? 'S' : 'N'%></td>
     <td><a class="ui-widget ui-corner-all" href="javascript:EditarMedico(<%=oMedico.getID()%>)">Editar</a></td>   
@@ -131,4 +121,4 @@ function fn_callOrdenDoctorList() {
 	%>	
 	</tbody>
 </table>
-	<div id="editarmedico"  title="Datos del Médico"></div>
+	<!--  <div id="editarmedico"  title="Datos del Médico"></div>-->
