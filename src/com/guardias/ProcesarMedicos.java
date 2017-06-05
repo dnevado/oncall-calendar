@@ -6,6 +6,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,9 +17,11 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -82,7 +85,70 @@ public class ProcesarMedicos {
 		
 	}
 	
+	/* ORDENAMOS LOS DIAS DE LA SEMANA EN VACACIONES POR IMPARES, ES DECIR, lunes, miercoles, viernes, martes, jueves, asi se distribuyen 
+	 * los residentes que estan de vacaciones de manera prioritaria y en la misma semana, evitando que nos den los dias juntos  */ 
+	@SuppressWarnings("deprecation")
+	public static List<Long> ListaDiasSemanaOrdenImpar(Calendar cSemana, List<Long> ListaFestivos, Util.eTipoDia TipoDia, int MesActual,
+			HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> lMedicos)
+	{
 	
+		List<Date> lFechas = new LinkedList<Date>();
+		List<Long> lSortedDays = new LinkedList<Long>();
+		
+		
+		Calendar _cINICIO  = Calendar.getInstance();
+		_cINICIO.setTimeInMillis(cSemana.getTimeInMillis()); 
+		
+		
+		Calendar calcSemanaCal= Calendar.getInstance(); 
+		calcSemanaCal.setTimeInMillis(_cINICIO.getTimeInMillis());
+		final int currentDayOfWeek = (calcSemanaCal.get(Calendar.DAY_OF_WEEK) + 7 - calcSemanaCal.getFirstDayOfWeek()) % 7;		 
+		//calcSemanaCal.set(Calendar., Calendar.WEDNESDAY);
+		calcSemanaCal.add(Calendar.DATE , -currentDayOfWeek);
+		
+		int _days  = 7;
+		
+		for (int j=1;j<=_days;j++)
+		{
+			
+			if (calcSemanaCal.get(Calendar.MONTH)==MesActual)
+			{
+				
+				Long _ActualDayOfWeek = new Long(calcSemanaCal.get(Calendar.DATE));
+				
+	    		boolean bDayToAdd = false;
+	    		
+				if (TipoDia.equals(Util.eTipoDia.DIARIO))			
+						if (!ListaFestivos.contains(_ActualDayOfWeek))
+								bDayToAdd=true;
+								//lDays.add(_ActualDayOfWeek);
+
+				if (TipoDia.equals(Util.eTipoDia.FESTIVO))			
+					if (ListaFestivos.contains(_ActualDayOfWeek))
+							bDayToAdd=true;
+				if (bDayToAdd)
+					lFechas.add(calcSemanaCal.getTime());
+			}
+			
+			calcSemanaCal.add(Calendar.DATE, 1);	
+			
+		}
+		
+		
+				
+		
+		
+		Collections.sort(lFechas, new ByOrdenFechasImpares());
+		for (Date oFecha : lFechas)
+		{			
+			lSortedDays.add( new Long(oFecha.getDate()));
+		}
+		
+    	
+    
+	return lSortedDays;
+	
+	}
 	/* DIA 1 Y PARCIALES DE 7 */ 
 	public static List<Long> ListaDiasSemanaPorOrdenMenorSimulados(Calendar cSemana, List<Long> ListaFestivos, Util.eTipoDia TipoDia, int MesActual,
 			HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> lMedicos)
@@ -121,50 +187,82 @@ public class ProcesarMedicos {
 			{
 			
 			Long _ActualDayOfWeek = new Long(calcSemanaCal.get(Calendar.DATE));
-			Long  IDAdjuntoGuardiaDia = new Long(-1);
+			List<Long>  _lIDAdjuntoGuardiaDia = new ArrayList();
 			
 			try {
-				IDAdjuntoGuardiaDia = ProcesarMedicos.getMedicoGuardiaDia(_ActualDayOfWeek.intValue(), _ListaGuardiasMedicos, Util.eTipo.ADJUNTO, lMedicos);
+				_lIDAdjuntoGuardiaDia = ProcesarMedicos.getMedicoGuardiaDia(_ActualDayOfWeek.intValue(), _ListaGuardiasMedicos, Util.eTipo.ADJUNTO, lMedicos);
 				
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String _KeyTOTAL ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES"; 
-			String _KeyTOTAL_Festivos ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_FESTIVOS_MES";
+			
+			
+			
+
+			String _KeyTOTALMES ="";
+			String _KeyTOTALHISTORICO ="";
+			String _KeyTOTALMESF="";
+			String _KeyTOTALHISTORICOF="";
+			
+			_KeyTOTALMES ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES";
+	    	_KeyTOTALHISTORICO = "HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES"; 
+			
+			_KeyTOTALMESF ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO+ "_FESTIVOS_MES";
+		    _KeyTOTALHISTORICOF = "HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_FESTIVOS_MES";
+			
     		/* if (EsFestivo)
 				_KeyTOTAL= "_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_FESTIVOS_MES";
     		*/
-    		Hashtable  DatosGuardias = _ListaGuardiasMedicos.get(IDAdjuntoGuardiaDia);
-    		Long Total =  new Long(0);
-    		Long TotalF =  new Long(0);
-    		if (DatosGuardias.containsKey(_KeyTOTAL))   
-    		{	
-    			Total =  Long.parseLong(DatosGuardias.get(_KeyTOTAL).toString());    		    			
-    		}
-    		if (DatosGuardias.containsKey(_KeyTOTAL_Festivos))   
-    		{	
-    			TotalF =  Long.parseLong(DatosGuardias.get(_KeyTOTAL_Festivos).toString());    		    			
-    		}
 			
-    		boolean bDayToAdd = false;
+			Long Total =  new Long(0);
     		
-			if (TipoDia.equals(Util.eTipoDia.DIARIO))			
-					if (!ListaFestivos.contains(_ActualDayOfWeek))
+    		
+			for (Long IdAdjunto : _lIDAdjuntoGuardiaDia)
+			{
+				
+				Hashtable  DatosGuardias = _ListaGuardiasMedicos.get(IdAdjunto);
+
+	    		if (DatosGuardias.containsKey(_KeyTOTALMES))   
+	    		{	
+	    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALMES).toString());
+	    		}
+	    		if (DatosGuardias.containsKey(_KeyTOTALHISTORICO))   
+	    		{	
+	    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALHISTORICO).toString());
+	    		}
+	    		if (DatosGuardias.containsKey(_KeyTOTALMESF))   
+	    		{	
+	    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALMESF).toString());
+	    		}
+	    		if (DatosGuardias.containsKey(_KeyTOTALHISTORICOF))   
+	    		{	
+	    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALHISTORICOF).toString());
+	    		}
+				
+			
+	    		boolean bDayToAdd = false;
+	    		
+				if (TipoDia.equals(Util.eTipoDia.DIARIO))			
+						if (!ListaFestivos.contains(_ActualDayOfWeek))
+								bDayToAdd=true;
+								//lDays.add(_ActualDayOfWeek);
+
+				if (TipoDia.equals(Util.eTipoDia.FESTIVO))			
+					if (ListaFestivos.contains(_ActualDayOfWeek))
 							bDayToAdd=true;
 							//lDays.add(_ActualDayOfWeek);
 
-			if (TipoDia.equals(Util.eTipoDia.FESTIVO))			
-				if (ListaFestivos.contains(_ActualDayOfWeek))
-						bDayToAdd=true;
-						//lDays.add(_ActualDayOfWeek);
-
-			
-			if (bDayToAdd)
-				{
-					lUNSortedListaDiasMedicos.put(_ActualDayOfWeek, Total + TotalF);
-					System.out.println("Dia:" + _ActualDayOfWeek + ",total:" + Total + TotalF);
-				}
+				
+				if (bDayToAdd)
+					{
+						lUNSortedListaDiasMedicos.put(_ActualDayOfWeek, Total);
+					//	System.out.println("MEDICOID:" + _lIDAdjuntoGuardiaDia.toString() + ",Dia:" + _ActualDayOfWeek + ",totalDiario:" + Total + ",totalfestivo:" + TotalF);
+					}
+	    		
+			} //for ID DE ADJUNTOS	
+	    		
+    		
 				
 			}
 			
@@ -174,8 +272,8 @@ public class ProcesarMedicos {
 			calcSemanaCal.add(Calendar.DATE, 1);
 		}
 		
-		
-	   Set<Entry<Long, Long>> mapEntries = lUNSortedListaDiasMedicos.entrySet();
+		System.out.println(lUNSortedListaDiasMedicos);
+	    Set<Entry<Long, Long>> mapEntries = lUNSortedListaDiasMedicos.entrySet();
         
         List<Map.Entry<Long, Long>> lSortedListaGuardiasMedicos = new ArrayList<Map.Entry<Long, Long>>();
         
@@ -198,7 +296,7 @@ public class ProcesarMedicos {
         List<Long> lDaysSorted = new ArrayList<Long>();
         	for(Entry<Long,Long> entry: lSortedListaGuardiasMedicos) {
         		lDaysSorted.add(entry.getKey());
-        		System.out.println("key:" + entry.getKey());
+        		//System.out.println("key:" + entry.getKey());
         }
         
         	
@@ -346,10 +444,10 @@ public class ProcesarMedicos {
 				
 					String _DATE = _format.format(_cINICIO.getTime());
 					//2016-01-01/2016-01-10
-					if (!ProcesarMedicos.NoTieneVacaciones(oMedico, _DATE))  // ésta de vacaciones				
+				/* 	if (!ProcesarMedicos.NoTieneVacaciones(oMedico, _DATE))  // ésta de vacaciones				
 					{	
 						_DIAS_VACACIONES++;				
-					}
+					} */
 					_cINICIO.add(Calendar.DAY_OF_MONTH, 1);
 				}
 				
@@ -364,7 +462,7 @@ public class ProcesarMedicos {
 				
 			}
 		}
-		if (TOTAL>=_daysOfMonth) TOTAL=0;
+		//if (TOTAL>=_daysOfMonth) TOTAL=0;
 		
 		return new Long(TOTAL);
 	}
@@ -467,20 +565,21 @@ public class ProcesarMedicos {
 	DiaMes --> Dia actual para agregarle guardias o no
 	*/
 	
-	public  static Long getMedicoGuardiaDia(int _DiaMes, HashMap<Long, Hashtable> _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
+	public  static List<Long> getMedicoGuardiaDia(int _DiaMes, HashMap<Long, Hashtable> _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
 	{		
 		
 		Iterator entries = _ListaGuardiasMedicos.entrySet().iterator();
 
 		Medico oMedico = null; 
 		
+		List<Long> lkeysMEDICO = new ArrayList<Long>();
 		Long keyMEDICO = new Long(-1);
 		
 		boolean bEncontrado= false;
 		
 		Medico _oM = null;
 		
-		while (entries.hasNext() && !bEncontrado) 
+		while (entries.hasNext())  //&& !bEncontrado , ahora hay que buscar todas las presencias si hay mas de una  
 		{
 		  Entry thisEntry = (Entry) entries.next();
 		  keyMEDICO = (Long) thisEntry.getKey(); 
@@ -505,7 +604,7 @@ public class ProcesarMedicos {
 			  			  
 			  if (_oM.getTipo().equals(TipoMedico) && keyDAY.equals(String.valueOf(_DiaMes)))  // lo encuentra
 			  {
-				  bEncontrado = true;
+				  lkeysMEDICO.add(keyMEDICO); 
 				  break;
 				  
 				  
@@ -513,7 +612,7 @@ public class ProcesarMedicos {
 		 }
 		} 
 						
-		return keyMEDICO;
+		return lkeysMEDICO;
 	}
 	
 	/* PARA LOS DIAS INICIALES QUE SE VERIFICA EL QUE MENOS GUARDIA LOCALIZADA Y REFUERZO, ESTO NOS DA SI NO HAY NINGUNO PREVIO
@@ -812,20 +911,26 @@ public class ProcesarMedicos {
 		
 		
 		/* INICIO Y FIN DE LA SEMANA DEL DIA A CALCULAR , LUNES A DOMINGO */
+		
+		/* SUNDAY TO SATURDAY SATURDAY */
+
 		Calendar cINI = Calendar.getInstance();  // MONDAY  
 		Calendar cFIN = Calendar.getInstance();  // SUNDAY
 		cINI.setTimeInMillis(FechaActual.getTimeInMillis());
+
+		/* SUNDAY = 1 SATURDAY =7 */
+		int currentDayOfWeek = Util.whichDayOfWeek(cINI);
+		cINI.add(Calendar.DATE , -(currentDayOfWeek-1));  // por defecto, meto el lunes como FECHA INI 
 		
-		
-		final int currentDayOfWeek = (cINI.get(Calendar.DAY_OF_WEEK) + 7 - cINI.getFirstDayOfWeek()) % 7;		 
-		//calcSemanaCal.set(Calendar., Calendar.WEDNESDAY);
-		cINI.add(Calendar.DATE , -currentDayOfWeek);
 		int _days  = ProcesarMedicos.DiasSemanaCursoDentroMes(FechaActual, MesActual);
-		if (_days<7)
-		{
-			cINI.setTimeInMillis(FechaActual.getTimeInMillis());
-		}
 		
+		// OJO A LOS CAMBIOS DE MES DE PRIMERA Y ULTIMA SEMANA 
+		if (_days<7 &&  cINI.get(Calendar.MONTH)!=FechaActual.get(Calendar.MONTH))  // lunes que empiezan en el mes anterior   
+		{
+			cINI.add(Calendar.DATE , (7-_days));
+			
+		}
+	//	System.out.println ("Verificando Simulados entre el dia " + cINI.get(Calendar.DATE) +  " durante " + _days + " dias");
 		/* DESDE EL LUNES  HASTA EL DIA ACTUAL, SIN CAMBIO DE MES */
 		for (int j=1;j<=_days;j++)	
 		{
@@ -884,20 +989,42 @@ public class ProcesarMedicos {
 		Map<Long,Long> lUnSortedListaGuardiasMedicos = new HashMap <Long, Long>();
 		List<Long> keys = new ArrayList(_ListaGuardiasMedicos.keySet()); 
 
-		String _KeyTOTAL ="";
-	    for ( Long obj : keys ) {
+		String _KeyTOTALMES ="";
+		String _KeyTOTALHISTORICO ="";
+		String _KeyTOTALMESF="";
+		String _KeyTOTALHISTORICOF="";
+		
+		_KeyTOTALMES ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES";
+    	_KeyTOTALHISTORICO = "HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES"; 
+		
+		_KeyTOTALMESF ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO+ "_FESTIVOS_MES";
+	    _KeyTOTALHISTORICOF = "HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_FESTIVOS_MES";
+		
+	    for ( Long obj : keys ) 
+	    {
 			
-	    	_KeyTOTAL ="_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_DIARIO_MES"; 
-    		if (EsFestivo)
-				_KeyTOTAL= "_TOTAL_" + Util.eSubtipoResidente.SIMULADO + "_FESTIVOS_MES";
+	    	
     		
     		Hashtable  DatosGuardias = _ListaGuardiasMedicos.get(obj);
     		Long Total =  new Long(0);
-    		if (DatosGuardias.containsKey(_KeyTOTAL))   
+    		if (DatosGuardias.containsKey(_KeyTOTALMES))   
     		{	
-    			Total =  Long.parseLong(DatosGuardias.get(_KeyTOTAL).toString());    		
-    			lUnSortedListaGuardiasMedicos.put(obj, Total);
+    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALMES).toString());
     		}
+    		if (DatosGuardias.containsKey(_KeyTOTALHISTORICO))   
+    		{	
+    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALHISTORICO).toString());
+    		}
+    		if (DatosGuardias.containsKey(_KeyTOTALMESF))   
+    		{	
+    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALMESF).toString());
+    		}
+    		if (DatosGuardias.containsKey(_KeyTOTALHISTORICOF))   
+    		{	
+    			Total +=  Long.parseLong(DatosGuardias.get(_KeyTOTALHISTORICOF).toString());
+    		}
+    		lUnSortedListaGuardiasMedicos.put(obj, Total);
+    		
 		   
 		}
 	    
@@ -957,7 +1084,23 @@ public class ProcesarMedicos {
 		  if (ExisteMedicoPorId(listaMedico,keyMEDICO))		  
 		  {	 		  
 			  
-			  Long _TotalMedico = Long.parseLong(lDatosTemp.get(_KeyTOTAL).toString());
+			  Long _TotalMedico = new Long(0);
+			  if (lDatosTemp.containsKey(_KeyTOTALMES))   
+	    	  {	
+				  _TotalMedico +=  Long.parseLong(lDatosTemp.get(_KeyTOTALMES).toString());
+	    	  }
+	    	  if (lDatosTemp.containsKey(_KeyTOTALHISTORICO))   
+	    	  {	
+	    			_TotalMedico +=  Long.parseLong(lDatosTemp.get(_KeyTOTALHISTORICO).toString());
+	    	  }
+	    	  if (lDatosTemp.containsKey(_KeyTOTALMESF))   
+	    	  {	
+	    			_TotalMedico +=  Long.parseLong(lDatosTemp.get(_KeyTOTALMESF).toString());
+	    	  }
+	    	  if (lDatosTemp.containsKey(_KeyTOTALHISTORICOF))   
+	    	  {	
+	    			_TotalMedico +=  Long.parseLong(lDatosTemp.get(_KeyTOTALHISTORICOF).toString());
+	    	  }
 			  Medico oMedico = GetMedicoPorID(listaMedico,keyMEDICO);			  
 			  // del total de adjuntos, sacamos por orden de menor simulados siempre que no puedan estar solo???
 			  
@@ -993,47 +1136,127 @@ public class ProcesarMedicos {
 	
 	/* OJO CONTAMOS AQUELLOS QUE ESTAN ACTIVOS Y PUEDEN HACER GUARDIAS SOLOS */
 
+	/* 20170521, en vez iterar por las guardias hechas en el mes, itero antes por todos los adjuntos para saber que guardias tienen 
+	 * podria pasar que no hagan guardias de presencias por el dia de vacaciones y hagan refuerzos, entonces, no estarian disponibles 
+	 */
+	
 	public static  Long  AdjuntoMenosGuardiasYHorasSeguidas(boolean EsSimulado, Util.eTipoGuardia _GuardiaTipo, String KeyTipoGuardia, HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico, 
-			Long ExcluirIDMedicoPresencia, int _Dia, int DiasMes ) throws ParseException
+			List<Long> lExcluirIDMedicoPresencia, int _Dia, int DiasMes, String _Fecha ) throws ParseException
 	{		
-		
-
-		/* if (!_ListaGuardiasMedicos.containsKey(_Medico))  // primero que encuentre el registro del medico a buscar
-			return _EsConMenosFestivosMes;			
-		
-		*/
 		
 		/* INTENTAMOS ORDENAR POR EL  QUE MENOS TOTALES  TENGA  PARA DAR LOS REFUERZOS  DE MANERA EQUITATIVA  */
 		/* TOTAL Y CLAVE 					
 		/* ACCEDEMOS A LAS GUARDIAS POR MEDICO DE MANERA ALEATORIA */
 
-		Map<Long,Long> lUnSortedListaGuardiasMedicos = new HashMap <Long, Long>();
-		List<Long> keys = new ArrayList(_ListaGuardiasMedicos.keySet());
-
+		Configuracion oMAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF = ConfigurationDBImpl
+				.GetConfiguration(Util.getoCONST_MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF());
 		
-		/* PRIMERO, ORDENAMOS POR EL TOTAL QUE MENOS TENGA */
-		String _KeyTOTAL ="";
-	    for ( Long obj : keys ) {
+		long MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF =Long.valueOf(oMAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF.getValue()).longValue();
+		
+		Configuracion oMAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS = ConfigurationDBImpl
+				.GetConfiguration(Util.getoCONST_MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS());
+		
+		
+		
+		/* MAXIMO NUMERO DE LOCALIZADAS Y PRESENCIAS POR ADJUNTO */
+		long MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS =Long.valueOf(oMAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS.getValue()).longValue();
+		
+		SimpleDateFormat _sdf = new SimpleDateFormat(Util._FORMATO_FECHA);
+		Date _FechaMes = _sdf.parse(_Fecha);
+		Calendar _cFechaMes = Calendar.getInstance();
+		_cFechaMes.setTimeInMillis(_FechaMes.getTime());
+		boolean _bMES_VACACIONAL = Util.EsMesVacaciones(_cFechaMes); 
+		
+		
+		Map<Long,Long> lUnSortedListaGuardiasMedicos = new HashMap <Long, Long>();
+		
+		
+		String _KeyTOTALMES ="";
+		String _KeyTOTALHISTORICO ="";
+		
+		Long TotalMES =  new Long(0);
+		Long TotalHISTORICO =  new Long(0);
+		
+		Long MAYOR_TOTAL_GUARDIA_MES = new Long(0);
+		
+		
+		/* 20170516  SI ES MES VACACIONES, CONTEMPLAMOS TOTALES DE TODAS LAS TIPOS DE GUARDIAS DEL MES, NO HISTORICO
+		 * */ 
+		List<String> lKeysGuardias= new ArrayList();
+		if (_bMES_VACACIONAL)
+		{
 			
-	    	_KeyTOTAL ="_TOTAL_GUARDIAS_MES"; 
-    		if (KeyTipoGuardia.toString().contains("_FESTIVOS"))
-				_KeyTOTAL= "_TOTAL_FESTIVOS_MES";
-    		
-    		Hashtable  DatosGuardias = _ListaGuardiasMedicos.get(obj);
-    		Long Total =  new Long(0);
-    		if (DatosGuardias.containsKey(_KeyTOTAL))    			
-    			Total =  Long.parseLong(DatosGuardias.get(_KeyTOTAL).toString());
-    		/* else
-    			Total = new */
-        	
-    		lUnSortedListaGuardiasMedicos.put(obj, Total);
-		   
+			 StringBuilder _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.LOCALIZADA + "_MES");
+			 lKeysGuardias.add(_SB.toString());
+			 _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.LOCALIZADA + "_FESTIVOS_MES");
+			 lKeysGuardias.add(_SB.toString());
+			 
+			  _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.PRESENCIA + "_MES");
+			 lKeysGuardias.add(_SB.toString());
+			 _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.PRESENCIA + "_FESTIVOS_MES");
+			 lKeysGuardias.add(_SB.toString());
+				 
+				 
+			  _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.REFUERZO + "_MES");
+			 lKeysGuardias.add(_SB.toString());
+		    _SB = new StringBuilder("_TOTAL_" + Util.eTipoGuardia.REFUERZO + "_FESTIVOS_MES");
+			 lKeysGuardias.add(_SB.toString());
+
+		}	
+			 
+		 else // PARA ORDENAR POR EL QUE MENOS LLEVE
+		 {
+			    _KeyTOTALMES ="_TOTAL_" + _GuardiaTipo.toString() + "_MES";
+		    	_KeyTOTALHISTORICO = "HISTORICO_TOTAL_" + _GuardiaTipo.toString() + "_MES"; 
+	    		if (KeyTipoGuardia.toString().contains("_FESTIVOS"))
+	    		{
+	    			_KeyTOTALMES ="_TOTAL_" + _GuardiaTipo.toString() + "_FESTIVOS_MES";
+	    	    	_KeyTOTALHISTORICO = "HISTORICO_TOTAL_" + _GuardiaTipo.toString() + "_FESTIVOS_MES";
+	    			
+	    		}
+		 }
+			
+		/* 20170516 */ 
+		for (Medico oAdjunto : listaMedico)
+		{
+			
+			if (oAdjunto.isActivo() && _ListaGuardiasMedicos.containsKey(oAdjunto.getID()))
+			{
+				
+	    		TotalMES =  new Long(0);
+	    		TotalHISTORICO =  new Long(0);
+	    		
+	    		Hashtable  DatosGuardias = _ListaGuardiasMedicos.get(oAdjunto.getID());
+	    		
+	    		if (!_bMES_VACACIONAL)
+	    		{
+	    			if (DatosGuardias.containsKey(_KeyTOTALMES))    			
+	        			TotalMES =  Long.parseLong(DatosGuardias.get(_KeyTOTALMES).toString());
+	        		if (DatosGuardias.containsKey(_KeyTOTALHISTORICO))    			
+	        			TotalHISTORICO =  Long.parseLong(DatosGuardias.get(_KeyTOTALHISTORICO).toString());
+	    		}
+	    		else
+	    		{
+	    			for (String Clave : lKeysGuardias)
+	    			{
+	    				if (DatosGuardias.containsKey(Clave))
+	    				{
+	    					TotalMES +=  Long.parseLong(DatosGuardias.get(Clave).toString());
+	    				}
+	    			}
+	    		}
+	    		
+	    		lUnSortedListaGuardiasMedicos.put(oAdjunto.getID(), new Long(TotalMES + TotalHISTORICO));
+	    		
+	    		if (MAYOR_TOTAL_GUARDIA_MES<TotalMES)
+	    			MAYOR_TOTAL_GUARDIA_MES = TotalMES;
+	    		
+			}
+				
 		}
+					
 	    
 	    Set<Entry<Long, Long>> mapEntries = lUnSortedListaGuardiasMedicos.entrySet();
-        
-       // System.out.println("Values and Keys before sorting :" + _GuardiaTipo  + ",clave a buscar de totales :" + _KeyTOTAL);
-      
         List<Map.Entry<Long, Long>> lSortedListaGuardiasMedicos = new ArrayList<Map.Entry<Long, Long>>();
         
         for(Entry<Long, Long> entry : mapEntries) {
@@ -1043,8 +1266,6 @@ public class ProcesarMedicos {
         }
         
         // used linked list to sort, because insertion of elements in linked list is faster than an array list. 
-        
-
         // sorting the List
         ByTotalesGuardiasDESC _ComparadorPorTotalesDES  = new ByTotalesGuardiasDESC();
         
@@ -1056,78 +1277,152 @@ public class ProcesarMedicos {
         	aMapSorted.put(entry.getKey(), entry.getValue());
         }
         
-     // printing values after soring of map
-  /*       System.out.println("After Sorted Value " + " - " + "Key");
-        for(Entry<Long,Long> entry : aMapSorted.entrySet()) {
-            System.out.println(entry.getValue() + " - " + entry.getKey());
-        }
-        
-	 */   
-		
+       // System.out.println(aMapSorted);
 		
 		long _MININO_RESTO_MEDICOS = 9999999;
+		long _MININO_GUARDIAS_RESTO_MEDICOS_MES = 9999999;
 		
-		Long IDMEDICOMenosSimulados = new Long(-1);
-		/* 
-		 * 	[_TOTAL_SIMULADO_MES]		
-			[_TOTAL_SIMULADO_FESTIVOS_MES]
-		 */
+		
+		Long IdMedicoMenosGuardias = new Long(-1);
+		
 		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, Hashtable>();
 		 for(Entry<Long,Long> entry : aMapSorted.entrySet()) {
 	     //       System.out.println(entry.getValue() + " - " + entry.getKey());
 	            _NewSortedByTotal.put(entry.getKey(), _ListaGuardiasMedicos.get(entry.getKey()));
 	     }
-	        
-		
-		
 		/* FIN ACCEDEMOS A LAS GUARDIAS POR MEDICO DE MANERA ALEATORIA */
-		
 		
 		
 		Iterator entries = _NewSortedByTotal.entrySet().iterator();
 		
-		//Iterator  entries = _ListaGuardiasMedicos.keySet().iterator();
-		
 		while (entries.hasNext()) 
 		{
-		
+			
+		  TotalMES =  new Long(0);
+		  TotalHISTORICO =  new Long(0);
+		  
+		 
 		  boolean ExcedeHorasSeguidasMedico  = false; 			
 			
 		  Entry thisEntry = (Entry) entries.next();
 		  Long keyMEDICO = (Long) thisEntry.getKey();
 		  Hashtable lDatosTemp = (Hashtable) thisEntry.getValue();		  
-		  if (ExisteMedicoPorId(listaMedico,keyMEDICO) && !keyMEDICO.equals(ExcluirIDMedicoPresencia))		  
+		  if (ExisteMedicoPorId(listaMedico,keyMEDICO) && !lExcluirIDMedicoPresencia.contains(keyMEDICO))		  
 		  {	 		  
-			  /* nos aseguramos ya que esta en la lista */
-			  Long _TotalMedico = Long.parseLong(lDatosTemp.get(KeyTipoGuardia).toString());
+			  if (!_bMES_VACACIONAL)
+	    		{
+	    			if (lDatosTemp.containsKey(_KeyTOTALMES))    			
+	        			TotalMES =  Long.parseLong(lDatosTemp.get(_KeyTOTALMES).toString());
+	        		if (lDatosTemp.containsKey(_KeyTOTALHISTORICO))    			
+	        			TotalHISTORICO =  Long.parseLong(lDatosTemp.get(_KeyTOTALHISTORICO).toString());
+	    		}
+	    		else
+	    		{
+	    			for (String Clave : lKeysGuardias)
+	    			{
+	    				if (lDatosTemp.containsKey(Clave))
+	    				{
+	    					TotalMES +=  Long.parseLong(lDatosTemp.get(Clave).toString());
+	    				}
+	    			}
+	    		}
+			  
+			  Long _TotalMedico = TotalMES + TotalHISTORICO;
 			  Medico oMedico = GetMedicoPorID(listaMedico,keyMEDICO);
-			  
-			  
-			  //int _GuardiasPreviasSeguidas = ProcesarMedicos.getDiasPreviosConGuardiasSeguidos(_Dia, lDatosTemp);
-			  
-			  /* PROBARRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR*/
-			  
+						  
 			  Long MAX_NUMERO_DIAS_SEGUIDOS_ADJUNTOS = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_DIAS_SEGUIDOS_ADJUNTOS()).getValue());
 			  
-			  ExcedeHorasSeguidasMedico = ProcesarMedicos.ExcedeAdjuntoDiasSeguidos(_Dia, lDatosTemp, MAX_NUMERO_DIAS_SEGUIDOS_ADJUNTOS.longValue(),_GuardiaTipo, DiasMes);
+			  ExcedeHorasSeguidasMedico = ProcesarMedicos.ExcedeAdjuntoDiasSeguidos(_Dia, lDatosTemp, MAX_NUMERO_DIAS_SEGUIDOS_ADJUNTOS.longValue(),_GuardiaTipo, DiasMes);			  		
 			  
-			//  System.out.println("IDMedicoPresencia:" + ExcluirIDMedicoPresencia + "_Dia: " + _Dia +  ",KeyTipoGuardia:" + KeyTipoGuardia + ",IdMedico:" + keyMEDICO    + ",Medico:" + oMedico.getApellidos() + ",ExcedeHorasSeguidasMedico:" +  ExcedeHorasSeguidasMedico + ",GuardiasHechasPreviasParaComparar(ElMenor):" + _TotalMedico + ",datos:" + lDatosTemp);
+			  boolean bEstaActivo = oMedico.isActivo();
+	  		  boolean NoTieneVacaciones = NoTieneVacaciones(oMedico, _Fecha);
 			  
-			  // puede hacer guardias solo solo si es simulado ???
-			  if ((!EsSimulado || (EsSimulado && oMedico.isGuardiaSolo())) &&  _TotalMedico.longValue()<_MININO_RESTO_MEDICOS && !ExcedeHorasSeguidasMedico)		  
-			  {	  
-				  _MININO_RESTO_MEDICOS = _TotalMedico.longValue();
-				  IDMEDICOMenosSimulados = keyMEDICO;
-				//  System.out.println("Medico:" + oMedico.getApellidos() + "," + oMedico.getNombre() + ",ExcedeHoras:" + ExcedeHorasSeguidasMedico + ",Guardia:" + _GuardiaTipo + ",dia:"+ _Dia + ",_MININO_RESTO_MEDICOS:" + _MININO_RESTO_MEDICOS);
-			  }
+	  		 /*  METEMOS QUE NO HAYA UNA DIFERENCIA DE MAS DE DOS ENTRE EL MAXIMO Y EL MINIMO PARA REDUCIR LOS DESCUADRES ALTOS FINALES 
+	  		   si no encuentra a nadie, hay que meter a aguien porque si no da error.
+	  		   CUANDO ENCUENTRE EL MENOR DE GUARDIAS, VERIFICAMOS QUE NO HAYA UNA DIFERENCIA EN LAS GUARDIAS DE MES ENTRE UNO Y OTRO DE MAS 
+	  		   DE X
+	  		  
+	  		  */
+	  		  /* EL QUE MAS TIENE EN EL MES CON EL QUE MENOS, TIENE MAS DE X DE DIFERENCIA */
+	  		  
+	  		  /* MAXIMO DE GUARDAS FESTIVAS EN EL MES */
+	  		 long _PRESENCIAS_FESTIVAS=0;   
+  		     long _REFUERZOS_FESTIVOS=0;
+	  		 boolean _ExcedeLimiteGuardias_P_R_Festivas = false;
+	  		 if (MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS>0 && KeyTipoGuardia.toString().contains("_FESTIVOS"))
+	  		 {
+	  			
+	  			if (lDatosTemp.containsKey("_TOTAL_" + Util.eTipoGuardia.PRESENCIA + "_FESTIVOS_MES"))
+	  				_PRESENCIAS_FESTIVAS = Long.parseLong(lDatosTemp.get("_TOTAL_" + Util.eTipoGuardia.PRESENCIA + "_FESTIVOS_MES").toString());
+	  			if (lDatosTemp.containsKey("_TOTAL_" + Util.eTipoGuardia.REFUERZO + "_FESTIVOS_MES"))
+	  				_REFUERZOS_FESTIVOS = Long.parseLong(lDatosTemp.get("_TOTAL_" + Util.eTipoGuardia.REFUERZO + "_FESTIVOS_MES").toString());
+	  			
+	  			_ExcedeLimiteGuardias_P_R_Festivas =(_PRESENCIAS_FESTIVAS +  _REFUERZOS_FESTIVOS >= MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS);
+	  		 }
+	  			
+	  		  boolean _ExcedeMayorMenorLimiteConfigMes = false;
+	  		  /* SIENDO UN MES VACACIONAL, EL TOTAL INCLUYE TODAS LAS GUARDIAS DE TODOS LOS TIPOS, CON LO QUE LOS DESCUADRES PUEDEN SER A PRIORI YA DESTACADOS 
+	  		   * P.E. MAYOR QUE TENGA 6 Y EL ACTUAL 3
+	  		   */
+	  		  long TotalGuardiasMes=0; // que si es un vacacional, coincide con la posicion 
+	  		  if (MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF>0)
+	  		  {
+	  			  
+	  			  TotalGuardiasMes = TotalMES; 	  			  
+	  			  if (!_bMES_VACACIONAL)   // viene ordenado  por tipo de guardia MES + HISTORICO
+	  			  {
+	  				  TotalGuardiasMes=0;
+	  				  for (String Clave : lKeysGuardias)
+		    			{
+		    				if (lDatosTemp.containsKey(Clave))
+		    				{
+		    					TotalGuardiasMes +=  Long.parseLong(lDatosTemp.get(Clave).toString());
+		    				}
+		    			}
+	  			  }	  
+	  			
+	  			 /* SI LAS GUARDIAS SON MENORES, ENTONCES NO EXCEDEN
+	  			   SI LAS GUARDIAS DEL MEDICO SON MAYORES, NO DEBE EXISTIR DIFERENCIA */
+	  			  
+				 _ExcedeMayorMenorLimiteConfigMes = (TotalGuardiasMes >  MAYOR_TOTAL_GUARDIA_MES && MAYOR_TOTAL_GUARDIA_MES-TotalGuardiasMes>MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF);
+				
+	  		  }
+	  		   
+ 	  		// System.out.println("ID:" + oMedico.getID() + ",Medico:" + oMedico.getApellidos() + "," + oMedico.getNombre() + ",notienevacaciones:" + NoTieneVacaciones + ",ExcedeHoras:" + ExcedeHorasSeguidasMedico + ",Guardia:" + _GuardiaTipo + ",dia:"+ _Fecha + ",_MININO_RESTO_MEDICOS:" + _MININO_RESTO_MEDICOS + ",GuardiasTotales:"+ _TotalMedico + ", GuardiasMes:" +TotalMES + ",MINIMOMES:"  + _MININO_GUARDIAS_RESTO_MEDICOS_MES + ",MAS_GUARDIAS" + MAYOR_TOTAL_GUARDIA_MES);
+				  
+ 			 if ((!EsSimulado || (EsSimulado && oMedico.isGuardiaSolo()))  
+					  	&& !ExcedeHorasSeguidasMedico 
+					  			&& bEstaActivo && NoTieneVacaciones)		  
+			 {	  
+				  
+ 				  /* MIENTRAS QUE NO EXCEDA EL LIMITE DE GUARDIAS , VERIFICAMOS QUE ANTE IGUALDAD DE GUARDIAS, COGAMOS EL QUE MENOS HAGA EN EL MES */ 
+				  if ((_TotalMedico.longValue()<_MININO_RESTO_MEDICOS || (_TotalMedico.longValue()==_MININO_RESTO_MEDICOS &&   TotalMES<_MININO_GUARDIAS_RESTO_MEDICOS_MES))
+						  && !_ExcedeMayorMenorLimiteConfigMes && !_ExcedeLimiteGuardias_P_R_Festivas)
+				  {
+					 
+					  _MININO_GUARDIAS_RESTO_MEDICOS_MES = TotalMES.longValue();
+					  _MININO_RESTO_MEDICOS = _TotalMedico.longValue(); 
+					  IdMedicoMenosGuardias = keyMEDICO;
+					  
+					  
+				  }
+				  else  // CONTROLAMOS QUE SI HAY UNA LIMITE DIFERENCIA DE GUARDIAS, ENTONCES, NO PERMITIMOS QUE SE EXCEDA
+					  if (_ExcedeMayorMenorLimiteConfigMes)
+					  {
+						  IdMedicoMenosGuardias = keyMEDICO;
+						  break;
+					  }
+				 
+			 }
 
 		  }	  
 		}		
 						
-		return IDMEDICOMenosSimulados;
+		return IdMedicoMenosGuardias;
 	}
 	
-	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico, String _Fecha, int DiaMes, int _TotalDiasMes) throws ParseException
+	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, Hashtable> 
+		_ListaGuardiasMedicos, List<Medico> listaMedico,String _Fecha, int DiaMes, int _TotalDiasMes, boolean bIncluirHistorico) throws ParseException
 	{
 	
 		Map<Long,Long> lUnSortedListaGuardiasMedicos = new HashMap <Long, Long>();
@@ -1135,10 +1430,10 @@ public class ProcesarMedicos {
 		
 		
 		
-		
-		long _TOTAL_GUARDIAS_FESTIVOS_MEDICO = 999999;
-		
 		long _MININO_GUARDIAS_RESTO_MEDICOS = 9999999;
+		
+		
+		long _MININO_GUARDIAS_RESTO_MEDICOS_MES = 999999;
 		
 		Long IDResidenteMenosGuardias = new Long(-1);
 		
@@ -1153,6 +1448,13 @@ public class ProcesarMedicos {
 			Long _Total = new Long(0);
 			
 			
+			Long _TotalDiariasMES = new Long(0);
+			  // DEJAMOS LOS FESTIVOS  SOLO
+			  
+			Long _TotalFestivosMES = new Long(0);
+			Long _TotalMES = new Long(0);
+			
+			
 			
 			boolean bEstaActivo = oMedico.isActivo();
   			boolean NoTieneVacaciones = NoTieneVacaciones(oMedico, _Fecha);
@@ -1164,7 +1466,8 @@ public class ProcesarMedicos {
   			  // dia anterior o siguiente 
   			boolean TienePoolDayAsignadoDiaSgteAnterior = false;
 			
-  			if (!oMedico.isResidenteSimulado())  // y no simulado
+  			//if (!oMedico.isResidenteSimulado() )  // y no simulado
+  			if (!oMedico.isResidenteSimulado() &&  !oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.ROTANTE))  // y no simulado cambio 11-05-2017 , ana dice que los rotantes no cuenten,
   			{
   			
 		    	if (_ListaGuardiasMedicos.containsKey(oMedico.getID()))
@@ -1176,34 +1479,45 @@ public class ProcesarMedicos {
 		    		  
 		    		  int _GuardiasPreviasSeguidas = ProcesarMedicos.getDiasPreviosConGuardiasSeguidos(DiaMes, DatosGuardias, _TotalDiasMes);
 		   			  
-		   			  bEstaActivo = oMedico.isActivo();
-		   			  NoTieneVacaciones = NoTieneVacaciones(oMedico, _Fecha);
-		   			  ExcedeLimiteGuardiasMes = _Total.longValue() >= oMedico.getMax_NUM_Guardias().longValue();
-		   			  
-		   			  MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS()).getValue());
-		   			  
-		   			  ExcedeHorasSeguidas = _GuardiasPreviasSeguidas>=MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS.intValue();
 		   			  // dia anterior o siguiente 
 		   			  TienePoolDayAsignadoDiaSgteAnterior = (DatosGuardias.containsKey(new Long(DiaMes+1)) && DatosGuardias.get(new Long(DiaMes+1)).equals("POOLDAY") || 
 		   					  				DatosGuardias.containsKey(new Long(DiaMes-1)) && DatosGuardias.get(new Long(DiaMes-1)).equals("POOLDAY"));
 		   			  
-		   			  _TotalFestivos = Long.parseLong(DatosGuardias.get("_TOTAL_GUARDIAS_RESIDENTE_FESTIVO").toString());
+		   			  /* DEL AÑO */
+		   			  if (bIncluirHistorico) // p.e, para los meeses de vacaciones NO		   			  
+		   				  _TotalFestivos = Long.parseLong(DatosGuardias.get("HISTORICO_TOTAL_GUARDIAS_" + Util.eTipo.RESIDENTE + "_FESTIVO").toString());		   			  		   			  
+		   			  //_TotalDiarias = Long.parseLong(DatosGuardias.get("HISTORICO_NUMERO_GUARDIAS_" + Util.eTipo.RESIDENTE + "_MES").toString());
+		   			
+		   			 /* DEL MES */
+		   			  
+		  			  _TotalDiariasMES = Long.parseLong(DatosGuardias.get("_NUMERO_GUARDIAS_" + Util.eTipo.RESIDENTE + "_MES").toString());
+		  			  _TotalFestivosMES = Long.parseLong(DatosGuardias.get("_TOTAL_GUARDIAS_" + Util.eTipo.RESIDENTE + "_FESTIVO").toString());
+					  // DEJAMOS LOS FESTIVOS  SOLO
+		   			  _Total = _TotalDiariasMES + _TotalFestivosMES;
+		   			  
+		   			  
+		   			  // Pero si sumamos el acumulado total del año con el acumulado del mes en cuestion
+		   			 _TotalFestivos += _TotalFestivosMES;
+		   			  
+		   			  ExcedeLimiteGuardiasMes = _Total.longValue() >= oMedico.getMax_NUM_Guardias().longValue();
 		    			
 		    		}
 		    		
-		    		
 		    	}
 		    	
-		    	_Total = _TotalDiarias + _TotalFestivos;
+		    	
 		    
-		    		
-		    	if (_TotalFestivos.longValue()<_MININO_GUARDIAS_RESTO_MEDICOS && 
-						  	!ExcedeLimiteGuardiasMes && bEstaActivo && NoTieneVacaciones && !ExcedeHorasSeguidas  && !TienePoolDayAsignadoDiaSgteAnterior)
+		    		// && !ExcedeHorasSeguidas
+		    	//  METEMOS EL QUE MENOS GUARDIA TENGA ESTRICTO*/
+		    	// EN CASO DE IGUALDAD, EL QUE MENOS HAYA HECHO EN EL MES */
+		    	if ((_TotalFestivos.longValue()<_MININO_GUARDIAS_RESTO_MEDICOS ||  
+		    				(_TotalFestivos.longValue()==_MININO_GUARDIAS_RESTO_MEDICOS &&  _TotalFestivosMES<_MININO_GUARDIAS_RESTO_MEDICOS_MES)) && 
+						  	!ExcedeLimiteGuardiasMes && bEstaActivo && NoTieneVacaciones && !TienePoolDayAsignadoDiaSgteAnterior)
 				{
 					  
 					  
-					  
-					  _MININO_GUARDIAS_RESTO_MEDICOS = _Total.longValue();
+		    		  _MININO_GUARDIAS_RESTO_MEDICOS_MES = _TotalFestivosMES.longValue();
+					  _MININO_GUARDIAS_RESTO_MEDICOS = _TotalFestivos.longValue();
 					  IDResidenteMenosGuardias = oMedico.getID();
 					  
 	
@@ -1350,7 +1664,23 @@ public class ProcesarMedicos {
 	}
 	
 	
+	public static List<Medico> getResidentesOrdenadosVacacionesDESC(List<Medico> lMedicos,String Inicio, String Fin) throws ParseException
+	{		
+		
+		
+		return getListaResidentes(lMedicos, true, Inicio, Fin);
+	
+	}
+	
 	public static List<Medico> getResidentes(List<Medico> lMedicos) throws ParseException
+	{		
+		
+		
+		return getListaResidentes(lMedicos, false, "","");
+	
+	}
+	
+	private static List<Medico> getListaResidentes(List<Medico> lMedicos, boolean OrdenByVacacionesMESDesc,String Inicio, String Fin) throws ParseException
 	{		
 		
 		List<Medico> _lResidentes = new ArrayList();
@@ -1360,11 +1690,35 @@ public class ProcesarMedicos {
 			Medico oMedico = lMedicos.get(j);
 			if (oMedico.isActivo() && oMedico.getTipo().equals(Util.eTipo.RESIDENTE))				
 			{	
+				if (OrdenByVacacionesMESDesc) 
+				{
+					if (oMedico.isResidenteSimulado())  // caso especial simuladp ara poder hacer random despues 
+						oMedico.setVacacionesMes(new Long(-9999));	//COMO ES NECESARIO QUE EL SIMULADO SIEMPRE ESTE AL FINAL, LE METO UNAS VACACIONES DE -99999
+					else
+					{
+						List<Vacaciones_Medicos> oVacaciones =  VacacionesDBImpl.getVacacionesMedicosDesdeHasta(oMedico.getID(),Inicio, Fin );
+						
+						oMedico.setVacacionesMes(new Long(0));
+						if (oVacaciones!=null)		
+							oMedico.setVacacionesMes(new Long(oVacaciones.size()));	
+					}
+					
+				}
+				
 				_lResidentes.add(oMedico);				
 			}
 		}
-				
+		/* METEMOS UN RAMDOM PARA QUE SE ORDENE POR EL  RESTO DE RESIDENTES 
+		 * COMO ES NECESARIO QUE EL SIMULADO SIEMPRE ESTE AL FINAL, LE METO UNAS VACACIONES DE -99999
+		 * 
+		 * */
 		
+		//_lResidentes.s
+		if (OrdenByVacacionesMESDesc)
+		{
+			Collections.shuffle(_lResidentes);
+			Collections.sort(_lResidentes,new ByVacacionesDESCResidentes());  
+		}
 		return _lResidentes;
 	}
 	
@@ -1376,6 +1730,8 @@ public class ProcesarMedicos {
 		DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
 		
 		List<Vacaciones_Medicos> oVacaciones =  VacacionesDBImpl.getVacacionesMedicos(oMedico.getID(), _Date); 
+		
+		//System.out.println("Vacaciones para " + oMedico.getID() + "," +  _Date + "," + oVacaciones.size() );
 		
 		if (oVacaciones.size()==0)				
 			return true;

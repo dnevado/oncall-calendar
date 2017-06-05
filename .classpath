@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="resources"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Java">
-		<attributes>
-			<attribute name="owner.project.facets" value="java"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v9.0">
 		<attributes>
 			<attribute name="owner.project.facets" value="jst.web"/>
@@ -18,5 +12,9 @@
 	<classpathentry kind="lib" path="web/WEB-INF/lib/poi-3.16-beta1.jar"/>
 	<classpathentry kind="lib" path="web/WEB-INF/lib/poi-ooxml-3.16-beta1.jar"/>
 	<classpathentry kind="lib" path="web/WEB-INF/lib/poi-ooxml-schemas-3.16-beta1.jar"/>
-	<classpathentry kind="output" path="build"/>
+	<classpathentry kind="lib" path="web/WEB-INF/lib/aws-java-sdk-1.11.132.jar"/>
+	<classpathentry kind="lib" path="D:/Git/Guardias/web/WEB-INF/lib/amazon-sqs-java-messaging-lib-1.0.3.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="web/WEB-INF/lib/amazon-sqs-java-messaging-lib-1.0.3.jar"/>
+	<classpathentry kind="output" path="web/WEB-INF/classes"/>
 </classpath>

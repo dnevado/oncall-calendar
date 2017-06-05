@@ -22,7 +22,38 @@ public class Medico {
 	private Long Orden = new Long(1);
 	
 	private String Email = "";
-		
+	private String PassWord = "";
+	
+	private boolean Administrator=false;
+	private boolean Confirmado=false;
+
+	
+	private Long VacacionesMes = new Long(-1);
+	
+	public Long getVacacionesMes() {
+		return VacacionesMes;
+	}
+	public void setVacacionesMes(Long vacacionesMes) {
+		VacacionesMes = vacacionesMes;
+	}
+	public boolean isConfirmado() {
+		return Confirmado;
+	}
+	public void setConfirmado(boolean confirmado) {
+		Confirmado = confirmado;
+	}
+	public boolean isAdministrator() {
+		return Administrator;
+	}
+	public void setAdministrator(boolean administrator) {
+		Administrator = administrator;
+	}
+	public String getPassWord() {
+		return PassWord;
+	}
+	public void setPassWord(String passWord) {
+		PassWord = passWord;
+	}
 	public String getEmail() {
 		return Email;
 	}
@@ -48,14 +79,7 @@ public class Medico {
 	public void setOrden(Long orden) {
 		Orden = orden;
 	}
-	private  java.util.List<String> lAusencias = new ArrayList(); //2016-01-01
-	private  java.util.List<String> lGuardias = new ArrayList(); //2016-01-01; //2016-01-01	
-	public java.util.List<String> getlGuardias() {
-		return lGuardias;
-	}
-	public void setlGuardias(java.util.List<String> lGuardias) {
-		this.lGuardias = lGuardias;
-	}
+	
 	public String getNombre() {
 		return Nombre;
 	}
@@ -90,12 +114,7 @@ public class Medico {
 	public void setApellidos(String apellidos) {
 		Apellidos = apellidos;
 	}
-	public java.util.List<String> getlVacaciones() {
-		return lAusencias;
-	}
-	public void setlVacaciones(java.util.List<String> lVacaciones) {
-		this.lAusencias = lVacaciones;
-	}	
+		
 	public Long getID() {
 		return ID;
 	}

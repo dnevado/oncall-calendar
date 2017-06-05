@@ -151,7 +151,17 @@ public class VacacionesDBImpl {
 	  }
 	
 	
-	 public static  List<Vacaciones_Medicos>  getVacacionesMedicos(Long IdMedico, String Day )
+	public static  List<Vacaciones_Medicos>  getVacacionesMedicosDesdeHasta(Long IdMedico, String From, String To)
+	 {
+		return getVacacionesMedicosFiltro(IdMedico,"", From,To); 
+	 }
+	
+	public static  List<Vacaciones_Medicos>  getVacacionesMedicos(Long IdMedico, String Day )
+	 {
+		return getVacacionesMedicosFiltro(IdMedico,Day, "","");
+	 }
+	
+	 private static  List<Vacaciones_Medicos>  getVacacionesMedicosFiltro(Long IdMedico, String Day, String From, String To)
 	 {	  
 		
 		 
@@ -174,6 +184,8 @@ public class VacacionesDBImpl {
 			stSQL+=" WHERE IdMedico=" + IdMedico;
 		if (!Day.equals(""))
 				stSQL+=" and  FDay='" + Day + "'";
+		if (!From.equals("") && !To.equals(""))
+			stSQL+=" and  FDay>='" + From + "' and FDay<='" + To + "'";
 		ResultSet rs = stmt.executeQuery( stSQL);
 		
 		

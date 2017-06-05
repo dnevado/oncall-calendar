@@ -98,49 +98,46 @@ public class CalendarToExcel {
             calendar.setFirstDayOfWeek(Calendar.MONDAY);
             //create a sheet for each month
             Sheet sheet = wb.createSheet(_format.format(calendar.getTime()));
-
+            
+            
+            
+            CellStyle styleBORDER = wb.createCellStyle();
+            styleBORDER.setBorderRight(CellStyle.BORDER_THICK);
+            styleBORDER.setBorderBottom(CellStyle.BORDER_THICK);
+            styleBORDER.setBorderTop(CellStyle.BORDER_THICK);
+            styleBORDER.setBorderLeft(CellStyle.BORDER_THICK);
+            styleBORDER.setRightBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            styleBORDER.setLeftBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            styleBORDER.setTopBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            styleBORDER.setBottomBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+            //
+            
             //turn off gridlines
-            sheet.setDisplayGridlines(false);
+            sheet.setDisplayGridlines(true);
             sheet.autoSizeColumn(0);
-            sheet.setPrintGridlines(false);
+            sheet.setPrintGridlines(true);
             sheet.setFitToPage(true);
             sheet.setHorizontallyCenter(true);
             PrintSetup printSetup = sheet.getPrintSetup();
             printSetup.setLandscape(true);
 
-            //the following three statements are required only for HSSF
-            //sheet.setAutobreaks(true);
-            //printSetup.setFitHeight((short)1);
-            //printSetup.setFitWidth((short)1);
-
-            //the header row: centered text in 48pt font
-            /* Row headerRow = sheet.createRow(0);
-            headerRow.setHeightInPoints(80);
-            Cell titleCell = headerRow.createCell(0);
-            titleCell.setCellValue(months[month] + " " + year);
-            titleCell.setCellStyle(styles.get("title"));
-            sheet.addMergedRegion(CellRangeAddress.valueOf("$A$1:$N$1"));
-             */
+         
             //header with month titles
             Row monthRow = sheet.createRow(1);
             Font fontH =  wb.createFont();
     		CellStyle CStyleH =  wb.createCellStyle();
+    		CStyleH.setBorderRight(CellStyle.BORDER_THICK);
+    		CStyleH.setRightBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
     		fontH.setBold(true);
             CStyleH.setFont(fontH);
             for (int i = 0; i < days.length; i++) {
-                //set column widths, the width is measured in units of 1/256th of a character width
-                //sheet.setColumnWidth(i*2, 5*256); //the column is 5 characters wide
-                //sheet.setColumnWidth(i*2 + 1, 13*256); //the column is 13 characters wide
-                //sheet.addMergedRegion(new CellRangeAddress(1, 1, i*2, i*2+1));
+         
                 Cell monthCell = monthRow.createCell(i);
                 
                 monthCell.setCellStyle(CStyleH);
                 monthCell.setCellValue(days[i]);
                 sheet.autoSizeColumn(i);
-                
-                
-                
-                //monthCell.setCellStyle(styles.get("month"));
+         
             }
 
             int cnt = 1, day=1;
@@ -160,8 +157,27 @@ public class CalendarToExcel {
                     //int day_of_week = calendar.get(Calendar.DAY_OF_WEEK);  
                     if(cnt > currentDayOfWeek && calendar.get(Calendar.MONTH) == month) {
                     	
-                    	
+                    	Font font =  wb.createFont();
+                		CellStyle CStyle =  wb.createCellStyle();
+                		short colorI = HSSFColor.AQUA.index;  // presencia
+                		//font.set(colorI);
+                		CStyle.setFillForegroundColor(colorI);
+                		CStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                		//CStyle.setBorderBottom( colorBorder);
+                		CStyle.setBorderRight(CellStyle.BORDER_THICK);
+                		CStyle.setBorderBottom(CellStyle.BORDER_THICK);
+                		CStyle.setBorderTop(CellStyle.BORDER_THICK);
+                		CStyle.setBorderLeft(CellStyle.BORDER_THICK);
+                		CStyle.setRightBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+                		CStyle.setLeftBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+                		CStyle.setTopBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+                		CStyle.setBottomBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
+                		//CStyle.setFont(font);
+
                         dayCell_1.setCellValue(day);
+                        dayCell_1.setCellStyle(CStyle);
+                        
+                		
                         sheet.autoSizeColumn(i);
                         
 
@@ -171,7 +187,6 @@ public class CalendarToExcel {
                         int DataRowCont = 1; // esto sirve para coger la fila de los datos de cada dia
                         for (int d=0;d<lGuardias.length;d++)
                         {
-                        	
                         	
                         	Guardias oGuardias = lGuardias[d];
                         	if(oGuardias.getDiaGuardia().equals(_Dia))
@@ -190,12 +205,12 @@ public class CalendarToExcel {
                         		
                         		Medico _oMedico = _lMedico.get(0);
                         		
-                        		Font font =  wb.createFont();
-                        		CellStyle CStyle =  wb.createCellStyle();
+                        		font =  wb.createFont();
+                        		 CStyle =  wb.createCellStyle();
                         		// PRESENCIA 
                         		// LOCALIZADA
                         		//XSSFRichTextString richString = new HSSFRichTextString(_oMedico.getApellidos() + " " + _oMedico.getNombre());
-                        		short colorI = HSSFColor.LIGHT_ORANGE.index;  // presencia								
+                        		colorI = HSSFColor.LIGHT_ORANGE.index;  // presencia								
 								if (oGuardias.getTipo().equals(Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase()))
 									colorI = HSSFColor.GREEN.index;
 								else
@@ -209,11 +224,14 @@ public class CalendarToExcel {
 								font.setColor(colorI);
 								
 								CStyle.setFont(font);
+								//CStyle.setBorderBottom( colorBorder);
+								CStyle.setBorderRight(CellStyle.BORDER_THICK);
+		                		CStyle.setRightBorderColor(IndexedColors.LIGHT_ORANGE.getIndex());
 								
 								
 
                         		
-								 dayCell_1_GUARDIAS.setCellValue(_oMedico.getApellidos() + " " + _oMedico.getNombre());
+								 dayCell_1_GUARDIAS.setCellValue(_oMedico.getApellidos() + " " + _oMedico.getNombre() + "[" + _oMedico.getIDMEDICO() + "]");
 								 dayCell_1_GUARDIAS.setCellStyle(CStyle);
                         		
                         		

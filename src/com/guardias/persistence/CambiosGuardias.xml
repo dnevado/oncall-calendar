@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="CambiosGuardias">
+
+	
+	<select id="getTotalCambiosHechosPorTipoMedicoFecha"  parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias"> 
+		SELECT 
+				count(*) as IdCambio, GUARDIAS.Tipo as TipoCambio, GUARDIAS.Festivo as UsuarioAprobacion   
+		FROM  
+				guardias_cambios CAMBIOS, guardias_medicos GUARDIAS   
+		WHERE  
+				CAMBIOS.IdMedicoSolicitante = #{IdMedicoSolicitante} and
+				CAMBIOS.FechaIniCambio >= #{FechaIniCambio} and  
+				CAMBIOS.FechaIniCambio &lt;= #{FechaFinCambio} and 
+				TipoCambio = #{TipoCambio} and 
+				CAMBIOS.FechaFinCambio = GUARDIAS.fGuardia and 
+				CAMBIOS.IdMedicoDestino = GUARDIAS.IdMedico
+				and CAMBIOS.Estado = #{Estado}			
+		GROUP BY
+				 GUARDIAS.Tipo, GUARDIAS.Festivo
+	</select>
+	
+	
+	<select id="getTotalCambiosRecibidosPorTipoMedicoFecha" parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				count(*) as IdCambio, GUARDIAS.Tipo as TipoCambio, GUARDIAS.Festivo as UsuarioAprobacion 
+		FROM  
+				guardias_cambios CAMBIOS, guardias_medicos GUARDIAS  
+		WHERE  
+				CAMBIOS.FechaFinCambio >=#{FechaIniCambio} 
+				and  CAMBIOS.FechaFinCambio &lt;= #{FechaFinCambio}  
+				and CAMBIOS.IdMedicoDestino = #{IdMedicoDestino}
+				and TipoCambio =#{TipoCambio} 
+				and CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia 
+				and CAMBIOS.IdMedicoSolicitante = GUARDIAS.IdMedico
+				and CAMBIOS.Estado = #{Estado}
+		GROUP BY
+				 GUARDIAS.Tipo, GUARDIAS.Festivo
+	</select>
+
+
+   
+
+	<select id="getCambiosGuardiasById" parameterType="int" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				*			   
+		FROM 	
+				guardias_cambios
+		WHERE 
+				IdCambio = #{id}
+		
+	</select>
+	
+	<select id="getMaxIDCambiosGuardiasID" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				max(IdCambio) as IdCambio			   
+		FROM 	
+				guardias_cambios
+	</select>
+	
+	
+	<select id="getCambiosGuardiasBySolicitante" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				*			   
+		FROM 	
+				guardias_cambios
+		WHERE 
+				IdMedicoSolicitante = #{IdMedicoSolicitante}
+		ORDER BY
+				FechaIniCambio  	
+			
+		
+	</select>
+	
+	<select id="getCambioGuardiasByMedicoSolicitanteYFechaYEstado" parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				*		   
+		FROM 	
+				guardias_cambios
+		WHERE  
+				IdMedicoSolicitante = #{IdMedicoSolicitante}
+				and FechaFinCambio = #{FechaFinCambio}
+				and Estado = #{Estado}
+		ORDER BY
+				FechaIniCambio
+	</select>
+	
+	<select id="getCambioGuardiasByMedicoSolicitanteYFecha" parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				*		   
+		FROM 	
+				guardias_cambios
+		WHERE 
+				IdMedicoSolicitante = #{IdMedicoSolicitante}
+				and FechaFinCambio = #{FechaFinCambio}
+			
+		ORDER BY
+				FechaIniCambio
+	</select>
+       
+   <insert id="insertCambiosGuardias" parameterType="com.guardias.cambios.CambiosGuardias">
+   
+   		INSERT INTO 
+   				guardias_cambios ( IdCambio,FechaIniCambio, FechaFinCambio, FechaAprobacion, IdMedicoSolicitante, Estado, FechaCreacion, IdMedicoDestino,TipoCambio)  
+    	VALUES 
+    			 (#{IdCambio, jdbcType=NUMERIC}, #{FechaIniCambio, jdbcType=VARCHAR},#{FechaFinCambio, jdbcType=VARCHAR},#{FechaAprobacion, jdbcType=VARCHAR},
+    	        #{IdMedicoSolicitante, jdbcType=NUMERIC},#{Estado, jdbcType=VARCHAR}, #{FechaCreacion, jdbcType=VARCHAR},#{IdMedicoDestino, jdbcType=NUMERIC}
+    	        ,#{TipoCambio, jdbcType=VARCHAR})
+    	
+   </insert>
+   
+   <select id="getCambioGuardia" parameterType="int" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				*			   
+		FROM 	
+				guardias_cambios		
+		ORDER BY
+				FechaIniCambio  	
+			 
+		
+	</select>
+   
+	   
+   <update id="updateCambiosGuardias" parameterType="com.guardias.cambios.CambiosGuardias" flushCache="true"   statementType="PREPARED">
+   
+   		UPDATE  
+   				guardias_cambios
+   		SET
+   				FechaAprobacion = #{FechaAprobacion},
+   				Estado = #{Estado},
+   				UsuarioAprobacion = #{UsuarioAprobacion},
+   				TipoCambio = #{TipoCambio},
+   				IdMedicoDestino = #{IdMedicoDestino}
+   				
+		WHERE
+				IdCambio=#{IdCambio}   				
+    	
+    	
+   </update>
+   
+  
+  	
+</mapper>

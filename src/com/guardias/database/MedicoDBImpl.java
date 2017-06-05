@@ -2,11 +2,15 @@ package com.guardias.database;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import com.guardias.Medico;
 import com.guardias.Util;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class MedicoDBImpl {
 
@@ -20,8 +24,8 @@ public class MedicoDBImpl {
 	  
 	  
 	  String stSQL = "INSERT INTO medicos (nombre , idmedico , maxguardias , " +
-	  "guardiassolo , orden , apellidos , tipo , subtipo, activo, email ) VALUES (" +
-	  " (?) ,  (?),  (?) , (?) ,  (?),  (?),  (?) ,  (?),  (?),(?) ) ";
+	  "guardiassolo , orden , apellidos , tipo , subtipo, activo, email, password, administrator,id) VALUES (" +
+	  " (?),(?) ,  (?),  (?) , (?) ,  (?),  (?),  (?) ,  (?),  (?),(?), (?), (?)) ";
 	  	  
 	  
 	  
@@ -38,8 +42,13 @@ public class MedicoDBImpl {
 		  stmt.setString(6, _oMedico.getApellidos());
 		  stmt.setString(7, _oMedico.getTipo().toString());
 		  stmt.setString(8, _oMedico.getSubTipoResidente().toString());
-		  stmt.setLong(9, _oMedico.isActivo()? new Long(1): new Long(0));	
+		  //stmt.setLong(9, _oMedico.isActivo()? new Long(1): new Long(0));
+		  // 20170218 , por defecto, se dejan desactivados hasta  que no se activen por mail con la confirmacion o por el administrador
+		  stmt.setLong(9,new Long(0));	
 		  stmt.setString(10, _oMedico.getEmail());
+		  stmt.setString(11, _oMedico.getPassWord());
+		  stmt.setLong(12, _oMedico.isAdministrator() ? new Long(1): new Long(0));
+		  stmt.setLong(13, _oMedico.getID());
 	
 		  
 	  //System.out.println(stSQL + ",IdMedico:" + IdMedico + "," + 	_oMedico.getNombre() + ",setAutoCommit(true);") ;  
@@ -68,7 +77,7 @@ public class MedicoDBImpl {
 	  }
 	
 	
-	public static  boolean UpdateMedico(Long IdMedico, Medico _oMedico)
+	public static  boolean UpdateMedico(Long IdMedico, Medico _oMedico, boolean bChangedEMail)
 	 {	  
 		
 		 
@@ -81,8 +90,8 @@ public class MedicoDBImpl {
 			  
 	  
 	  String stSQL = "UPDATE medicos SET nombre = (?), idmedico = (?), maxguardias = (?), " +
-	  "guardiassolo = (?), orden = (?), apellidos = (?), tipo = (?), subtipo= (?), activo = (?), Email=(?)" +
-	   " WHERE id=(?)"		  ;
+	  "guardiassolo = (?), orden = (?), apellidos = (?), tipo = (?), subtipo= (?), activo = (?), Email=(?), Password=(?), Confirmado=(?)" +
+	   " WHERE id=(?)";
 	  
 	  
 	  
@@ -100,9 +109,14 @@ public class MedicoDBImpl {
 		  stmt.setString(6, _oMedico.getApellidos());
 		  stmt.setString(7, _oMedico.getTipo().toString());
 		  stmt.setString(8, _oMedico.getSubTipoResidente().toString());
-		  stmt.setLong(9, _oMedico.isActivo()? new Long(1): new Long(0));
+		  if (bChangedEMail)
+			  stmt.setLong(9, new Long(0));
+		  else
+			  stmt.setLong(9, _oMedico.isActivo()? new Long(1): new Long(0));
 		  stmt.setString(10, _oMedico.getEmail());
-		  stmt.setLong(11,IdMedico);
+		  stmt.setString(11, _oMedico.getPassWord());
+		  stmt.setLong(12, _oMedico.isConfirmado()? new Long(1): new Long(0));
+		  stmt.setLong(13,IdMedico);
 	
 		  
 	  System.out.println(stSQL + ",IdMedico:" + IdMedico + "," + 	_oMedico.getNombre() + ",setAutoCommit(true);") ;  
@@ -176,9 +190,39 @@ public class MedicoDBImpl {
 	  return true;    		 
 	  }
 	
-	
+	 
+	/* MEDICOS RESIDENTES ORDENADOS POR SIMULADO AL FINAL */
+	public static  List<Medico>  getMedicosByTypeOrdenBySimulados(Util.eTipo _Tipo)
+	 {	  
+		return getMedicos(new Long(-1), "", _Tipo, new Long(-1), "Subtipo");  // Simulado los ultimos 
+	 }
+	  
+	public static  List<Medico>  getMedicosByType(Util.eTipo _Tipo)
+	 {	  
+		return getMedicos(new Long(-1), "", _Tipo, new Long(-1),"");
+	 }
 	
 	 public static  List<Medico>  getMedicos(Long IdMedico)
+	 {	  
+		return getMedicos(IdMedico, "", null, new Long(-1),"");
+	 }
+	
+	
+	
+	 public static  Medico  getMedicoByEmail(String Email)
+	 {	  
+		
+		 List<Medico> lReturn=null;  		 
+		 lReturn = getMedicos(new Long(-1), Email,null, new Long(-1),"");
+		 if (lReturn!=null && lReturn.size()>0)
+			 return lReturn.get(0);
+		 else
+			 return null;
+		 
+		 
+	 }	
+	
+	 private static  List<Medico>  getMedicos(Long IdMedico, String EmailAddress,Util.eTipo _Tipo, Long Administrador, String SortField)
 	 {	  
 		
 		 
@@ -193,14 +237,32 @@ public class MedicoDBImpl {
 		  
 		
 		  
-		stmt = MiConexion.createStatement();
+		stmt = MiConexion.createStatement(); 
 		
-		String stSQL= "SELECT * FROM medicos";
+		
+		
+		StringBuilder stSQL = new StringBuilder("");
+		
+		stSQL.append("SELECT * FROM medicos");
+		
+		//String stSQL= "SELECT * FROM medicos";
+		
+		if (!IdMedico.equals(new Long(-1)) || !EmailAddress.equals("") || _Tipo!=null || !Administrador.equals(new Long(-1)))
+			stSQL.append(" WHERE 1=1");				
 		
 		if (!IdMedico.equals(new Long(-1)))
-			stSQL+=" WHERE id=" + IdMedico; 
+			stSQL.append(" AND id=" + IdMedico); 
+		if (!EmailAddress.equals(""))
+			stSQL.append(" AND email='" + EmailAddress + "'");
+		if (_Tipo!=null)
+			stSQL.append(" AND tipo='" + _Tipo + "'");
+		if (!Administrador.equals(new Long(-1)))
+			stSQL.append(" AND administrator=" + Administrador);
+		if (!SortField.equals(""))
+			stSQL.append(" ORDER BY " + SortField);
 		
-		ResultSet rs = stmt.executeQuery( stSQL);
+		
+		ResultSet rs = stmt.executeQuery( stSQL.toString());
 		
 		
 		  
@@ -214,11 +276,16 @@ public class MedicoDBImpl {
          int idmedico  = rs.getInt("idmedico");
          int maxguardias  = rs.getInt("maxguardias");
          int guardiassolo  = rs.getInt("guardiassolo");
+         int  administrator = rs.getInt("administrator");
+         int  confirmado = rs.getInt("confirmado");
+         
+         
          int orden  = rs.getInt("orden");
          String  apellidos = rs.getString("apellidos");
          String  tipo = rs.getString("tipo") !=null ? rs.getString("tipo") : "";
          String  subtipo = rs.getString("subtipo")!=null && !rs.getString("subtipo").equals("") ? rs.getString("subtipo") : "";
          String  email = rs.getString("email")!=null && !rs.getString("email").equals("") ? rs.getString("email") : "";
+         String  password = rs.getString("password")!=null && !rs.getString("password").equals("") ? rs.getString("password") : "";
          int activo  = rs.getInt("activo");
          
          MedicoDatabase.setID(new Long(id));
@@ -226,11 +293,14 @@ public class MedicoDBImpl {
          MedicoDatabase.setActivo(activo==0 ? false : true);
          MedicoDatabase.setApellidos(apellidos);
          MedicoDatabase.setGuardiaSolo(guardiassolo==0 ? false : true);
+         MedicoDatabase.setAdministrator(administrator==0 ? false : true);
+         MedicoDatabase.setConfirmado(confirmado==0 ? false : true);
          MedicoDatabase.setMax_NUM_Guardias(new Long(maxguardias));
          MedicoDatabase.setIDMEDICO(new Long(idmedico));
          MedicoDatabase.setTipo(Util.eTipo.valueOf(tipo));         
          MedicoDatabase.setEmail(email);
          MedicoDatabase.setOrden(new Long(orden));
+         MedicoDatabase.setPassWord(password);
          if (!subtipo.equals(""))
         	 MedicoDatabase.setSubTipoResidente(Util.eSubtipoResidente.valueOf(subtipo));
          
@@ -265,35 +335,36 @@ public class MedicoDBImpl {
 	 public static  Medico  getUltimoIDMedico()
 	 {	  
 			
-		 
-		  Medico Medicos = new Medico();	 
-			 
+		 	 
 		  Statement stmt = null;	 
 		  Connection MiConexion =ConexionGuardias.GetConexionGuardias();
 			
-		  	  
+		  Medico MedicoDatabase = new Medico();
 		  
 		  try {
 			  
 			
 			  
-			stmt = MiConexion.createStatement();
+		  stmt = MiConexion.createStatement();
 			
-			String stSQL= "SELECT max(ID) ID FROM medicos";
+		  String stSQL= "SELECT max(ID) ID FROM medicos";
 						
 			
-			ResultSet rs = stmt.executeQuery( stSQL);
+		  ResultSet rs = stmt.executeQuery( stSQL);
 			
-			
-			  
-			
+		    
+		  int id =1;
+		  MedicoDatabase.setID(new Long(id));
 	      while ( rs.next() ) {
 	    	  
-	    	 Medico MedicoDatabase = new Medico(); 
+	    	 //MedicoDatabase = new Medico(); 
 	    	  
-	         int id = rs.getInt("ID");
+	          id = rs.getInt("ID");
+	         
+	        	 
+	         
 	        	         
-	         MedicoDatabase.setID(new Long(id));
+	         MedicoDatabase.setID(new Long(id)+1);
 	        
 	      //   lMedicos.add(MedicoDatabase);
 	         
@@ -318,10 +389,17 @@ public class MedicoDBImpl {
 				}
 			}
 		
-		  return Medicos;    		 
+		  return MedicoDatabase;    		 
 		  } 
 	
 	
+	 public static  List<Medico>  getMedicosAdministradores()
+	 {	  
+			 
+			 return getMedicos(new Long(-1),"",null, new Long(1),""); 
+		 
+	 }
+	 
 	 public static  List<Medico>  getMedicos()
 	 {	  
 			 

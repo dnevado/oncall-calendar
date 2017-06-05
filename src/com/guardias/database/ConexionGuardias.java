@@ -28,7 +28,9 @@ class ConexionGuardias
 	  {
 		  Connection c = null;
 		    try {
-		      Class.forName("org.sqlite.JDBC");
+		     // Class.forName("org.sqlite.JDBC");
+		    		Class.forName("com.mysql.jdbc.Driver"); 
+		    	 
 		      
 		      Properties p = new Properties();
 		      
@@ -40,7 +42,8 @@ class ConexionGuardias
 		      // 
 		      
 		      //c = DriverManager.getConnection("jdbc:sqlite:" + System.getProperty("catalina.home") + "/BBDD_sqllite/guardias.db");
-		      c = DriverManager.getConnection("jdbc:sqlite:" + p.getProperty("database.path")); 
+		      //c = DriverManager.getConnection("jdbc:sqlite:" + p.getProperty("database.path")); 
+		      c= DriverManager.getConnection("jdbc:" + p.getProperty("database.path"));
 		      
 		     // System.out.println("Opening jdbc:sqlite:" + p.getProperty("database.path"));
 		      
