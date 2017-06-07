@@ -73,14 +73,15 @@ List<Long> lFestivos = new ArrayList<Long>();
 
 
 
-
-
-
 Long MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS()).getValue());
 
 Long NUMERO_GUARDIAS_PRESENCIA = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_PRESENCIAS()).getValue());
 Long NUMERO_REFUERZOS_LOCALIZADAS = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_REFUERZOS_LOCALIZADAS()).getValue());
 Long NUMERO_RESIDENTES_POR_DIA = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_RESIDENTES()).getValue());
+
+String PRESENCIA_EN_SECUENCIA= ConfigurationDBImpl.GetConfiguration(Util.getoCONST_USAR_SECUENCIA_EN_PRESENCIA()).getValue();
+
+
 boolean _bMES_VACACIONAL =  Util.EsMesVacaciones(_cINI); // QUITAMOS O NO LOS ALEATORIOS 
 
 
@@ -116,7 +117,7 @@ ProcesarMedicos oUtilMedicos = new ProcesarMedicos();
 
 lItems = MedicoDBImpl.getMedicos();
 
-List<Long> lGenerada = new ArrayList<Long>();
+
 
 int _daysOfMonth = com.guardias.Util.daysDiff(_cINI.getTime(),_cFIN.getTime());
 
@@ -191,262 +192,62 @@ int MEDIA_TOTAL_DIARIA_FESTIVA = GuardiasDBImpl.getMediaTotalGuardiasTipoEntreFe
 
 
 
+/* INICIALIZAMOS CONTADORES */
+for (Medico oM :_lAdjuntos)
+{
+	
+	Hashtable _lDatosGuardiasMedico=null;
+	
+	_lDatosGuardiasMedico  = ProcesarMedicos.InitContadoresMedico(oM, _ANYO_INICIO, _ANYO_HASTA,
+			MEDIA_TOTAL_PRESENCIA, MEDIA_TOTAL_LOCALIZADA, MEDIA_TOTAL_REFUERZO, MEDIA_TOTAL_PRESENCIA_FESTIVO,
+			MEDIA_TOTAL_LOCALIZADA_FESTIVO, MEDIA_TOTAL_REFUERZO_FESTIVO, MEDIA_TOTAL_DIARIA,MEDIA_TOTAL_DIARIA_FESTIVA ); 
+
+	lMedicosGuardias.put(oM.getID(),_lDatosGuardiasMedico);
+	
+}
+
+
 /* 1. ASIGNACION DE PRESENCIAS EN ORDEN */
+
+
+
+// la usamos aqui para tener control sobre la listagenerada de la clase
+ProcesarMedicos UtilMedicos = new ProcesarMedicos();
+UtilMedicos.setlGeneradaSecuencia(new ArrayList<Long>());
 for (int j=1;j<=_daysOfMonth;j++)	
 {
 	
 	
-	_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
-	
-	/* si es festivo y no lo encuentra en la lista de festivos*/
-	if (_EsFestivo && !lFestivos.contains(new Long(j)))
-		lFestivos.add(new Long(j));
+_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
+
+/* si es festivo y no lo encuentra en la lista de festivos*/
+if (_EsFestivo && !lFestivos.contains(new Long(j)))
+	lFestivos.add(new Long(j));
 	
 	
 	/* CUANTAS PRESENCIAS HAY QUE RELLENAR */
 	for (int countPresencias=0;countPresencias<NUMERO_GUARDIAS_PRESENCIA;countPresencias++)
 	{
 		
-		for (int x=0;x<_lAdjuntos.size();x++)
-		{
+		_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
 		
-			bEncontrado = false;
-			
-			String _DATE = _format.format(_cINICIO.getTime());
-			
-			Medico oM = (Medico) _lAdjuntos.get(x);
-			
-			
-			if (oUtilMedicos.NoTieneVacaciones(oM, _DATE)
-					&& (lGenerada.size()==0 || !lGenerada.contains(oM.getID())))
-			{
-				
-				
-				lGenerada.add(oM.getID());
-				
-			    // existe el medico residente en su lista de control
-				Hashtable _lDatosGuardiasMedico=null;
-				
-				if (!lMedicosGuardias.containsKey(oM.getID()))
-				{			
-					// la generamos
-					_lDatosGuardiasMedico = new Hashtable();
-					lMedicosGuardias.put(oM.getID(),_lDatosGuardiasMedico);
-					_lDatosGuardiasMedico.put("_TIPO",Util.eTipo.ADJUNTO);
-										
-					int TOTAL_PRESENCIA = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.PRESENCIA.toString().toLowerCase(),new Long(0),_ANYO_INICIO,_ANYO_HASTA);
-					if (TOTAL_PRESENCIA==0) TOTAL_PRESENCIA =MEDIA_TOTAL_PRESENCIA;
-					int TOTAL_LOCALIZADA = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase(),new Long(0),_ANYO_INICIO,_ANYO_HASTA);
-					if (TOTAL_LOCALIZADA==0) TOTAL_LOCALIZADA =MEDIA_TOTAL_LOCALIZADA;
-					int TOTAL_REFUERZO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.REFUERZO.toString().toLowerCase(),new Long(0),_ANYO_INICIO,_ANYO_HASTA);
-					if (MEDIA_TOTAL_REFUERZO==0) TOTAL_REFUERZO =MEDIA_TOTAL_REFUERZO;
-					int TOTAL_REFUERZO_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.REFUERZO.toString().toLowerCase(),new Long(1),_ANYO_INICIO,_ANYO_HASTA);
-					if (TOTAL_REFUERZO_FESTIVO==0) TOTAL_REFUERZO_FESTIVO =MEDIA_TOTAL_REFUERZO_FESTIVO;
-					int TOTAL_PRESENCIA_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.PRESENCIA.toString().toLowerCase(),new Long(1),_ANYO_INICIO,_ANYO_HASTA);
-					if (TOTAL_PRESENCIA_FESTIVO==0) TOTAL_PRESENCIA_FESTIVO =MEDIA_TOTAL_PRESENCIA_FESTIVO;
-					int TOTAL_LOCALIZADA_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase(),new Long(1),_ANYO_INICIO,_ANYO_HASTA);
-					if (TOTAL_LOCALIZADA_FESTIVO==0) TOTAL_LOCALIZADA_FESTIVO =MEDIA_TOTAL_LOCALIZADA_FESTIVO;
-					
-					int TOTAL_SIMULADOS= GuardiasDBImpl.getTotalGuardiasPorMedico_DeSimulados(oM.getID(), new Long(0),_ANYO_INICIO,_ANYO_HASTA);
-					int TOTAL_SIMULADOS_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedico_DeSimulados(oM.getID(), new Long(1),_ANYO_INICIO,_ANYO_HASTA);
-					
-					
-					
-					/* 20170422, CONTAMOS LA CESIONES DE CADA TIPO DE GUARDIA CEDIDAS Y DISFRUTADAS PARA QUE NO CUENTEN EN LOS TOTALES ACUMULADOS */
-					CambiosGuardias oCambiosGuardiasTotales = new CambiosGuardias();
-					oCambiosGuardiasTotales.setFechaFinCambio(_ANYO_HASTA);
-					oCambiosGuardiasTotales.setFechaIniCambio(_ANYO_INICIO);
-					oCambiosGuardiasTotales.setTipoCambio(Util.eTipoCambiosGuardias.CESION.toString());
-					oCambiosGuardiasTotales.setIdMedicoSolicitante(oM.getID());
-					oCambiosGuardiasTotales.setEstado(Util.eEstadoCambiosGuardias.APROBADA.toString());
-					
-					List<CambiosGuardias> lTotalCesionesCambiosGuardias;				
-					lTotalCesionesCambiosGuardias = CambiosGuardiasDBImpl.getTotalCambiosHechosPorTipoMedicoFecha(oCambiosGuardiasTotales);
-					
-					int TOTAL_PRESENCIA_CESIONES=0;	
-					int TOTAL_LOCALIZADA_CESIONES=0;
-					int TOTAL_REFUERZO_CESIONES=0;						
-					int TOTAL_REFUERZO_FESTIVO_CESIONES=0;
-					int TOTAL_PRESENCIA_FESTIVO_CESIONES=0;	
-					int TOTAL_LOCALIZADA_FESTIVO_CESIONES=0;
-					
-					
-					/* TOTAL CESIONES */
-					if (lTotalCesionesCambiosGuardias!=null && !lTotalCesionesCambiosGuardias.isEmpty())
-					{
-
-						for (CambiosGuardias CesionGuardia : lTotalCesionesCambiosGuardias)
-						{
-							if (CesionGuardia!=null)
-							{
-								Long isEsFestivo =CesionGuardia.getUsuarioAprobacion(); // fake field
-								String Tipo =CesionGuardia.getTipoCambio(); // fake field
-								int Total  =CesionGuardia.getIdCambio().intValue();
-								if (isEsFestivo .equals(new Long(1)))
-								{
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.PRESENCIA.toString()))
-										TOTAL_PRESENCIA_FESTIVO_CESIONES =Total;  
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.LOCALIZADA.toString()))
-										TOTAL_LOCALIZADA_FESTIVO_CESIONES =Total; 
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.REFUERZO.toString()))
-										TOTAL_REFUERZO_FESTIVO_CESIONES =Total; 
-								}
-								else
-								{
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.PRESENCIA.toString()))
-										TOTAL_PRESENCIA_CESIONES =Total;  
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.LOCALIZADA.toString()))
-										TOTAL_LOCALIZADA_CESIONES =Total; 
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.REFUERZO.toString()))
-										TOTAL_REFUERZO_CESIONES =Total; 
-								}
-							}	
-								
-								
-							
-						}
-						
-						
-					}
-
-					/* DISFRUTES  */
-					CambiosGuardias oDisfrutesCambiosGuardiasTotales = new CambiosGuardias();
-					oDisfrutesCambiosGuardiasTotales.setFechaFinCambio(_ANYO_HASTA);
-					oDisfrutesCambiosGuardiasTotales.setFechaIniCambio(_ANYO_INICIO);
-					oDisfrutesCambiosGuardiasTotales.setTipoCambio(Util.eTipoCambiosGuardias.CESION.toString());
-					oDisfrutesCambiosGuardiasTotales.setIdMedicoDestino(oM.getID());
-					oDisfrutesCambiosGuardiasTotales.setEstado(Util.eEstadoCambiosGuardias.APROBADA.toString());
-					
-					List<CambiosGuardias> lTotalDisfrutesCesionesCambiosGuardias;				
-					lTotalDisfrutesCesionesCambiosGuardias = CambiosGuardiasDBImpl.getTotalCambiosRecibidosPorTipoMedicoFecha(oDisfrutesCambiosGuardiasTotales);
-					
-					int TOTAL_PRESENCIA_CESIONES_DISFRUTADOS=0;	
-					int TOTAL_LOCALIZADA_CESIONES_DISFRUTADOS=0;
-					int TOTAL_REFUERZO_CESIONES_DISFRUTADOS=0;						
-					int TOTAL_REFUERZO_FESTIVO_CESIONES_DISFRUTADOS=0;
-					int TOTAL_PRESENCIA_FESTIVO_CESIONES_DISFRUTADOS=0;	
-					int TOTAL_LOCALIZADA_FESTIVO_CESIONES_DISFRUTADOS=0;
-					
-					
-					/* TOTAL DISFRUTES */
-					if (lTotalDisfrutesCesionesCambiosGuardias!=null && !lTotalDisfrutesCesionesCambiosGuardias.isEmpty())
-					{
-
-						for (CambiosGuardias CesionGuardia : lTotalDisfrutesCesionesCambiosGuardias)
-						{
-							if (CesionGuardia!=null)
-							{
-								Long isEsFestivo =CesionGuardia.getUsuarioAprobacion(); // fake field
-								String Tipo =CesionGuardia.getTipoCambio(); // fake field
-								int Total  =CesionGuardia.getIdCambio().intValue();
-								if (isEsFestivo .equals(new Long(1)))
-								{
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.PRESENCIA.toString()))
-										TOTAL_PRESENCIA_FESTIVO_CESIONES_DISFRUTADOS =Total;  
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.LOCALIZADA.toString()))
-										TOTAL_LOCALIZADA_FESTIVO_CESIONES_DISFRUTADOS =Total; 
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.REFUERZO.toString()))
-										TOTAL_REFUERZO_FESTIVO_CESIONES_DISFRUTADOS =Total; 
-								}
-								else
-								{
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.PRESENCIA.toString()))
-										TOTAL_PRESENCIA_CESIONES_DISFRUTADOS =Total;  
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.LOCALIZADA.toString()))
-										TOTAL_LOCALIZADA_CESIONES_DISFRUTADOS =Total; 
-									if (Tipo.equalsIgnoreCase(Util.eTipoGuardia.REFUERZO.toString()))
-										TOTAL_REFUERZO_CESIONES_DISFRUTADOS =Total; 
-								}
-																
-							}	
-							
-						}
-						
-						
-					}					
-					/* FIN 20170201 ACUMULAMOS LO DEL AÑO EN CURSO PARA VER SI CUADRAN MEJOR LAS CIFRAS EQUITATIVAS>*/
-					/*  LAS CESIONES Y LOS DISFRUTES NO CONPUTAN PARA LOS TOTALES, POR TANTO, SUMAMOS LAS CESIONES Y RESTAMOS LAS DISFRUTADAS  */
-					TOTAL_PRESENCIA =  TOTAL_PRESENCIA + TOTAL_PRESENCIA_CESIONES -TOTAL_PRESENCIA_CESIONES_DISFRUTADOS;
-					TOTAL_LOCALIZADA =   TOTAL_LOCALIZADA + TOTAL_LOCALIZADA_CESIONES -TOTAL_LOCALIZADA_CESIONES_DISFRUTADOS;
-					TOTAL_REFUERZO =  TOTAL_REFUERZO + TOTAL_REFUERZO_CESIONES -TOTAL_REFUERZO_CESIONES_DISFRUTADOS;					 
-					TOTAL_REFUERZO_FESTIVO =  TOTAL_REFUERZO_FESTIVO  + TOTAL_REFUERZO_FESTIVO_CESIONES -TOTAL_REFUERZO_CESIONES_DISFRUTADOS;
-					TOTAL_PRESENCIA_FESTIVO =  TOTAL_PRESENCIA_FESTIVO + TOTAL_PRESENCIA_FESTIVO_CESIONES -TOTAL_PRESENCIA_CESIONES_DISFRUTADOS;	
-					TOTAL_LOCALIZADA_FESTIVO =  TOTAL_LOCALIZADA_FESTIVO + TOTAL_LOCALIZADA_FESTIVO_CESIONES -TOTAL_LOCALIZADA_CESIONES_DISFRUTADOS; 
-					/***************************************************
-					PARA DESHACER EL CAMBIO, QUITARLOS TOTALES SIGUIENTES Y CAMBIARLOS POR CERO PARA INICIARLIZARLOS 
-					*/
-					
-					/* DEL MES */
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_FESTIVOS_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_FESTIVOS_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_DIARIO_MES",0);
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES",0);
-					/* DEL TOTAL */
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",TOTAL_PRESENCIA);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_MES",TOTAL_REFUERZO);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_MES",TOTAL_LOCALIZADA);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES",TOTAL_PRESENCIA_FESTIVO);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_FESTIVOS_MES",TOTAL_LOCALIZADA_FESTIVO);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_FESTIVOS_MES",TOTAL_REFUERZO_FESTIVO);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_DIARIO_MES",TOTAL_SIMULADOS);
-					_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES",TOTAL_SIMULADOS_FESTIVO);
-					
-								
-					
-				}			
-				else
-					// la obtenemos la que haya 
-					_lDatosGuardiasMedico = (Hashtable) lMedicosGuardias.get(oM.getID());
-				
-				/* PONEMOS EL DIA */
-				_lDatosGuardiasMedico.put(new Long(j), Util.eTipoGuardia.PRESENCIA.toString());  // redundate, dia key , dia value
-							
-				// SUMAMOS UNO
-							
-				
-				/* CAMBIO 03-01-2017  NO SUMAMOS CUANDO SEA FESTIVO AL TOTAL DE CADA GUARDIA 
-				_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES").toString()) +1);
-				CAMBIO 03-01-2017  NO SUMAMOS CUANDO SEA FESTIVO AL TOTAL DE CADA GUARDIA */
-				/* SI ES FESTIVO, SUMAMOS EL FESTIVO TAMBIEN */
-				_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
-				if (_EsFestivo)
-				{
-						// SUMAMOS UNO
-						_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES").toString()) +1);						
-						
-				}			
-				else {
-					/* CAMBIO 03-01-2017  NO SUMAMOS CUANDO SEA FESTIVO AL TOTAL DE CADA GUARDIA*/ 
-					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES").toString()) +1);
-					/* CAMBIO 03-01-2017  NO SUMAMOS CUANDO SEA FESTIVO AL TOTAL DE CADA GUARDIA */						
-					
-				}
-				
-				bEncontrado = true;													
-				break;
-				
-				
-			}
-			// que no he encontrado a nadie, limpio la lista y recorro el mismo dia
-			if (x==_lAdjuntos.size()-1)			
-			{
-				lGenerada.clear();
-				j--;
-			}
-			
-			
-		}
+		if (PRESENCIA_EN_SECUENCIA.equalsIgnoreCase("S"))
+			lMedicosGuardias = UtilMedicos.setGuardiaPresenciaSecuencia(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo);
+		else
+			lMedicosGuardias = ProcesarMedicos.setGuardiaPresenciaAleatoria(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo,_daysOfMonth);
+		
+		//ProcesarMedicos.setlGeneradaSecuencia(new ArrayList(Long));
+		
+		
+		
+		
 	// si no ha encontrado a nadie mas, vaciamos la lista de control de asignaciones
 	
 	
 	} // fin de cuantas presencias hay que generar
 	
-	if (bEncontrado)	
-		_cINICIO.add(Calendar.DAY_OF_MONTH, 1);
+	//if (bEncontrado)	
+	_cINICIO.add(Calendar.DAY_OF_MONTH, 1);
 	
 	
 	
@@ -854,8 +655,6 @@ System.out.println("_RESIDENTES_SEMANA:" + _RESIDENTES_SEMANA);
 
 
 /* INTRODUCCION DE LOS RESIDENTES/SIMULADOS  DE MANERA INTELIGENTE */
-
-
 
 for (int j=1;j<=NUM_SEMANAS_MES;j++)
 {

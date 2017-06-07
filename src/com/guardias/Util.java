@@ -114,6 +114,12 @@ public class Util {
 	    // MECANICA LA ASIGNACION DE RESIDENTES SIMULADOS NI PREVISORA
 	    
 	    
+	    
+ 		public static String getoCONST_USAR_SECUENCIA_EN_PRESENCIA() {
+ 			return oCONST_USAR_SECUENCIA_EN_PRESENCIA;
+ 		}
+
+	    
 	    public static String getoCONST_EXISTE_POOLDAY() {
 			return oCONST_EXISTE_POOLDAY;
 		}
@@ -143,7 +149,9 @@ public class Util {
 	    private static String oCONST_EXISTE_POOLDAY = "EXISTE_POOLDAY";  // 0 cero si no se quieren.
 	    
 	    
+	    private static String oCONST_USAR_SECUENCIA_EN_PRESENCIA= "USAR_SECUENCIA_EN_PRESENCIA";  // 0 cero si no se quieren.
 	    
+	 
 
 		private static String oCONST_NUMERO_PRESENCIAS = "NUMERO_PRESENCIAS";  // 0 cero si no se quieren.
 	    private static String oCONST_NUMERO_REFUERZOS_LOCALIZADAS = "NUMERO_REFUERZOS_LOCALIZADAS";  // 0 cero si no se quieren.	    

@@ -59,7 +59,12 @@
 		String poolDay = "N";
 		if (request.getParameter("poolDay") != null)
 			poolDay = request.getParameter("poolDay");
-
+		
+		String usar_secuencia_en_presencia = "N";
+		if (request.getParameter("usar_secuencia_en_presencia") != null)
+			usar_secuencia_en_presencia = request.getParameter("usar_secuencia_en_presencia");
+		
+		
 		String emailfrom = request.getParameter("emailfrom");
 		String emailfrompwd = request.getParameter("emailfrompwd");
 
@@ -183,6 +188,13 @@
 		_oConfiguracion.setValue(joined);
 		ConfigurationDBImpl.UpdateConfiguracion(_oConfiguracion);
 		
+		_oConfiguracion.setKey(Util.getoCONST_USAR_SECUENCIA_EN_PRESENCIA());
+		_oConfiguracion.setValue(usar_secuencia_en_presencia);
+		ConfigurationDBImpl.UpdateConfiguracion(_oConfiguracion);
+
+		
+		
+		
 
 	}
 
@@ -206,6 +218,10 @@
 			.GetConfiguration(Util.getoCONST_ACTIVAR_CAMBIO_GUARDIAS());
 	Configuracion oVALIDAR_CAMBIO_GUARDIAS_BY_ADMIN = ConfigurationDBImpl
 			.GetConfiguration(Util.getoCONST_VALIDAR_CAMBIOS_GUARDIAS_BY_ADM());
+	
+	Configuracion oUSAR_SECUENCIA_EN_PRESENCIA = ConfigurationDBImpl
+			.GetConfiguration(Util.getoCONST_USAR_SECUENCIA_EN_PRESENCIA());
+	
 	
 	Configuracion oEXISTE_POOL_DAY = ConfigurationDBImpl
 			.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY());
@@ -371,6 +387,17 @@
 			<%=(oEXISTE_POOL_DAY.getValue().equals("S") ? "checked" : "")%> />
                         <label for="poolDay">
                           PoolDay (S/N) <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("config.pool_day")%>">
+                        </label>
+           </div>
+		
+	</div>
+	<div class="form-group">
+	
+		<div class="checkbox checkbox-primary">
+         	               <input id="usar_secuencia_en_presencia" name="usar_secuencia_en_presencia" type="checkbox" value="S"
+			<%=(oUSAR_SECUENCIA_EN_PRESENCIA.getValue().equals("S") ? "checked" : "")%> />
+                        <label for="usar_secuencia_en_presencia">
+                          Secuencia en Presencia (S/N) <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("config.usar_secuencia_en_presencia")%>">
                         </label>
            </div>
 		
