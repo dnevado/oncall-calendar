@@ -26,6 +26,10 @@ import java.util.TimeZone;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.guardias.aggregate.Contador;
+import com.guardias.aggregate.ContadorAdjuntos;
+import com.guardias.aggregate.ContadorGuardias;
+import com.guardias.aggregate.ContadorResidentes;
 import com.guardias.cambios.CambiosGuardias;
 import com.guardias.database.CambiosGuardiasDBImpl;
 import com.guardias.database.ConfigurationDBImpl;
@@ -45,11 +49,27 @@ public class ProcesarMedicos {
 		ProcesarMedicos.lGeneradaSecuencia = lGeneradaSecuencia;
 	}
 
+	/* public static long getValorContador(ContadorGuardias_oContadorGuardias, Util.eTipoGuardia _Tipo, boolean EsFestivo)
+	{
+		long retValue=0;
+		if (_Tipo.equals(Util.eTipoGuardia.PRESENCIA))
+		{
+		if (EsFestivo)
+			retValue=_oContadorGuardias.
+		else
+			
+		}	
+		
+		 
+		
+		return 0;
+	} */
+	
 
-	public static HashMap<Long, Hashtable> setGuardiaPresenciaAleatoria(HashMap<Long, Hashtable> lDatosGuardias,List<Medico> lAdjuntos, Date _DiaMes, boolean esFestivo, int daysOfMonth)
+	public static HashMap<Long, ContadorGuardias> setGuardiaPresenciaAleatoria(HashMap<Long, ContadorGuardias> lDatosGuardias,List<Medico> lAdjuntos, Date _DiaMes, boolean esFestivo, int daysOfMonth)
 	{
 		
-		HashMap<Long, Hashtable> lGuardiaDia =new HashMap<Long, Hashtable>(lDatosGuardias);		
+		HashMap<Long, ContadorGuardias> lGuardiaDia =new HashMap<Long, ContadorGuardias> (lDatosGuardias);		
 		boolean bEncontrado=false;
 		DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
 		Long  AdjuntoConMenosGuardias = new Long(-1);
@@ -156,10 +176,10 @@ public class ProcesarMedicos {
 	}
 	
 	
-	public  HashMap<Long, Hashtable> setGuardiaPresenciaSecuencia(HashMap<Long, Hashtable> lDatosGuardias,List<Medico> lAdjuntos, Date _DiaMes, boolean esFestivo)
+	public  HashMap<Long, ContadorGuardias>  setGuardiaPresenciaSecuencia(HashMap<Long, ContadorGuardias>  lDatosGuardias,List<Medico> lAdjuntos, Date _DiaMes, boolean esFestivo)
 	{
 		
-		HashMap<Long, Hashtable> lGuardiaDia =new HashMap<Long, Hashtable>(lDatosGuardias);		
+		HashMap<Long, ContadorGuardias> lGuardiaDia =new HashMap<Long, ContadorGuardias> (lDatosGuardias);		
 		boolean bEncontrado=false;
 		DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
 		
@@ -233,12 +253,34 @@ public class ProcesarMedicos {
 		
 	}
 	
-	public static Hashtable InitContadoresMedico(Medico oM, String ANYO_INICIO, String ANYO_HASTA,int _MEDIA_TOTAL_PRESENCIA, int _MEDIA_TOTAL_LOCALIZADA, int _MEDIA_TOTAL_REFUERZO, int _MEDIA_TOTAL_PRESENCIA_FESTIVO,
+	public static ContadorResidentes InitContadoresResidentes(Medico oM, String ANYO_INICIO, String ANYO_HASTA, int MEDIA_TOTAL_DIARIA, int MEDIA_TOTAL_DIARIA_FESTIVA)
+	{
+		
+		ContadorResidentes _oContadoresMedico= new ContadorResidentes();
+		
+		/* ACUMULAMOS EL HISTORICO DEL AÑO  LA PRIMERA VEZ */ 
+		int TOTAL_DIARIAS = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), "" ,new Long(0),ANYO_INICIO,ANYO_HASTA);
+		if (TOTAL_DIARIAS==0) TOTAL_DIARIAS= MEDIA_TOTAL_DIARIA;
+		int TOTAL_DIARIAS_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), "" ,new Long(1),ANYO_INICIO,ANYO_HASTA);
+		if (TOTAL_DIARIAS_FESTIVO==0) TOTAL_DIARIAS_FESTIVO= MEDIA_TOTAL_DIARIA_FESTIVA;
+		
+		return _oContadoresMedico;
+		
+	}
+	
+	public static ContadorAdjuntos InitContadoresMedico(Medico oM, String ANYO_INICIO, String ANYO_HASTA,int _MEDIA_TOTAL_PRESENCIA, int _MEDIA_TOTAL_LOCALIZADA, int _MEDIA_TOTAL_REFUERZO, int _MEDIA_TOTAL_PRESENCIA_FESTIVO,
 			int _MEDIA_TOTAL_LOCALIZADA_FESTIVO, int _MEDIA_TOTAL_REFUERZO_FESTIVO, int _MEDIA_TOTAL_DIARIA,int _MEDIA_TOTAL_DIARIA_FESTIVA)
 	{
 		
+		ContadorAdjuntos _oContadoresMedico= new ContadorAdjuntos();
+		
+		
+		_oContadoresMedico.set_tipoGuardia(Util.eTipo.ADJUNTO);		
+
+		
 		Hashtable _lDatosGuardiasMedico = new Hashtable();
 		//lMedicosGuardias.put(oM.getID(),_lDatosGuardiasMedico); 
+		
 		_lDatosGuardiasMedico.put("_TIPO",Util.eTipo.ADJUNTO);
 							
 		int TOTAL_PRESENCIA = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oM.getID(), Util.eTipoGuardia.PRESENCIA.toString().toLowerCase(),new Long(0),ANYO_INICIO,ANYO_HASTA);
@@ -384,7 +426,8 @@ public class ProcesarMedicos {
 		*/
 		
 		/* DEL MES */
-		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",0);
+		
+		/* _lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",0);
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_MES",0);
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_MES",0);
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES",0);
@@ -392,8 +435,24 @@ public class ProcesarMedicos {
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_FESTIVOS_MES",0);
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_DIARIO_MES",0);
 		_lDatosGuardiasMedico.put("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES",0);
+		*/
 		/* DEL TOTAL */
-		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",TOTAL_PRESENCIA);
+		
+		
+		
+		
+		_oContadoresMedico.setHistoricoGuardiasMesDiariasPresencia(TOTAL_PRESENCIA);
+		_oContadoresMedico.setHistoricoGuardiasMesDiariasLocalizada(TOTAL_LOCALIZADA);
+		_oContadoresMedico.setHistoricoGuardiasMesDiariasRefuerzo(TOTAL_REFUERZO);
+		
+		_oContadoresMedico.setHistoricoGuardiasMesFestivasPresencia(TOTAL_PRESENCIA_FESTIVO);
+		_oContadoresMedico.setHistoricoGuardiasMesFestivasRefuerzo(TOTAL_REFUERZO_FESTIVO);
+		_oContadoresMedico.setHistoricoGuardiasMesFestivasLocalizada(TOTAL_LOCALIZADA_FESTIVO);
+		
+		_oContadoresMedico.setHistoricoFestivasSimulado(TOTAL_SIMULADOS_FESTIVO);
+		_oContadoresMedico.setHistoricoSimulado(TOTAL_SIMULADOS);
+		
+		/* _lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_MES",TOTAL_PRESENCIA);
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_MES",TOTAL_REFUERZO);
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.LOCALIZADA.toString()+ "_MES",TOTAL_LOCALIZADA);
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.PRESENCIA.toString() + "_FESTIVOS_MES",TOTAL_PRESENCIA_FESTIVO);
@@ -401,8 +460,8 @@ public class ProcesarMedicos {
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eTipoGuardia.REFUERZO.toString()+ "_FESTIVOS_MES",TOTAL_REFUERZO_FESTIVO);
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_DIARIO_MES",TOTAL_SIMULADOS);
 		_lDatosGuardiasMedico.put("HISTORICO_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES",TOTAL_SIMULADOS_FESTIVO);
-		
-		return _lDatosGuardiasMedico;
+		*/
+		return _oContadoresMedico;
 	}
 	
 	/* DIA 1 Y PARCIALES DE 7 */ 
@@ -458,7 +517,7 @@ public class ProcesarMedicos {
 	 * los residentes que estan de vacaciones de manera prioritaria y en la misma semana, evitando que nos den los dias juntos  */ 
 	@SuppressWarnings("deprecation")
 	public static List<Long> ListaDiasSemanaOrdenImpar(Calendar cSemana, List<Long> ListaFestivos, Util.eTipoDia TipoDia, int MesActual,
-			HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> lMedicos)
+			HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> lMedicos)
 	{
 	
 		List<Date> lFechas = new LinkedList<Date>();
@@ -520,7 +579,7 @@ public class ProcesarMedicos {
 	}
 	/* DIA 1 Y PARCIALES DE 7 */ 
 	public static List<Long> ListaDiasSemanaPorOrdenMenorSimulados(Calendar cSemana, List<Long> ListaFestivos, Util.eTipoDia TipoDia, int MesActual,
-			HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> lMedicos)
+			HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> lMedicos)
 	{ 
 		
 		
@@ -859,7 +918,7 @@ public class ProcesarMedicos {
 	
 	/* PARA DISTRIBUIR LOS PRIMEROS RESIDENTES ENTRE LOS QUE NO PUEDEN ESTAR SOLOS */
 	
-	public static boolean ExisteMedicoConGuardiaSolo_EnElMes(HashMap<Long, Hashtable> _listaGuardiasActuales, List<Medico> lMedicos, Long OptionalDay) throws ParseException
+	public static boolean ExisteMedicoConGuardiaSolo_EnElMes(HashMap<Long, ContadorGuardias>  _listaGuardiasActuales, List<Medico> lMedicos, Long OptionalDay) throws ParseException
 	{
 		
 		boolean Existe = false;
@@ -899,7 +958,7 @@ public class ProcesarMedicos {
 	}
 	
 	
-	/* public  static  Hashtable  getDatosGuardiasMedico(Long _IdMedico, HashMap<Long, Hashtable> _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
+	/* public  static  Hashtable  getDatosGuardiasMedico(Long _IdMedico, HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
 	{		
 		
 		Iterator entries = _ListaGuardiasMedicos.entrySet().iterator();	
@@ -934,7 +993,7 @@ public class ProcesarMedicos {
 	DiaMes --> Dia actual para agregarle guardias o no
 	*/
 	
-	public  static List<Long> getMedicoGuardiaDia(int _DiaMes, HashMap<Long, Hashtable> _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
+	public  static List<Long> getMedicoGuardiaDia(int _DiaMes, HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, Util.eTipo TipoMedico, List<Medico> lMedicos) throws ParseException
 	{		
 		
 		Iterator entries = _ListaGuardiasMedicos.entrySet().iterator();
@@ -988,7 +1047,7 @@ public class ProcesarMedicos {
 	 * PARA LO QUE EL ALEATORIO NOS AYUDARA
 	 */
 
-	public  static boolean ExisteTipoGuardiaPrevia (HashMap<Long, Hashtable> _ListaGuardiasMedicos,
+	public  static boolean ExisteTipoGuardiaPrevia (HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos,
 			Util.eTipoGuardia TipoGuardiaDiaMes) throws ParseException
 	{
 		boolean _Encontrado = false;
@@ -1162,7 +1221,7 @@ public class ProcesarMedicos {
 */
 
 	
-	public static boolean TodosResidentesCupoMaximo (HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico) throws ParseException
+	public static boolean TodosResidentesCupoMaximo (HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> listaMedico) throws ParseException
 	{
 		
 		Iterator entries = _ListaGuardiasMedicos.entrySet().iterator();
@@ -1271,7 +1330,7 @@ public class ProcesarMedicos {
 		return Dias;
 	}
 	
-	public static  int  NumeroResidentesSemana(Calendar FechaActual, HashMap<Long, Hashtable> _ListaGuardiasMedicos, boolean bSimuladosIncluded, int MesActual)
+	public static  int  NumeroResidentesSemana(Calendar FechaActual, HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, boolean bSimuladosIncluded, int MesActual)
 	{
 
 		//	boolean asignarseComoSimulado=false;
@@ -1333,7 +1392,7 @@ public class ProcesarMedicos {
 	}
 	
 	
-	/* public static  int  NumeroSimuladosSemana(Calendar FechaActual, HashMap<Long, Hashtable> _ListaGuardiasMedicos)
+	/* public static  int  NumeroSimuladosSemana(Calendar FechaActual, HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos)
 	{
 			return NumeroResidentesSemana(FechaActual, _ListaGuardiasMedicos, true);
 	}
@@ -1347,7 +1406,7 @@ public class ProcesarMedicos {
 	
 	/* APLICAMOS UN MARGEN O DIFERENCIA O UMBRAL QUE ME PERMITA ASIGNAR SIMULADOS A UN RANGO MAYOR, PARA EVITAR QUE NOS QUEDEMOS SIN HUECOS Y SE ASIGNE AL MISMO */
 	
-	public static  List<Long>  ListAdjuntoConMenosSimulados(HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico, 
+	public static  List<Long>  ListAdjuntoConMenosSimulados(HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> listaMedico, 
 			int _Dia, boolean EsFestivo) throws ParseException
 	{		
 		
@@ -1426,7 +1485,7 @@ public class ProcesarMedicos {
 		List<Long> lIDMEDICOMenosSimulados = new ArrayList<Long>();
 		
 		
-		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, Hashtable>();
+		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, ContadorGuardias> ();
 		 for(Entry<Long,Long> entry : aMapSorted.entrySet()) {
 	     //       System.out.println(entry.getValue() + " - " + entry.getKey());
 	            _NewSortedByTotal.put(entry.getKey(), _ListaGuardiasMedicos.get(entry.getKey()));
@@ -1509,7 +1568,7 @@ public class ProcesarMedicos {
 	 * podria pasar que no hagan guardias de presencias por el dia de vacaciones y hagan refuerzos, entonces, no estarian disponibles 
 	 */
 	
-	public static  Long  AdjuntoMenosGuardiasYHorasSeguidas(boolean EsSimulado, Util.eTipoGuardia _GuardiaTipo, String KeyTipoGuardia, HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico, 
+	public static  Long  AdjuntoMenosGuardiasYHorasSeguidas(boolean EsSimulado, Util.eTipoGuardia _GuardiaTipo, String KeyTipoGuardia, HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> listaMedico, 
 			List<Long> lExcluirIDMedicoPresencia, int _Dia, int DiasMes, String _Fecha ) throws ParseException
 	{		
 		
@@ -1654,7 +1713,7 @@ public class ProcesarMedicos {
 		
 		Long IdMedicoMenosGuardias = new Long(-1);
 		
-		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, Hashtable>();
+		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, ContadorGuardias> ();
 		 for(Entry<Long,Long> entry : aMapSorted.entrySet()) {
 	     //       System.out.println(entry.getValue() + " - " + entry.getKey());
 	            _NewSortedByTotal.put(entry.getKey(), _ListaGuardiasMedicos.get(entry.getKey()));
@@ -1790,7 +1849,7 @@ public class ProcesarMedicos {
 		return IdMedicoMenosGuardias;
 	}
 	
-	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, Hashtable> 
+	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, ContadorGuardias>  
 		_ListaGuardiasMedicos, List<Medico> listaMedico,String _Fecha, int DiaMes, int _TotalDiasMes, boolean bIncluirHistorico) throws ParseException
 	{
 	
@@ -1898,7 +1957,7 @@ public class ProcesarMedicos {
 		}
 	    return IDResidenteMenosGuardias;
 	}
-/*	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, Hashtable> _ListaGuardiasMedicos, List<Medico> listaMedico, String _Fecha, int DiaMes, int _TotalDiasMes) throws ParseException
+/*	public static  Long  ResidenteMenosGuardiasyNoExcedeDelTotal(HashMap<Long, ContadorGuardias>  _ListaGuardiasMedicos, List<Medico> listaMedico, String _Fecha, int DiaMes, int _TotalDiasMes) throws ParseException
 	{		
 		
 		Iterator entries = _ListaGuardiasMedicos.entrySet().iterator();
