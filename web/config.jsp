@@ -16,8 +16,8 @@
     <meta name="author" content="">
 
     <title>Distribución Guardias Médicos Inicio </title>
-	<link href='<%=request.getContextPath()%>/css/bootstrap.min.css' rel='stylesheet' />
-	<link href='<%=request.getContextPath()%>/css/jquery-ui.css' rel='stylesheet' />
+	<link href='<%=request.getContextPath()%>/css/jquery-ui.css' rel='stylesheet' /> 
+	<link href='<%=request.getContextPath()%>/css/bootstrap.min.css' rel='stylesheet' />	
 	<link href='<%=request.getContextPath()%>/css/fullcalendar.css' rel='stylesheet' />
 	<link href='<%=request.getContextPath()%>/css/fullcalendar.print.css' rel='stylesheet' media='print' />
      
@@ -32,11 +32,10 @@
 	<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
-	<script src='<%=request.getContextPath()%>/js/jquery.ui.js'></script>
-	<script src='<%=request.getContextPath()%>/js/jquery.ui.es.js'></script>	
+	<script src='<%=request.getContextPath()%>/js/jquery-ui.js'></script>
+	<script src='<%=request.getContextPath()%>/js/jquery.ui.es.js'></script>
 	<script src='<%=request.getContextPath()%>/js/fullcalendar.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/locale-all.js'></script>	
-	<script src='<%=request.getContextPath()%>/js/jquery.ui.es.js'></script>	
 	<script src="<%=request.getContextPath()%>/vendor/datatables/js/jquery.dataTables.patched.es.js"></script>
 	<script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
 	<script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>

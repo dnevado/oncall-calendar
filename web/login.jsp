@@ -1,3 +1,5 @@
+<%@page import="org.brickred.socialauth.AuthProvider"%>
+<%@page import="org.brickred.socialauth.AuthProviderFactory"%>
 <%@page import="guardias.security.SecurityUtil"%>
 <%@page import="com.guardias.database.MedicoDBImpl"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
@@ -7,6 +9,10 @@
 <%@page import="java.util.*"%>
 <%@page import="java.security.*"%>
 <%@page import="org.apache.commons.codec.binary.Hex"%>
+
+<%@page import="org.brickred.*"%>
+<%@page import="org.brickred.socialauth.*"%>
+<%@page import="org.brickred.socialauth.util.*"%>
  
  
 
@@ -33,6 +39,7 @@
 	<link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 	<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
 	<link href='<%=request.getContextPath()%>/css/custom.css?erddd444' rel='stylesheet'/>
+	<link href='<%=request.getContextPath()%>/css/login.css?erddd444' rel='stylesheet'/>
 	<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
@@ -60,6 +67,115 @@
 <!--   <a href="#" data-toggle="modal" data-target="#login-modal">Login</a>-->
 
 <%
+
+if ((request.getParameter("oauth_token")!=null && request.getParameter("oauth_token")!=null) || request.getParameter("code")!=null)
+{
+	
+	SocialAuthManager manager = new SocialAuthManager();
+	manager = (SocialAuthManager) session.getAttribute("authManager");
+	
+	AuthProvider provider = manager.connect(SocialAuthUtil.getRequestParametersMap(request));
+	
+	Profile p = provider.getUserProfile();
+	
+	//System.out.println(p.getFirstName() + "," + p.getEmail());
+	
+	Medico oMNew;
+	if (p.getEmail()!=null)  // no existe y el mail viene de twitter	
+	{
+		
+		oMNew = MedicoDBImpl.getMedicoByEmail(p.getEmail());
+
+		if (oMNew==null)
+		{
+			
+			oMNew = new Medico();
+			
+			Medico ThisMedico = MedicoDBImpl.getUltimoIDMedico();
+			
+			oMNew.setActivo(true);
+			oMNew.setAdministrator(true);
+			oMNew.setApellidos(p.getLastName()!=null ? p.getLastName() : "Sin apellido"); 
+			oMNew.setConfirmado(true);
+			oMNew.setEmail(p.getEmail());
+			oMNew.setNombre(p.getFirstName()!=null ? p.getFirstName() : "Sin nombre");
+			oMNew.setID(ThisMedico.getID());
+			oMNew.setOrigen(provider.getProviderId());
+			
+			MedicoDBImpl.AddMedico(oMNew);
+		
+		}
+		
+		HttpSession _session = request.getSession(false);
+		_session.setAttribute("User",  p.getEmail());
+		_session.setAttribute("MedicoLogged", oMNew);
+		
+		String resultUser = SecurityUtil.GenerateEncriptedRandomPassword( p.getEmail());
+		
+		Cookie cookie = new Cookie("UserCookie",resultUser);
+		
+		cookie.setHttpOnly(true);
+		cookie.setMaxAge(0);
+		response.addCookie(cookie);
+		response.sendRedirect(request.getContextPath() +"/inicio.jsp");
+	
+	}
+	
+	
+	
+	
+	
+	
+	
+	//List contactsList = provider.getContactList();
+	
+	//System.out.println(contactsList);
+	
+	// you can obtain profile information System.out.println(p.getFirstName());
+
+	// OR also obtain list of contacts List contactsList = provider.getContactList();
+			
+}
+
+
+if (request.getParameter("loginrrss")!=null && request.getParameter("loginrrss")!=null)
+{
+
+	//Create an instance of SocialAuthConfgi object
+	SocialAuthConfig _config = SocialAuthConfig.getDefault();
+
+	//load configuration. By default load the configuration from oauth_consumer.properties. 
+	//You can also pass input stream, properties object or properties file name.
+	_config.load();
+
+	//Create an instance of SocialAuthManager and set config
+	SocialAuthManager manager = new SocialAuthManager();
+	manager.setSocialAuthConfig(_config);
+
+	//URL of YOUR application which will be called after authentication
+	String _IsHttps = "";
+	if (request.getHeader("x-forwarded-proto")!=null)		
+		_IsHttps =request.getHeader("x-forwarded-proto");
+	
+	String successUrl = request.getRequestURL().toString(); /*  + "?loginRRSSSuccess=OK */
+	if (_IsHttps.contains("https"))
+		successUrl=successUrl.replace("http", "https");
+	// get Provider URL to which you should redirect for authentication.
+	// id can have values "facebook", "twitter", "yahoo" etc. or the OpenID URL
+	String url = manager.getAuthenticationUrl(request.getParameter("loginrrss"), successUrl);
+
+	// Store in session
+	session.setAttribute("authManager", manager);
+	response.sendRedirect(url);		
+}
+
+
+
+
+
+
+
+
 String Error ="";
 
 if (request.getParameter("email")!=null && request.getParameter("password")!=null)
@@ -160,10 +276,30 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
                                 	<button class="btn btn-primary btn-padded" type="submit">Entrar</button>
                                 	<a class="forgotten-password">Olvidé la contraseña</a></div>
                                 </div>
-                                <div class="auth-text"><a href="http://www.medoncalls.com/Guardias/public/inicio.jsp">¿No dispones de una cuenta todavía?</a></div>
+                               <div class="auth-text"><a href="<%=request.getContextPath()%>/register.jsp">¿No dispones de una cuenta todavía?</a></div>
+                                
+                                <!--  RESDES SOCIALES  -->
+                               
                             </fieldset>
                         </form>
                     </div>
+                     <div class="auth-text">
+                                
+                                 		<div class="social-login" style="display:none">o entra con
+                                 			
+			                        		<div class="social-login-buttons">
+				                        	<a class="btn btn-link-1 btn-link-1-facebook" href="login.jsp?loginrrss=facebook">
+				                        		<i class="fa fa-facebook"></i> Facebook
+				                        	</a>
+				                        	<a class="btn btn-link-1 btn-link-1-twitter" href="login.jsp?loginrrss=twitter">
+				                        		<i class="fa fa-twitter"></i> Twitter
+				                        	</a>
+				                        	<a class="btn btn-link-1 btn-link-1-google-plus" href="login.jsp?loginrrss=googleplus">
+				                        		<i class="fa fa-google-plus"></i> Google
+				                        	</a>
+			                        		</div>
+	                     			   </div>
+	      
                 </div>
             </div>
         </div>

@@ -178,6 +178,14 @@ function fn_ChangeDoctorType()
 	// ID|TIPO
 	var _ValueDoctor = $("#medicosolicitante").val();
 	var Type = _ValueDoctor.split("\|")[1];
+	
+	var _ValueDoctor2 = $("#medico").val();
+	var Type2 = _ValueDoctor2.split("\|")[1];
+	//if (_ValueDoctor2==null) // disabled
+	if (Type!=Type2)
+		$("#medico").val('');
+	
+	
 	$("#medico option").each(function( index ) {
 		 var_otherType=$( this ).val().split("\|")[1];
 		 var _disabled=false;

@@ -23,7 +23,15 @@ public class Medico {
 	
 	private String Email = "";
 	private String PassWord = "";
+	private String Origen = "";
 	
+	
+	public String getOrigen() {
+		return Origen;
+	}
+	public void setOrigen(String origen) {
+		Origen = origen;
+	}
 	private boolean Administrator=false;
 	private boolean Confirmado=false;
 

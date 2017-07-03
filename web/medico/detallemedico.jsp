@@ -426,7 +426,7 @@ function _GuardarMedico()
         	     	Detalle Médico. Se requiere previa activación por parte del usuario.
          		</div>
 				 <div class="panel-body">
-				<form  id=fmedico method=post role="form" data-toggle="validator" onsubmit="return false;">                                     						
+				<form  id=fmedico method=post role="form" data-toggle="validator" onsubmit="return _GuardarMedico();">                                     						
                         <!-- SUCCESS  -->
 						<div  id=success  class="alert alert-success" style="display:none">
                         <div class="panel-heading"></div>
@@ -449,11 +449,11 @@ function _GuardarMedico()
 						</div>						
 						<div class="form-group">
 						<label  class="control-label" >Nombre:</label>
-						<input   maxlength="25" required class="ui-textfield form-control" type="text" name="nombre" id="nombre"  value='<%=_oMedico.getNombre() !=null ? _oMedico.getNombre()  : ""%>'/>
+						<input  required  maxlength="25" required class="ui-textfield form-control" type="text" name="nombre" id="nombre"  value='<%=_oMedico.getNombre() !=null ? _oMedico.getNombre()  : ""%>'/>
 						</div>
 						<div class="form-group">
 						<label  class="control-label">Apellidos:</label>
-						<input    maxlength="25" required class="ui-textfield form-control" type="text" name="apellidos"  id="apellidos" value='<%=_oMedico.getApellidos() !=null ? _oMedico.getApellidos()  : ""%>'/>
+						<input  required   maxlength="25" required class="ui-textfield form-control" type="text" name="apellidos"  id="apellidos" value='<%=_oMedico.getApellidos() !=null ? _oMedico.getApellidos()  : ""%>'/>
 						</div>
 						<div class="form-group">
 						<label  class="control-label">Max Guardias Mes: <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("medico.simulado")%>"></label>
@@ -468,7 +468,7 @@ function _GuardarMedico()
 						</div>
 						<div class="form-group">
 						    <label  class="control-label" for="inputEmail" class="control-label">Email</label>
-						    <input <%=_ReadOnly %> type="email" class="form-control" id="inputEmail" placeholder="Email" value="<%=_oMedico.getEmail()%>" data-error="Por favor, introduzca un mail válido" required>						    
+						    <input  required <%=_ReadOnly %> type="email" class="form-control" id="inputEmail" placeholder="Email" value="<%=_oMedico.getEmail()%>" data-error="Por favor, introduzca un mail válido" required>						    
 					    </div>																								
 						<div class="form-group <%=_classHidden%>" >
 						<label  class="control-label" id="labelresidente">Residente:</label>
@@ -533,9 +533,9 @@ function _GuardarMedico()
 						<input type="hidden" name="oldEmail" id="oldEmail" value='<%=_oMedico.getEmail()%>'/>
 						
 						<div class="form-group">
-    							<button type="submit"  onclick="_GuardarMedico()" class="btn btn-block  btn-primary">Guardar</button>
+    							<button type="submit"   class="btn btn-block  btn-primary">Guardar</button>
   						</div>				
-						</form>
+						</form> 
 		</div>
 	</div>
 	</div>

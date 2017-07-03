@@ -442,6 +442,28 @@ public class Util {
 		return oCONST__SERVICE_CALENDAR;
 	}
 
+	
+	/* DIAS 1 DE CADA MES VACACIONAL */
+	public static List<java.util.Calendar> ListaMesesVacaciones() 
+	{
+		List<java.util.Calendar> ListaMesesVacaciones= new ArrayList<java.util.Calendar>();
+		List<String> lMESES_VACACIONES= new ArrayList<String>();
+		String _MesesVacacionesSinAleatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES()).getValue();
+		if (!_MesesVacacionesSinAleatorio.equals(""))
+		{
+			lMESES_VACACIONES = Arrays.asList(_MesesVacacionesSinAleatorio.split("\\|"));
+			for (String Mes : lMESES_VACACIONES)
+			{
+				java.util.Calendar _cMes = java.util.Calendar.getInstance();
+				_cMes.set(java.util.Calendar.MONTH,Integer.valueOf(Mes)-1);
+				_cMes.set(java.util.Calendar.DATE,1);
+				ListaMesesVacaciones.add(_cMes);
+			}
+			 
+		}
+		return ListaMesesVacaciones;
+	}
+	
 
 	public static boolean EsMesVacaciones(java.util.Calendar cFecha) 
 	{
@@ -456,6 +478,40 @@ public class Util {
 		return EsMes;
 	}
 	
+	
+	public static String MonthText(int iIndex) {
+        
+		String retValue="";
+		switch (iIndex)
+		{
+		case 1:
+			   retValue= "Enero";
+		break;
+		case 2:retValue= "Febrero";
+		break;
+		case 3:retValue= "Marzo";
+		break;
+		case 4:retValue= "Abril";
+		break;
+		case 5:retValue= "Mayo";
+		break;
+		case 6: retValue= "Junio";
+		break;
+		case 7:retValue= "Julio";
+		break;
+		case 8:retValue= "Agosto";
+		break;
+		case 9:retValue= "Septiembre";
+		break;
+		case 10:retValue= "Octubre";
+		break;
+		case 11:retValue= "Noviembre";
+		break;
+		case 12:retValue= "Diciembre";
+		break;
+        }		
+		return retValue;
+    }
 
 
 	public static int whichDayOfWeek(java.util.Calendar calendar) {

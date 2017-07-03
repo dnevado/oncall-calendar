@@ -12,6 +12,13 @@ import com.guardias.Vacaciones_Medicos;
 public class VacacionesDBImpl {
 
 	
+	private static String  SQLGENERAL= "SELECT * FROM vacaciones_medicos";
+	// distintos meses de vacaciones
+	private static String  SQLGENERAL_MESES= "SELECT DISTINCT idmedico, EXTRACT(MONTH FROM date(fday)) fday  FROM vacaciones_medicos";
+	
+	private static String  SQLCOUNT= "SELECT count(*) idmedico FROM vacaciones_medicos";
+	
+	
 	//yyyy/mm/dd
 	public static  boolean AddVacacionesMedico(Long IdMedico, String Day)
 	 {	  
@@ -151,17 +158,27 @@ public class VacacionesDBImpl {
 	  }
 	
 	
+	public static  Vacaciones_Medicos  getTotalVacacionesMedicosDesdeHasta(Long IdMedico, String From, String To)
+	 {
+		List<Vacaciones_Medicos> oList = getVacacionesMedicosFiltro(IdMedico,"", From,To,SQLCOUNT); 
+		return oList.get(0);
+	 }
+	
 	public static  List<Vacaciones_Medicos>  getVacacionesMedicosDesdeHasta(Long IdMedico, String From, String To)
 	 {
-		return getVacacionesMedicosFiltro(IdMedico,"", From,To); 
+		return getVacacionesMedicosFiltro(IdMedico,"", From,To,SQLGENERAL); 
 	 }
+	public static  List<Vacaciones_Medicos>  getMesesVacacionesMedicosDesdeHasta(Long IdMedico, String From, String To)
+	{		
+		return getVacacionesMedicosFiltro(IdMedico,"", From,To,SQLGENERAL_MESES); 
+	}
 	
 	public static  List<Vacaciones_Medicos>  getVacacionesMedicos(Long IdMedico, String Day )
 	 {
-		return getVacacionesMedicosFiltro(IdMedico,Day, "","");
+		return getVacacionesMedicosFiltro(IdMedico,Day, "","",SQLGENERAL);
 	 }
 	
-	 private static  List<Vacaciones_Medicos>  getVacacionesMedicosFiltro(Long IdMedico, String Day, String From, String To)
+	 private static  List<Vacaciones_Medicos>  getVacacionesMedicosFiltro(Long IdMedico, String Day, String From, String To, String QuerySQL)
 	 {	  
 		
 		 
@@ -178,7 +195,8 @@ public class VacacionesDBImpl {
 		  
 		stmt = MiConexion.createStatement();
 		
-		String stSQL= "SELECT * FROM vacaciones_medicos";
+		String stSQL= QuerySQL;
+				
 		
 		if (!IdMedico.equals(new Long(-1)))			
 			stSQL+=" WHERE IdMedico=" + IdMedico;
@@ -195,10 +213,16 @@ public class VacacionesDBImpl {
     	  
     	 Vacaciones_Medicos oVacaciones_Medicos= new Vacaciones_Medicos(); 
     	           
-         int idmedico  = rs.getInt("idmedico");         
-         String  Dia = rs.getString("fday");         
-         
-         oVacaciones_Medicos.setDiaVacaciones(Dia);
+         int idmedico  = rs.getInt("idmedico");
+         try          
+         {
+	         String  Dia = rs.getString("fday");                  
+	         oVacaciones_Medicos.setDiaVacaciones(Dia);
+         }
+         catch (Exception e)
+         {
+        	 
+         }
          oVacaciones_Medicos.setIDMEDICO(new Long(idmedico));
           
          lVacMedicos.add(oVacaciones_Medicos);

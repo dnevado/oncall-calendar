@@ -57,6 +57,7 @@ hasta  = sdf2.format(Dhasta);
         <th>Refuerzos F.</th>                
         <th>Total</th>
         <th>Simulados</th>
+        <th>Cesiones</th>
     </tr>
 </thead>
 <tbody>
@@ -80,6 +81,8 @@ hasta  = sdf2.format(Dhasta);
 	for (int j=0;j<lGuardiasReport.size();j++)
 	{
 		
+		
+		
 		GuardiasReportingUtilContainer oGuardia = lGuardiasReport.get(j);
 		
 		Long Total = oGuardia.getPresencias() + oGuardia.getLocalizadas() + oGuardia.getRefuerzos() +
@@ -90,7 +93,7 @@ hasta  = sdf2.format(Dhasta);
 	%>
 	
 	<tr role="row">	    
-	    <td><%=oGuardia.getApellidos()%> <%=oGuardia.getNombre()%> </td>
+	    <td><%=oGuardia.getApellidos()%> <%=oGuardia.getNombre()%></td>
 	    <td ><%=oGuardia.getTipoMedico()%></td>
 	    <td ><span class="badge"><%=oGuardia.getPresencias().equals(new Long(0)) ? "" : oGuardia.getPresencias() %></span></td>
 	    <td ><span class="badge"><%=oGuardia.getLocalizadas().equals(new Long(0)) ? "" : oGuardia.getLocalizadas() %></span></td>
@@ -100,6 +103,7 @@ hasta  = sdf2.format(Dhasta);
 	    <td ><span class="badge"><%=oGuardia.getRefuerzosF().equals(new Long(0)) ? "" : oGuardia.getRefuerzosF() %></span></td>
 	    <td ><span class="badge"><%=Total.equals(new Long(0)) ? "" : Total %></span></td>
 	    <td ><span class="badge"><%=oGuardia.getTotalSimulados().equals(new Long(0)) ? "" : oGuardia.getTotalSimulados() %></span></td>
+	    <td ><span class="badge"><%=oGuardia.getCesiones().equals(new Long(0)) ? "" : oGuardia.getCesiones() %></span></td>
     </tr>
 	
 	<% }

@@ -63,9 +63,25 @@
 	}
 	
 	#doctor_list {
-	float:left;	
-		
+	float:left;			
 	}
+	
+	#doctor_list .mespresencia {
+	    background-color: #fbd850;
+
+	}
+	#doctor_list .mespresenciaf {
+			    background-color: #fbd850;
+				
+	}
+	#doctor_list .mestotaladjunto {
+				    background-color: #fbd850;
+				
+	}
+	
+	
+	
+	
 	/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 	ul li:hover  {background-color:#f9f4cc!important;}
 	

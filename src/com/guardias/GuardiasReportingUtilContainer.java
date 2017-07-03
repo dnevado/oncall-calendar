@@ -13,6 +13,7 @@ public class GuardiasReportingUtilContainer {
 	private Long PresenciasF  = new Long(0);
 	private Long LocalizadasF =   new Long(0);
 	private  Long RefuerzosF =   new Long(0);
+	private  Long Cesiones =   new Long(0);
 	private Long TotalSimulados =   new Long(0);
 	private Long IdMedico =   new Long(0);
 	private String Nombre; 
@@ -73,6 +74,11 @@ public class GuardiasReportingUtilContainer {
 			if (_oGuardia.getTipo().toString().equalsIgnoreCase(Util.eTipoGuardia.SIMULADO.toString()))
 			{
 					_oReport.setTotalSimulados(_oGuardia.getID());
+				
+			}
+			if (_oGuardia.getTipo().toString().equalsIgnoreCase(Util.eTipoCambiosGuardias.CESION.toString()))
+			{
+					_oReport.setCesiones(_oGuardia.getID());
 				
 			}
 			// RESIDENTES 
@@ -286,6 +292,22 @@ public class GuardiasReportingUtilContainer {
 
 	public void setSubTipoMedico(String subTipoMedico) {
 		SubTipoMedico = subTipoMedico;
+	}
+
+
+
+
+
+	public Long getCesiones() {
+		return Cesiones;
+	}
+
+
+
+
+
+	public void setCesiones(Long cesiones) {
+		Cesiones = cesiones;
 	}
 
 

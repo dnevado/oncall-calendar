@@ -135,7 +135,16 @@ List<Medico> _lResidentes  = new ArrayList<Medico>();
 List<Medico> _lAdjuntos  = new ArrayList<Medico>();
 
 
+Calendar cLASTDAYMONTH= Calendar.getInstance();
+cLASTDAYMONTH.setTimeInMillis(_cFIN.getTimeInMillis());
+cLASTDAYMONTH.add(Calendar.DATE, -1);
+
+
 _lAdjuntos  =ProcesarMedicos.getAdjuntos(lItems, true);
+_lResidentes  =MedicoDBImpl.getMedicosByTypeOrdenBySimulados(Util.eTipo.RESIDENTE);
+_lResidentes  =ProcesarMedicos.getResidentesOrdenadosVacacionesDESC(_lResidentes, _format.format(_cINI.getTime()), _format.format(cLASTDAYMONTH.getTime()));
+
+
 
 /* LO PRIMERO ASIGNAR LOS ADJUNTOS POR ORDEN DE APARICION O SECUENCIA PARA LAS PRESENCIAS 
 
@@ -192,6 +201,29 @@ int MEDIA_TOTAL_DIARIA_FESTIVA = GuardiasDBImpl.getMediaTotalGuardiasTipoEntreFe
 
 
 
+
+
+List<Medico> lAdjuntosVacacionesDESC =ProcesarMedicos.getAdjuntosOrdenadosVacacionesDESC(_lAdjuntos, _format.format(_cINI.getTime()), _format.format(cLASTDAYMONTH.getTime()));
+
+
+/* NUMERO DE GUARDIAS POR 30 DIAS DE MEDIA, OJO AL TRUNCATE  */
+int MEDIA_GUARDIAS_VACACIONAL_X_ADJUNTO_NORMAL = (NUMERO_GUARDIAS_PRESENCIA.intValue() +  NUMERO_REFUERZOS_LOCALIZADAS.intValue()) * 30 / lAdjuntosVacacionesDESC.size();
+/* 30 DIAS POR ADJUNTOS , DISPONIBILIDAD DE 300 DIAS */
+int DIAS_TOTALES_DISPONIBLE_MES_NORMAL = lAdjuntosVacacionesDESC.size() * 30;
+/* AJUSTE REAL DE GUARDIAS A  REALIZAR */
+
+int DIAS_TOTALES_DISPONIBLE_MES_CURSO=0;
+
+//int GUARDIAS_VACACIONAL_X_ADJUNTO = NUMERO_GUARDIAS_PRESENCIA.intValue() *  NUMERO_REFUERZOS_LOCALIZADAS.intValue() * 30 / lAdjuntosVacacionesDESC.size();
+
+int  _NUM_TOTAL_VACACIONES_ADJUNTOS=0;
+
+
+//Long NUMERO_RESIDENTES_POR_DIA = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_RESIDENTES()).getValue());
+
+
+
+
 /* INICIALIZAMOS CONTADORES */
 for (Medico oM :_lAdjuntos)
 {
@@ -200,20 +232,55 @@ for (Medico oM :_lAdjuntos)
 	
 	_lDatosGuardiasMedico  = ProcesarMedicos.InitContadoresMedico(oM, _ANYO_INICIO, _ANYO_HASTA,
 			MEDIA_TOTAL_PRESENCIA, MEDIA_TOTAL_LOCALIZADA, MEDIA_TOTAL_REFUERZO, MEDIA_TOTAL_PRESENCIA_FESTIVO,
-			MEDIA_TOTAL_LOCALIZADA_FESTIVO, MEDIA_TOTAL_REFUERZO_FESTIVO, MEDIA_TOTAL_DIARIA,MEDIA_TOTAL_DIARIA_FESTIVA ); 
+			MEDIA_TOTAL_LOCALIZADA_FESTIVO, MEDIA_TOTAL_REFUERZO_FESTIVO, MEDIA_TOTAL_DIARIA,MEDIA_TOTAL_DIARIA_FESTIVA, _cINI); 
 
 	lMedicosGuardias.put(oM.getID(),_lDatosGuardiasMedico);
 	
+	Calendar cVacacionesFIN = Calendar.getInstance();
+	
+	cVacacionesFIN.setTimeInMillis(_cFIN.getTimeInMillis());
+	cVacacionesFIN.add(Calendar.DATE, -1);
+	
+	_NUM_TOTAL_VACACIONES_ADJUNTOS += ProcesarMedicos.getNumeroVacacionesMedico(oM,_cINI, cVacacionesFIN); // ULTIMO DIA DEL MES  
+	
 }
 
-
+/* SUMATORIO DIAS DE CADA ADJUNTO MENOS LAS VACACIONES */ 
+DIAS_TOTALES_DISPONIBLE_MES_CURSO = DIAS_TOTALES_DISPONIBLE_MES_NORMAL-_NUM_TOTAL_VACACIONES_ADJUNTOS;
 /* 1. ASIGNACION DE PRESENCIAS EN ORDEN */
 
+float _FACTOR_GUARDIAS_CORRECCION =   DIAS_TOTALES_DISPONIBLE_MES_CURSO  / (float) DIAS_TOTALES_DISPONIBLE_MES_NORMAL  ;
 
+float  _OBJETIVO_MES_GUARDIAS_ADJUNTOS = MEDIA_GUARDIAS_VACACIONAL_X_ADJUNTO_NORMAL * (1 + _FACTOR_GUARDIAS_CORRECCION);
+/* SACAMOS LOS OBJETIVOS EN BASE A LA DISPONIBILIDAD DE LOS RESIDENTES */
+float  _REFUERZOS_MES_NORMAL_X_ADJUNTO = ProcesarMedicos.getDisponibilidadRefuerzo(_lResidentes) / (float)_lResidentes.size();
+float _LOCALIZADAS_MES_NORMAL_X_ADJUNTO  = ProcesarMedicos.getDisponibilidadLocalizada(_lResidentes) / (float) _lResidentes.size();
+
+ 
+
+
+ 
+int  _OBJETIVO_MES_ADJUNTOS_LOCALIZADAS = Math.round(_LOCALIZADAS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION)/2);
+
+int  _OBJETIVO_MES_ADJUNTOS_REFUERZO =   Math.round(_REFUERZOS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION)/2);
+int  _OBJETIVO_MES_ADJUNTOS_PRESENCIAS =  Math.round((_OBJETIVO_MES_GUARDIAS_ADJUNTOS - (_OBJETIVO_MES_ADJUNTOS_LOCALIZADAS + _OBJETIVO_MES_ADJUNTOS_REFUERZO))/2);
+
+/* EL OBJETIVO DE PRESENCIAS TIENE QUE SER EL 50 DEL OBJETIVO CALCULADO PUESTO QUE LA DISPONIBLIDAD LA ESTA CONSIDERANDO ENTRE LAS TRES TIPOS DE GUARDIAS,
+ENNTONCES, UNA PRESENCIA NO ES COMPATIBLE CON UN REFUERZO O LOCALIZADA, POR TANTO, DIVIDIMOS AL 50% PARA DISTRIBUIRLO */
+
+
+ 
+/*int  _OBJETIVO_MES_ADJUNTOS_LOCALIZADAS = (int) (_LOCALIZADAS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION));
+int  _OBJETIVO_MES_ADJUNTOS_REFUERZO =   (int) (_REFUERZOS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION));
+int  _OBJETIVO_MES_ADJUNTOS_PRESENCIAS =  (int) (_OBJETIVO_MES_GUARDIAS_ADJUNTOS - (_OBJETIVO_MES_ADJUNTOS_LOCALIZADAS + _OBJETIVO_MES_ADJUNTOS_REFUERZO));
+*/
 
 // la usamos aqui para tener control sobre la listagenerada de la clase
 ProcesarMedicos UtilMedicos = new ProcesarMedicos();
 UtilMedicos.setlGeneradaSecuencia(new ArrayList<Long>());
+
+
+
 for (int j=1;j<=_daysOfMonth;j++)	
 {
 	
@@ -224,17 +291,17 @@ _EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
 if (_EsFestivo && !lFestivos.contains(new Long(j)))
 	lFestivos.add(new Long(j));
 	
-	
+	 
 	/* CUANTAS PRESENCIAS HAY QUE RELLENAR */
 	for (int countPresencias=0;countPresencias<NUMERO_GUARDIAS_PRESENCIA;countPresencias++)
-	{
+	{ 
 		
 		_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
 		
 		if (PRESENCIA_EN_SECUENCIA.equalsIgnoreCase("S"))
 			lMedicosGuardias = UtilMedicos.setGuardiaPresenciaSecuencia(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo);
 		else
-			lMedicosGuardias = ProcesarMedicos.setGuardiaPresenciaAleatoria(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo,_daysOfMonth);
+			lMedicosGuardias = ProcesarMedicos.setGuardiaPresenciaAleatoria(lMedicosGuardias, lAdjuntosVacacionesDESC,_cINICIO.getTime(), _EsFestivo,_daysOfMonth, _OBJETIVO_MES_ADJUNTOS_PRESENCIAS);
 		
 		//ProcesarMedicos.setlGeneradaSecuencia(new ArrayList(Long));
 		
@@ -317,17 +384,17 @@ for (int j=1;j<=_daysOfMonth;j++)
 			
 //_lResidentes  =ProcesarMedicos.getResidentes(lItems);
 
-Calendar cLASTDAYMONTH= Calendar.getInstance();
-cLASTDAYMONTH.setTimeInMillis(_cFIN.getTimeInMillis());
-cLASTDAYMONTH.add(Calendar.DATE, -1);
+
 
 
 //_format.format(_cINI.getTime())
 
 //_lResidentes  =ProcesarMedicos.getResidentes(lItems);
 //_lResidentes  =ProcesarMedicos.getResidentesOrdenadosVacacionesDESC(lItems, _format.format(_cINI.getTime()), _format.format(cLASTDAYMONTH.getTime()));
-_lResidentes  =MedicoDBImpl.getMedicosByTypeOrdenBySimulados(Util.eTipo.RESIDENTE);
-_lResidentes  =ProcesarMedicos.getResidentesOrdenadosVacacionesDESC(_lResidentes, _format.format(_cINI.getTime()), _format.format(cLASTDAYMONTH.getTime()));
+
+
+
+
 
 
 //_format.format(_cANYO_INICIO.getTime());
@@ -367,9 +434,9 @@ for (int j=0;j<_lResidentes.size();j++)
 		 _lDatosGuardiasResidente.put("_TOTAL_GUARDIAS_" + Util.eTipo.RESIDENTE + "_FESTIVO",0);
 		
 		/* ACUMULAMOS EL HISTORICO DEL AÑO  LA PRIMERA VEZ */ 
-		int TOTAL_DIARIAS = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oMedicoINIT.getID(), "" ,new Long(0),_ANYO_INICIO,_ANYO_HASTA);
+		int TOTAL_DIARIAS = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oMedicoINIT.getID(), "" ,new Long(0),_ANYO_INICIO,_ANYO_HASTA, _cINI);
 		if (TOTAL_DIARIAS==0) TOTAL_DIARIAS= MEDIA_TOTAL_DIARIA;
-		int TOTAL_DIARIAS_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oMedicoINIT.getID(), "" ,new Long(1),_ANYO_INICIO,_ANYO_HASTA);
+		int TOTAL_DIARIAS_FESTIVO = GuardiasDBImpl.getTotalGuardiasPorMedicoTipoEntreFechas(oMedicoINIT.getID(), "" ,new Long(1),_ANYO_INICIO,_ANYO_HASTA, _cINI);
 		if (TOTAL_DIARIAS_FESTIVO==0) TOTAL_DIARIAS_FESTIVO= MEDIA_TOTAL_DIARIA_FESTIVA;
 		
 		_lDatosGuardiasResidente.put("HISTORICO_NUMERO_GUARDIAS_" + Util.eTipo.RESIDENTE + "_MES",TOTAL_DIARIAS);
@@ -980,14 +1047,14 @@ for (int j=1;j<=NUM_SEMANAS_MES;j++)
 			
 			Medico _oMenosFestivos = MedicoDBImpl.getMedicos(ResidenteConMenosFestivos).get(0);
 			
-			System.out.println("Dia:" + DIASEMANAMES  + ",Residente:" +oM.getApellidos() +  
+		/* System.out.println("Dia:" + DIASEMANAMES  + ",Residente:" +oM.getApellidos() +  
 						"DiariasGuardias:" + _lDatosGuardiasMedico.get("_NUMERO_GUARDIAS_" + Util.eTipo.RESIDENTE + "_MES") + 
 						",Festivos:" + _lDatosGuardiasMedico.get("_TOTAL_GUARDIAS_RESIDENTE_FESTIVO") + 
 						"HistoricoDiarias:" + _lDatosGuardiasMedico.get("HISTORICO_NUMERO_GUARDIAS_" + Util.eTipo.RESIDENTE + "_MES") + 
 						",HistoricoFestivos:" + _lDatosGuardiasMedico.get("HISTORICO_TOTAL_GUARDIAS_RESIDENTE_FESTIVO") +
 						",ResidenteMenosFestivos:" + _oMenosFestivos.getApellidos());
 			 
-			
+			*/
 			 		
 				
 		} // fin de if (!_lPoolDAYS.contains(DIASEMANA) && !bExisteMedicoConGuardiaSolo)
@@ -1047,10 +1114,6 @@ for (int j=1;j<=_daysOfMonth;j++)
 		
 		lIDResidenteGuardiaDia = ProcesarMedicos.getMedicoGuardiaDia(j, lMedicosGuardias, Util.eTipo.RESIDENTE, _lResidentes);
 		
-		
-		//System.out.println ("Residentes de guardias dia " + j + " " + lIDResidenteGuardiaDia);
-		
-		
 		/* consideramos que si hay menos refuerzos que residentes, ya no tiene sentido los refuerzos */
 		boolean _GuardiasTodasLocalizadas = NUMERO_REFUERZOS_LOCALIZADAS<lIDResidenteGuardiaDia.size();
 		
@@ -1104,107 +1167,49 @@ for (int j=1;j<=_daysOfMonth;j++)
 			
 		    System.out.println("ListAdjuntoConMenosSimulados:" + ListAdjuntoConMenosSimulados);
 		    
-			while (!bEncontrado) 
-			{
-				
-				
-				// VERIFICAMOS PARA EL ADJUNTO, EL TIPO DE RESIDENTE QUE TOCA, LOCALIZADA O REFUERZO, VERIFICANDO QUE SEA EL QUE MENOS TENGA 
-				// (OJO, CUIDADO CON EL MENOR ESTRICTO , PODRIA DARSE QUE TODOS TENGAN LAS MISMAS */
-						
-				/* 1. NO ESTE DE VACACIONES  OK 
-				/* 2. EQUIDAD EN FESTIVOS 
-				/* 3. MAXIMAS GUARDIAS SEGUIDAS OK
-				/* 4. QUE NO ESTE DE PRESENCIA EL ESE DIA OK
-				   5.hay que verificar que el residente no es simulado para los adjuntos que no pueden estar solos OK
-				   6. No exceda el total de guardias asignadas
-				   7. SI ES EL PRIMER REFUERZO O LOCALIZADA, QUE LO COJA DEL ALEATORIO, SI NO, SIEMPRE VA A ENCONTRAR EL PRIMERO DE LA SECUENCIA
-				*/
-				
-				
-				/* SACAMOS ALEATORIOS */
-				Random rand = new Random();
-				
-				int value = rand.nextInt(lAdjuntosRANDOM.size());  // integer entre 0 y size -1
-				
-				
-				 oM = (Medico) lAdjuntosRANDOM.get(value);
-				
-				
-				boolean NoTieneVacaciones = oUtilMedicos.NoTieneVacaciones(oM, _DATE);		
-				//boolean ExcedeHorasSeguidas = false;
-				boolean EsAdjuntoConMenosGuardias  = false;  // festivos o no			
-				//boolean ExcedeLimiteGuardiasMes = false;			
-				boolean EstaPresenciaEseDia = false;
-				
-				
-				/* para verificar que no de siempre el primero de la secuencia por menor numero de guardias hechas (el orden) */
-				boolean ExisteTipoGuardiaPrevia = false;
-				
-				
-				EstaPresenciaEseDia  = lIDAdjuntoGuardiaDia.contains(oM.getID());
-				
-				
-				
-				Hashtable _lDatosTemp;
-				if (!EstaPresenciaEseDia && lMedicosGuardias.containsKey(oM.getID())) // existe el medico con guardias
-				{
-					
-					
-					ExisteTipoGuardiaPrevia = ProcesarMedicos.ExisteTipoGuardiaPrevia(lMedicosGuardias,_TipoGuardiaAdjunto);
-					
-				
-					_lDatosTemp = (Hashtable) lMedicosGuardias.get(oM.getID());
-					
-					 				 
-					 				 
-					
-					 
-					 // EXCLUYENDO EL QUE ESTÁ DE PRESENCIA y OJO EL EXCESO DE HORAS SEGUIDAS  
-					 
-					 EsAdjuntoConMenosGuardias = AdjuntoConMenosGuardias.equals(oM.getID());
-					 
-					 
-					if (!ExisteTipoGuardiaPrevia ||  EsAdjuntoConMenosGuardias || lAdjuntosRANDOM.size()==1)
-						bEncontrado =true;
-					/* else
-						bEncontrado = false; */
-				}   // fin de calculo de medico aleatorio			
-				
-				if (!bEncontrado)
-				{
-					System.out.println("Removing del dia : " + j + ", médico adjunto:" + oM.getID()  + ",size:" + lAdjuntosRANDOM.size());
+		   
+		    if (_bMES_VACACIONAL)
+		    {	
+		    	int _OBJETIVO_MINIMO_GUARDIA_POR_ADJUNTO = _OBJETIVO_MES_ADJUNTOS_REFUERZO;
+		    	if (_TipoGuardiaAdjunto.equals(Util.eTipoGuardia.LOCALIZADA))
+		    		_OBJETIVO_MINIMO_GUARDIA_POR_ADJUNTO = _OBJETIVO_MES_ADJUNTOS_LOCALIZADAS;
+		    	 
+		    	 oM  = ProcesarMedicos.setGuardiaLocalizadasRefuerzosEnVacaciones(_Key, j,_daysOfMonth,lIDAdjuntoGuardiaDia,AdjuntoConMenosGuardias,_DATE , lAdjuntosVacacionesDESC,  lMedicosGuardias, _TipoGuardiaAdjunto, _OBJETIVO_MINIMO_GUARDIA_POR_ADJUNTO);
+		    }
+			else
+				 oM  = ProcesarMedicos.setGuardiaLocalizadasRefuerzos( j,_daysOfMonth,lIDAdjuntoGuardiaDia,AdjuntoConMenosGuardias,_DATE , lAdjuntosRANDOM,  lMedicosGuardias, _TipoGuardiaAdjunto);
 
-					lAdjuntosRANDOM.remove(oM);
-				}
-				//Random r = new Random();
-				//value = rand.nextInt(lAdjuntosRANDOM.size());  // integer entre 0 y size -1
-							
-				
-			}  // fin de encontrado 
+		    
 			
 			
-			System.out.println("Agregado al dia : " + j + ", médico adjunto:" + oM.getID() + "," + _TipoGuardiaAdjunto + " " + _Key + ",Adjunto de Guardia:" + lIDAdjuntoGuardiaDia.toString());
 			//System.out.println("NoTieneVacaciones:" + NoTieneVacaciones + "," + ) ;
 			
 			// metemos los datos 
 			// existe el medico residente en su lista de control
 			Hashtable _lDatosGuardiasMedico=null;
 			
+			System.out.println("Agregado al dia : " + j + ", médico adjunto:" + oM.getID() + "," + _TipoGuardiaAdjunto + " " + _Key + ",Adjunto de Guardia:" + lIDAdjuntoGuardiaDia.toString()); 
+			
 			/* AQUI YA TIENEN QUE  ESTAR TODOS LOS ADJUNTOS CON LAS PRESENCIAS  RELLENAS */
 			 
 			_lDatosGuardiasMedico = (Hashtable) lMedicosGuardias.get(oM.getID());
 			
 			/* PONEMOS EL DIA */
+			
+			String _key = "_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_FESTIVOS_MES";
+			if (!_EsFestivo)
+				_key = "_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_MES";
+			
+			int _ContadorPrevio = 0;
+			if (_lDatosGuardiasMedico.containsKey(_key))
+				_ContadorPrevio = Integer.valueOf(_lDatosGuardiasMedico.get(_key).toString());
+			
 			_lDatosGuardiasMedico.put(new Long(j), _TipoGuardiaAdjunto.toString());  // redundate, dia key , dia value
 			/* 03-01-2017  _lDatosGuardiasMedico.put("_TOTAL_GUARDIAS_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_GUARDIAS_MES").toString()) +1);*/
-			if (_EsFestivo)
-				_lDatosGuardiasMedico.put("_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_FESTIVOS_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_FESTIVOS_MES").toString()) +1);
-			else /* 03-01-2017 */
-				_lDatosGuardiasMedico.put("_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + _TipoGuardiaAdjunto.toString() + "_MES").toString()) +1);
+			_lDatosGuardiasMedico.put(_key, _ContadorPrevio +1);
 				
 			if (!_GuardiasTodasLocalizadas && oResidente.isResidenteSimulado())
 			{
-				
 				if (_EsFestivo)			
 					_lDatosGuardiasMedico.put("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES", Integer.valueOf(_lDatosGuardiasMedico.get("_TOTAL_" + Util.eSubtipoResidente.SIMULADO.toString() + "_FESTIVOS_MES").toString()) +1);
 				else /* 03-01-2017 */

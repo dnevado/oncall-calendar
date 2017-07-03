@@ -40,7 +40,6 @@
 <script src="<%=request.getContextPath()%>/vendor/datatables/js/jquery.dataTables.patched.es.js"></script>
 <!--  <script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>-->
 <script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
-<script src='<%=request.getContextPath()%>/js/guardias.js?timestamp=3131236574567567'></script>
 <script src='<%=request.getContextPath()%>/js/interact.min.js'></script>
 <script src='<%=request.getContextPath()%>/js/ga.js'></script>
 <script src='<%=request.getContextPath()%>/js/intro.js'></script>

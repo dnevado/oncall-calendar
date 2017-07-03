@@ -1,9 +1,11 @@
+<%@page import="java.text.SimpleDateFormat"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
     
 <%@page import="com.guardias.*"%>
 <%@page import="com.guardias.database.*"%>
 <%@page import="java.util.*"%>
+<%@page import="java.text.*"%>
 
 <script>
 
@@ -66,11 +68,11 @@ function fn_callOrdenDoctorList() {
         <th>Ident.</th>
         <th>Nombre Apellidos</th>               
         <th>Email</th>
-        <th>Máx Guardias</th>
-        <th>Confirmado</th>
+        <th title=" Máximas Guardias">G</th>
+        <th title=" Confirmado">C</th>
         <th></th>
-        <th>Activo</th>
-        <th></th>
+        <th title=" Activo">A</th>
+        <th title=" Vacaciones">Vacaciones</th>       
     </tr>
 </thead>
 <tbody>
@@ -90,12 +92,28 @@ function fn_callOrdenDoctorList() {
 	//lItems = oUtilMedicos.LeerMedicos(_Path,true);
 	lItems =  MedicoDBImpl.getMedicos();
 	
-	//lItems = 
+	//lItems =
+	Calendar c_ = Calendar.getInstance();
+	//SimpleDateFormat _df = new SimpleDateFormat("yyyy-MM-dd");
+	DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
+	
+	c_.add(Calendar.MONTH, 1);
+	c_.set(Calendar.DAY_OF_MONTH, 1);
+	
+	
+	
+	String _fINICIO = _format.format(c_.getTime());
+	c_.add(Calendar.MONTH, 5);
+	String _fFIN = _format.format(c_.getTime());
+	
 	
 	for (int j=0;j<lItems.size();j++)
 	{
 		
-		Medico oMedico = lItems.get(j);		
+		Medico oMedico = lItems.get(j);
+		
+	   	List<Vacaciones_Medicos> lVacaciones = VacacionesDBImpl.getMesesVacacionesMedicosDesdeHasta(oMedico.getID(), _fINICIO, _fFIN);
+		
 	%>
 	
 	   <!--  <a href="#" class="list-group-item">
@@ -104,8 +122,8 @@ function fn_callOrdenDoctorList() {
 			                                    </span>
 			                                </a> -->
 	
-	
-    <tr class="ui-state-default"  id="id_<%=oMedico.getID()%>_medico">
+	   
+    <tr onclick="EditarMedico(<%=oMedico.getID()%>)" class="ui-state-default"  id="id_<%=oMedico.getID()%>_medico">
     <td><%=oMedico.getOrden()%></td>    
     <td><%=oMedico.getIDMEDICO()%></td>
     <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
@@ -114,8 +132,31 @@ function fn_callOrdenDoctorList() {
     <td><%=oMedico.isConfirmado() ? 'S' : 'N'%></td>
     <td><%=oMedico.getTipo()%></td>
     <td><%=oMedico.isActivo() ? 'S' : 'N'%></td>
-    <td><a class="ui-widget ui-corner-all" href="javascript:EditarMedico(<%=oMedico.getID()%>)">Editar</a></td>   
+    <td>
+    <%
+    	if (lVacaciones!=null && !lVacaciones.isEmpty())
+    	{
+    	   int jV=0;	
+    	   for (Vacaciones_Medicos oVacaciones : lVacaciones) 
+    	   {
+    		  /*  Calendar cVacaciones= Calendar.getInstance();
+    		   cVacaciones.setTimeInMillis(_format.parse(oVacaciones.getDiaVacaciones()).getTime()); */    		   
+    		   String _Mes = Util.MonthText(Integer.parseInt(oVacaciones.getDiaVacaciones()));    	 	  
+    	   %>
+    	    
+    	    <div class="checkbox"><input disabled="disabled" id="checkvacaciones_<%=oMedico.getID()%>_<%=jV%>" type="checkbox" value="<%= _Mes%>" checked/>
+    	    <label for="checkvacaciones_<%=oMedico.getID()%>_<%=j%>"><%=_Mes%></label></div>    		        		
+    	<%  jV++;
+    		}
+    	 	
+        }
+    
+    %>
+    
+    </td>
     </tr>
+    </a>   
+    
 		
 	<% }
 	%>	

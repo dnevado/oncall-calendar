@@ -1,7 +1,10 @@
 package com.guardias.database;
 
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import com.guardias.Guardias;
@@ -284,8 +287,21 @@ public class GuardiasDBImpl {
 				_sbSQL.append(" and fGuardia<='" + _FGuardia2 + "')  e ");
 				_sbSQL.append(" WHERE  e.fGuardia = t.fGuardia and t.tipo='' and M.SubTipo='" + Util.eTipoGuardia.SIMULADO.toString() + "' and t.idmedico = M.ID");
 				_sbSQL.append(" GROUP BY e.IdMedico");
-				_sbSQL.append(" ORDER  BY  eTipo, IdMedico, Festivo");
+				//_sbSQL.append(" ORDER  BY  eTipo, IdMedico, Festivo");
 				
+				// CESIONES 
+				
+				_sbSQL.append(" UNION  ");
+				_sbSQL.append(" SELECT count(distinct GUARDIAS.fGuardia ),'" + Util.eTipoCambiosGuardias.CESION + "', Festivo, GUARDIAS.IdMedico, G.Tipo AS eTipo,G.apellidos ");
+				_sbSQL.append(" FROM guardias_cambios CAMBIOS, guardias_medicos GUARDIAS, medicos G where TipoCambio ='" + Util.eTipoCambiosGuardias.CESION + "' and CAMBIOS.FechaIniCambio >='" + _FGuardia + "'"); 
+				_sbSQL.append(" and  CAMBIOS.FechaIniCambio<='" + _FGuardia2 + "'");
+				if (!MedicoIdFilter.equals(new Long(-1)))
+					_sbSQL.append(" AND G.idmedico = " + MedicoIdFilter);
+				_sbSQL.append(" and  CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia and CAMBIOS.IdMedicoDestino = GUARDIAS.IdMedico");
+				_sbSQL.append(" GROUP BY GUARDIAS.IdMedico ");				
+				//_sbSQL.append(" GROUP BY GUARDIAS.Tipo, Festivo, GUARDIAS.IdMedico ");
+				
+				_sbSQL.append(" ORDER  BY  eTipo, IdMedico, Festivo");
 	
 			//	stmt = MiConexion.prepareStatement(_sbSQL. toString());
 				
@@ -351,9 +367,33 @@ public class GuardiasDBImpl {
 		 return getGuardias(IdMedico, "", _TipoGuardia,Festivo,"","").size();
 	 }
 	 
-	 public static  int  getTotalGuardiasPorMedicoTipoEntreFechas(Long IdMedico, String _TipoGuardia, Long Festivo, String _FGuardia, String _FGuardia2)
+	 /* ADJUNTOS */
+	 public static  int  getTotalGuardiasPorMedicoTipoEntreFechas(Long IdMedico, String _TipoGuardia, Long Festivo, String _FGuardia, String _FGuardia2 , Calendar _cInicio)
 	 {
-		 return getGuardias(IdMedico, _FGuardia, _TipoGuardia,Festivo,"",_FGuardia2).size();
+		 /* PARA LOS MESES DE VERANO, EL TOTAL DE GUARDIAS HISTORICAS SERAN LAS DE LOS MESES ESTABLECIDOS COMO VACACIONALES */
+		 DateFormat _format = new SimpleDateFormat(Util._FORMATO_FECHA);		 
+		 int TotalGuardias=0;
+		 boolean _bMES_VACACIONAL =  Util.EsMesVacaciones(_cInicio); // QUITAMOS O NO LOS ALEATORIOS
+		 List<Calendar> lMeses = Util.ListaMesesVacaciones();
+		 if  (_bMES_VACACIONAL && lMeses!=null && !lMeses.isEmpty()) // QUE SEA UN MES VACACIONAL  QUE HAYA MESES VACACIONAL SELECCIONADOS 
+		 {
+			 for (Calendar MesVacacional : lMeses)
+			 {
+				 String _INICIO = _format.format(MesVacacional.getTime());
+				 /* ULTIMO DIA DEL MES */				 
+				 Calendar _cTFin = Calendar.getInstance();
+				 _cTFin.setTimeInMillis(MesVacacional.getTimeInMillis());				 
+				 _cTFin.add(Calendar.MONTH, 1);
+				 _cTFin.add(Calendar.DATE, -1);
+				 String _FIN  = _format.format(_cTFin.getTime());
+				 TotalGuardias +=  getGuardias(IdMedico, _INICIO, _TipoGuardia,Festivo,"",_FIN).size();
+			 }
+			 
+		 }
+		 else
+			 TotalGuardias =  getGuardias(IdMedico, _FGuardia, _TipoGuardia,Festivo,"",_FGuardia2).size();
+		 
+		 return TotalGuardias;
 	 }
 	 
 	 public static  int  getTotalGuardiasPorMedico_DeSimulados(Long IdMedico,  Long Festivo, String FGuardia, String FGuardia2)

@@ -48,7 +48,7 @@ oCambioGuardias = gson.fromJson(request.getParameter("datachange"), CambiosGuard
 
 
 Calendar cHOY = Calendar.getInstance();
-DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
+DateFormat _format = new SimpleDateFormat(Util._FORMATO_FECHA);
 oCambioGuardias.setFechaCreacion(_format.format(cHOY.getTime()));
 oCambioGuardias.setIdCambio(new Long(CambiosGuardiasDBImpl.getMaxIDCambiosGuardiasID()));
 
@@ -57,7 +57,7 @@ if (bIsAdministrator)
 
 
 List<Guardias> lGuardiaOrigen  = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaIniCambio());
-List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaFinCambio());;
+List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaFinCambio());
 Guardias GuardiaOrigen  = null;
 Guardias GuardiaDestino  = null;
 
@@ -71,6 +71,12 @@ if (lGuardiaDestino!=null && lGuardiaDestino.size()>0)
 	GuardiaDestino  = lGuardiaDestino.get(0);
 
 String sError="";
+
+Medico oSolicitante = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoSolicitante()).get(0);
+Medico oDestino = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoDestino()).get(0);
+
+
+
 
 if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toString()))
 {
@@ -93,6 +99,79 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toSt
 			sError = RB.getString("cambio_guardias.existe_guardia_existente_medico");
 			
 	}
+	// solicitante que cambia esta el dia fin de vacaciones   
+	List<Vacaciones_Medicos> lVacacionesSOLICITANTE = VacacionesDBImpl.getVacacionesMedicos(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaFinCambio());
+	// DESTIONO EN EL ORIGEN DE VACACIONES 
+	List<Vacaciones_Medicos> lVacacionesDESTINATARIO = VacacionesDBImpl.getVacacionesMedicos(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
+
+	if (lVacacionesSOLICITANTE!=null && lVacacionesSOLICITANTE.size()>0)
+	{	
+			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+			sError = RB.getString("cambio_guardias.existe_vacaciones_medico_fecha");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oSolicitante.getNombre() + " " + oSolicitante.getApellidos());
+			sError = sError.replace("{FECHA}", oCambioGuardias.getFechaFinCambio());
+		
+			
+			
+			
+	}
+	if (lVacacionesDESTINATARIO!=null && lVacacionesDESTINATARIO.size()>0)
+	{	
+			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+			sError = RB.getString("cambio_guardias.existe_vacaciones_medico_fecha");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+			sError = sError.replace("{FECHA}", oCambioGuardias.getFechaIniCambio());
+		
+			
+	}
+	
+	// SIENDO UN CAMBIO, QUE NO DEJE AL QUE LA CEDE TENER GUARDIA EL DIA ANTES O DESPUES DE MANERA PRESENCIA  QUITANDO AL SIMULADO
+	Calendar cGuardiaDIASCONSECUTIVOS = Calendar.getInstance();
+	
+	cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
+	// SUMAMOS UN DIA 
+	cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,1);	
+	List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+	
+	if (!oSolicitante.isResidenteSimulado()  &&  lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0)
+	{	
+			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+			//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
+			//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
+			
+			sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_despues");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oSolicitante.getNombre() + " " + oSolicitante.getApellidos());
+			sError = sError.replace("{FECHA}",_format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+		
+			
+	}
+	
+	// RESTAMOS  UN DIA 
+	cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
+	cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,-1);	
+	List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+	
+	if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0)
+	{	
+			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+			//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
+			//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
+			
+			sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oSolicitante.getNombre() + " " + oSolicitante.getApellidos());
+			sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+		
+			
+	}
+	
 	
 	
 }
@@ -104,8 +183,72 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CESION.toSt
 	//QUE NO ESTE DE GUARDIA EL DESTINATORIO   EN EL ORIGEN
 	//lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(GuardiaDestino.getIdMedico(), _format.format(_cINICIO.getTime()));
 	lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
+	
+	// VACACIONES DEL RECEPTOR DE LA GUARDIA EN EL ORIGEN
+	List<Vacaciones_Medicos> lVacacionesDESTINATARIO = VacacionesDBImpl.getVacacionesMedicos(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
+	
+	if (lVacacionesDESTINATARIO!=null && lVacacionesDESTINATARIO.size()>0)
+	{	
+			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+			sError = RB.getString("cambio_guardias.existe_vacaciones_medico_fecha");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+			sError = sError.replace("{FECHA}", oCambioGuardias.getFechaIniCambio());
+		
+			
+	}
+	
 
 }
+
+
+///SIEMPRE VERIFICAMOS , QUE NO DEJE AL QUE LA DISFRUTA  TENER GUARDIA EL DIA ANTES O DESPUES DE MANERA PRESENCIA 
+Calendar cGuardiaDIASCONSECUTIVOS = Calendar.getInstance();
+
+cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
+// SUMAMOS UN DIA 
+cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,1);	
+List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+
+if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0)
+{	
+		//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+		//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
+		//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
+		
+		sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_despues");
+//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+		Map<String, String> valuesMap = new HashMap<String, String>();
+		sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+		sError = sError.replace("{FECHA}",_format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+	
+		
+}
+
+// RESTAMOS  UN DIA 
+cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
+cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,-1);	
+List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+
+if (!oSolicitante.isResidenteSimulado()  && lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0)
+{	
+	
+		
+		sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
+//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+		Map<String, String> valuesMap = new HashMap<String, String>();
+		sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+		sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+	
+		
+}
+
+
+
+
+
+
 
 if (GuardiaOrigen==null ||  GuardiaDestino==null || !sError.equals(""))
 	out.println("NOOK." + sError);
@@ -123,8 +266,6 @@ else
 	{
 		lEmails.add(oMedico.getEmail());
 	}
-	Medico oSolicitante = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoSolicitante()).get(0);
-	Medico oDestino = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoDestino()).get(0);
 	
 	lEmails.add(oSolicitante.getEmail());
 	lEmails.add(oDestino.getEmail());

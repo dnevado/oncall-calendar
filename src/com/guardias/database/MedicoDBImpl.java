@@ -24,8 +24,8 @@ public class MedicoDBImpl {
 	  
 	  
 	  String stSQL = "INSERT INTO medicos (nombre , idmedico , maxguardias , " +
-	  "guardiassolo , orden , apellidos , tipo , subtipo, activo, email, password, administrator,id) VALUES (" +
-	  " (?),(?) ,  (?),  (?) , (?) ,  (?),  (?),  (?) ,  (?),  (?),(?), (?), (?)) ";
+	  "guardiassolo , orden , apellidos , tipo , subtipo, activo, email, password, administrator,id, Origen) VALUES (" +
+	  " (?),(?) ,  (?),  (?) , (?) ,  (?),  (?),  (?) ,  (?),  (?),(?), (?), (?), (?)) ";
 	  	  
 	  
 	  
@@ -49,6 +49,7 @@ public class MedicoDBImpl {
 		  stmt.setString(11, _oMedico.getPassWord());
 		  stmt.setLong(12, _oMedico.isAdministrator() ? new Long(1): new Long(0));
 		  stmt.setLong(13, _oMedico.getID());
+		  stmt.setString(14, _oMedico.getOrigen());
 	
 		  
 	  //System.out.println(stSQL + ",IdMedico:" + IdMedico + "," + 	_oMedico.getNombre() + ",setAutoCommit(true);") ;  
@@ -286,6 +287,7 @@ public class MedicoDBImpl {
          String  subtipo = rs.getString("subtipo")!=null && !rs.getString("subtipo").equals("") ? rs.getString("subtipo") : "";
          String  email = rs.getString("email")!=null && !rs.getString("email").equals("") ? rs.getString("email") : "";
          String  password = rs.getString("password")!=null && !rs.getString("password").equals("") ? rs.getString("password") : "";
+         String  origen = rs.getString("origen")!=null && !rs.getString("origen").equals("") ? rs.getString("origen") : "";
          int activo  = rs.getInt("activo");
          
          MedicoDatabase.setID(new Long(id));
@@ -301,6 +303,7 @@ public class MedicoDBImpl {
          MedicoDatabase.setEmail(email);
          MedicoDatabase.setOrden(new Long(orden));
          MedicoDatabase.setPassWord(password);
+         MedicoDatabase.setOrigen(origen);
          if (!subtipo.equals(""))
         	 MedicoDatabase.setSubTipoResidente(Util.eSubtipoResidente.valueOf(subtipo));
          

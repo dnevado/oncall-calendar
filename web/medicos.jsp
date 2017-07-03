@@ -41,7 +41,7 @@
 	<script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
 	<script src='<%=request.getContextPath()%>/js/form/validator.js'></script>
 	<script src='<%=request.getContextPath()%>/js/ga.js'></script>
-	<script src='<%=request.getContextPath()%>/js/guardias.js'></script>
+	
 	
 	
 	

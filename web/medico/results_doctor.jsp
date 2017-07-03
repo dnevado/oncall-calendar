@@ -53,7 +53,7 @@
 	
     <tr role="row" id="<%=oMedico.getID()%>">
     <td class="datad"></td>
-    <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
+    <td><a href="javascript:EditarMedico(<%=oMedico.getID()%>)"><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></a> </td>
     <td class="mespresencia"></td>
     <td class="meslocalizada"></td>
     <td class="mesrefuerzo"></td>
@@ -93,7 +93,7 @@
 	
     <tr id="<%=oMedico.getID()%>">
     <td class="datad"></td>
-    <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
+    <td><a href="javascript:EditarMedico(<%=oMedico.getID()%>)"><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></a></td>
     <td class="mesdiario"></td>
     <td class="mesfestivos"></td>    
     <td class="mestotalresidente"></td>
