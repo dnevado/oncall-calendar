@@ -28,7 +28,7 @@ public void execute(JobExecutionContext context)
 	
 	System.out.println("Starting backup...");
 	
-	String _Prefix = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_ENTORNO_PREFIJO_BACKUPS()).getValue(); 
+	String _Prefix = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_ENTORNO_PREFIJO_BACKUPS(),new Long(-1)).getValue(); 
 	
 	try {
 		oRepository.CreateBackupDB("Guardias_" +  _Prefix + "_" + sdf.format(oDate) + ".db" , "Backup en SQLLite del software de Guardias de Médicos" , Util.MIME_TYPE_SQLLITE);

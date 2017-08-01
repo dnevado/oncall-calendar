@@ -47,10 +47,11 @@
 	
     // DISTINGUIR ADMINISTRADOR O NO
     CambiosGuardias _oCambio = new CambiosGuardias(); 
+    _oCambio.setIdServicio(MedicoLogged.getServicioId());
      if (!bIsAdministrator)
     	lItems = CambiosGuardiasDBImpl.getCambioGuardiasByMedicoSolicitante(MedicoLogged.getID().intValue());
     else
-    	lItems = CambiosGuardiasDBImpl.getCambiosGuardia();
+    	lItems = CambiosGuardiasDBImpl.getCambiosGuardia(_oCambio);
 
     if (lItems!=null && !lItems.isEmpty())
     {
@@ -60,13 +61,13 @@
 	{
 		
 		CambiosGuardias oCambio= lItems.get(j);
-		Medico Solicitante = MedicoDBImpl.getMedicos(oCambio.getIdMedicoSolicitante()).get(0);
+		Medico Solicitante = MedicoDBImpl.getMedicos(oCambio.getIdMedicoSolicitante(),MedicoLogged.getServicioId()).get(0);
 		
 		String _MedicoDestinatario = "";
 		Medico Destinatario =null;
 		if (oCambio.getIdMedicoDestino()!=null)
 		{
-			Destinatario = MedicoDBImpl.getMedicos(oCambio.getIdMedicoDestino()).get(0);
+			Destinatario = MedicoDBImpl.getMedicos(oCambio.getIdMedicoDestino(),MedicoLogged.getServicioId()).get(0);
 			_MedicoDestinatario = Destinatario.getNombre().concat(" ").concat(Destinatario.getApellidos()); 
 		}
 		

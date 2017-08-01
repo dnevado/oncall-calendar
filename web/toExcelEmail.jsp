@@ -6,6 +6,9 @@
 <%@page import="com.guardias.Util"%>
 <%@page import="java.util.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
+
 <%@ page language="java" import="java.io.*" %> 
 <% 
 
@@ -88,7 +91,7 @@ style=" color: #1A6B1D;background-color: #c1bfb4;"  class="orden2 adjunto locali
 		
 	// ENVIAMOS EMAIL CON LOS DATOS DEL USUARIO 
 	
-	List<Medico> lMedicos = MedicoDBImpl.getMedicos();
+	List<Medico> lMedicos = MedicoDBImpl.getMedicos(new Long(-1),MedicoLogged.getServicioId());
 	List<String> lMails = new ArrayList();
 		
     for (Medico  oMedico :lMedicos)

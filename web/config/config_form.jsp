@@ -5,6 +5,8 @@
 <%@page import="java.util.Locale"%>
 <%@page import="java.util.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
  
 
 
@@ -111,6 +113,10 @@
 		}
 		
 		Configuracion _oConfiguracion = new Configuracion();
+		
+		
+		_oConfiguracion.setConfig_IdServicio(MedicoLogged.getServicioId());
+		
 		/* _oConfiguracion.setKey(Util.getoCONST_MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS());
 		_oConfiguracion.setValue(max_dias_seguidos_residentes.toString());	
 		ConfigurationDBImpl.UpdateConfiguracion(_oConfiguracion);
@@ -200,50 +206,50 @@
 
 	//Configuracion oCONST_MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAX_NUMERO_DIAS_SEGUIDOS_RESIDENTESS());
 	Configuracion oCONST_NUMERO_DIAS_SEGUIDOS_ADJUNTOS = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_NUMERO_DIAS_SEGUIDOS_ADJUNTOS());
+			.GetConfiguration(Util.getoCONST_NUMERO_DIAS_SEGUIDOS_ADJUNTOS(), MedicoLogged.getServicioId());
 	Configuracion oCONST_DIFERENCIA_MAX_SIMULADOS_POR_ADJUNTO_MES = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_DIFERENCIA_MAX_SIMULADOS_POR_ADJUNTO_MES());
+			.GetConfiguration(Util.getoCONST_DIFERENCIA_MAX_SIMULADOS_POR_ADJUNTO_MES(), MedicoLogged.getServicioId());
 	Configuracion oCONST_MAXIMAS_ITERACIONES_PERMITIDAS = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_MAXIMAS_ITERACIONES_PERMITIDAS());
-	Configuracion oCALENDARIO_GMAIL = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL());
-	//Configuracion oDATABASE_PATH = ConfigurationDBImpl.GetConfiguration(Util.oDATABASE_PATH);
-	Configuracion oGOOGLE_OAUTH = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_GOOGLE_SERVICE_ACCOUNT());
+			.GetConfiguration(Util.getoCONST_MAXIMAS_ITERACIONES_PERMITIDAS(), MedicoLogged.getServicioId());
+	Configuracion oCALENDARIO_GMAIL = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL(), MedicoLogged.getServicioId());
+	//Configuracion oDATABASE_PATH = ConfigurationDBImpl.GetConfiguration(Util.oDATABASE_PATH, MedicoLogged.getServicioId());
+	Configuracion oGOOGLE_OAUTH = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_GOOGLE_SERVICE_ACCOUNT(), new Long(-1));
 	Configuracion oGOOGLE_CALENDAR_RECORDATORIO = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_CALENDARIO_MINUTOS_RECORDATORIO());
+			.GetConfiguration(Util.getoCONST_CALENDARIO_MINUTOS_RECORDATORIO(), MedicoLogged.getServicioId());
 
-	Configuracion oMAILFROM = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAIL_FROM());
-	Configuracion oMAILFROM_PWD = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAIL_FROM_PASSWORD());
+	Configuracion oMAILFROM = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAIL_FROM(), MedicoLogged.getServicioId());
+	Configuracion oMAILFROM_PWD = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_MAIL_FROM_PASSWORD(), MedicoLogged.getServicioId());
 
 	Configuracion oACTIVAR_CAMBIO_GUARDIAS = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_ACTIVAR_CAMBIO_GUARDIAS());
+			.GetConfiguration(Util.getoCONST_ACTIVAR_CAMBIO_GUARDIAS(), MedicoLogged.getServicioId());
 	Configuracion oVALIDAR_CAMBIO_GUARDIAS_BY_ADMIN = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_VALIDAR_CAMBIOS_GUARDIAS_BY_ADM());
+			.GetConfiguration(Util.getoCONST_VALIDAR_CAMBIOS_GUARDIAS_BY_ADM(), MedicoLogged.getServicioId());
 	
 	Configuracion oUSAR_SECUENCIA_EN_PRESENCIA = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_USAR_SECUENCIA_EN_PRESENCIA());
+			.GetConfiguration(Util.getoCONST_USAR_SECUENCIA_EN_PRESENCIA(), MedicoLogged.getServicioId());
 	
 	
 	Configuracion oEXISTE_POOL_DAY = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY());
+			.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY(), MedicoLogged.getServicioId());
 	
 	Configuracion oNUMERO_GUARDIAS_PRESENCIA = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_NUMERO_PRESENCIAS());
+			.GetConfiguration(Util.getoCONST_NUMERO_PRESENCIAS(), MedicoLogged.getServicioId());
 	Configuracion oNUMERO_REFUERZOS_LOCALIZADAS = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_NUMERO_REFUERZOS_LOCALIZADAS());
+			.GetConfiguration(Util.getoCONST_NUMERO_REFUERZOS_LOCALIZADAS(), MedicoLogged.getServicioId());
 	Configuracion oNUMERO_RESIDENTES_POR_DIA = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_NUMERO_RESIDENTES());
+			.GetConfiguration(Util.getoCONST_NUMERO_RESIDENTES(), MedicoLogged.getServicioId());
 
 	Configuracion oAJUSTE_A_ESTOS_MESES_VACACIONES = ConfigurationDBImpl
-			.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES());  // id meses + 1 ENERO=1  "6|5"
+			.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES(), MedicoLogged.getServicioId());  // id meses + 1 ENERO=1  "6|5"
 	
 	Configuracion oMAXIMO_TOTAL_PRESENCIAS_LOCALIZADAS_FESTIVAS = ConfigurationDBImpl
-					.GetConfiguration(Util.getoCONST_MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS());  // id meses + 1 ENERO=1  "6|5"
+					.GetConfiguration(Util.getoCONST_MAX_TOTAL_PRESENCIA_REFUERZO_FESTIVAS(), MedicoLogged.getServicioId());  // id meses + 1 ENERO=1  "6|5"
 			
 	
 			
 	
 	Configuracion oMAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF = ConfigurationDBImpl
-					.GetConfiguration(Util.getoCONST_MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF());
+					.GetConfiguration(Util.getoCONST_MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF(), MedicoLogged.getServicioId());
 	
 	 ResourceBundle RB = ResourceBundle.getBundle(Util.PROPERTIES_FILE, Locale.getDefault());
 	 
@@ -327,7 +333,7 @@
            </div>
 	
 	</div>
-	<div id="datoscalendario1" class="form-group">
+	<!-- <div id="datoscalendario1" class="form-group">
 		<label class="control-label">Email From <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("config.email_from")%>"></label> <input maxlength="250"
 			class="ui-textfield form-control" type="text" name="emailfrom"
 			id="emailfrom" value='<%=oMAILFROM.getValue()%>' />
@@ -343,7 +349,7 @@
 			(oAuth2 autenticación) <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("config.service_google_account")%>"></label> <input maxlength="250" required
 			class="ui-textfield form-control" type="text" name="gserviceaccount"
 			id="gserviceaccount" value='<%=oGOOGLE_OAUTH.getValue()%>' />
-	</div>
+	</div> -->
 	<div id="datoscalendario2" class="form-group">
 		<label class="control-label">Enviar Recordatorio Calendario
 			(Número de minutos antes de que ocurra,0 no se envían) <span class="glyphicon glyphicon-question-sign" title="<%=RB.getString("config.service_google_account_calendar_reminder")%>"></label> <input

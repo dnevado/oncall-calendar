@@ -20,6 +20,7 @@ public class CambiosGuardias implements Serializable {
 	private String Estado;
 	private String TipoCambio;
 	private Long  IdMedicoDestino = null;
+	private Long  IdServicio=  new Long(1);
 	
 	
 	public String getEstado() {
@@ -94,6 +95,12 @@ public class CambiosGuardias implements Serializable {
 	}
 	public void setObservaciones(String observaciones) {
 		Observaciones = observaciones;
+	}
+	public Long getIdServicio() {
+		return IdServicio;
+	}
+	public void setIdServicio(Long idServicio) {
+		IdServicio = idServicio;
 	}
 	
 

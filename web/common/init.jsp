@@ -15,10 +15,29 @@
  <%
   String UserLogged = (String) request.getSession().getAttribute("User");
 
-  Medico MedicoLogged = MedicoDBImpl.getMedicoByEmail(UserLogged);
+  Medico MedicoLogged = MedicoDBImpl.getMedicoByEmail(UserLogged, new Long(-1));
   
   request.setAttribute("MedicoLogged", MedicoLogged);
+  
  
  %>
-   
-  <div id="editarmedico"  title="Datos del Médico"></div> 
+ 
+  <div id="editarmedico"  title="Datos del Médico"></div>
+  
+  <script>  var obj = {};
+	var _CANCELADA= '<%=Util.eEstadoCambiosGuardias.CANCELADA.toString()%>';
+	var _APROBADA= '<%=Util.eEstadoCambiosGuardias.APROBADA.toString()%>';
+	var _PRESENCIA = '<%=Util.eTipoGuardia.PRESENCIA.toString().toLowerCase()%>';
+	var _LOCALIZADA= '<%=Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase()%>';
+	var _REFUERZO= '<%=Util.eTipoGuardia.REFUERZO.toString().toLowerCase()%>';
+	var _ADJUNTO= '<%=Util.eTipo.ADJUNTO.toString().toLowerCase()%>';
+	var _RESIDENTE= '<%=Util.eTipo.RESIDENTE.toString().toLowerCase()%>';
+	var _SIMULADO= '<%=Util.eSubtipoResidente.SIMULADO.toString().toLowerCase()%>';		
+	var _REQUEST_CONTEXT ='<%=request.getContextPath()%>/';
+	var _REQUEST_URI ="<%=request.getRequestURI()%>";
+	var _USER_LOGGED ='<%=MedicoLogged.getID()%>';		
+	var _IS_A = $.parseJSON('<%=MedicoLogged.isAdministrator()%>');
+
+</script>
+  
+ 

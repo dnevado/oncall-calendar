@@ -35,7 +35,7 @@ public class CalendarEventUtil {
 
 	Calendar service =null;
 	
-	String _EMAIL_GOOGLE_ACCOUNT = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_EMAIL_OWNER()).getValue();
+	String _EMAIL_GOOGLE_ACCOUNT = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_EMAIL_OWNER(), new Long(-1)).getValue();
 
 	
 	public   void  InitCalendarService() throws IOException {

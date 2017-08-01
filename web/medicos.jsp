@@ -29,6 +29,8 @@
 	<link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 	<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
 	<link href='<%=request.getContextPath()%>/css/custom.css?erddd444' rel='stylesheet'/>
+		<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+	
 	<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
@@ -83,7 +85,8 @@
      				</div>
      			</div>
      		</div>
-      </div> 	      
+      </div>
+<jsp:include page="/common/footer.jsp"></jsp:include>       	      
 </body>
 </html>
 

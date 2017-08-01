@@ -37,6 +37,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 				and CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia 
 				and CAMBIOS.IdMedicoSolicitante = GUARDIAS.IdMedico
 				and CAMBIOS.Estado = #{Estado}
+				and CAMBIOS.IdServicio = #{IdServicio}
+				and GUARDIAS.IdServicio =CAMBIOS.IdServicio
 		GROUP BY
 				 GUARDIAS.Tipo, GUARDIAS.Festivo
 	</select>
@@ -69,6 +71,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 				guardias_cambios
 		WHERE 
 				IdMedicoSolicitante = #{IdMedicoSolicitante}
+				and IdServicio = #{IdServicio}
 		ORDER BY
 				FechaIniCambio  	
 			
@@ -84,6 +87,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 				IdMedicoSolicitante = #{IdMedicoSolicitante}
 				and FechaFinCambio = #{FechaFinCambio}
 				and Estado = #{Estado}
+				and IdServicio = #{IdServicio}
 		ORDER BY
 				FechaIniCambio
 	</select>
@@ -96,6 +100,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 		WHERE 
 				IdMedicoSolicitante = #{IdMedicoSolicitante}
 				and FechaFinCambio = #{FechaFinCambio}
+				and IdServicio = #{IdServicio}
 			
 		ORDER BY
 				FechaIniCambio
@@ -104,19 +109,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
    <insert id="insertCambiosGuardias" parameterType="com.guardias.cambios.CambiosGuardias">
    
    		INSERT INTO 
-   				guardias_cambios ( IdCambio,FechaIniCambio, FechaFinCambio, FechaAprobacion, IdMedicoSolicitante, Estado, FechaCreacion, IdMedicoDestino,TipoCambio)  
+   				guardias_cambios ( IdCambio,FechaIniCambio, FechaFinCambio, FechaAprobacion, IdMedicoSolicitante, Estado, FechaCreacion, IdMedicoDestino,TipoCambio, IdServicio)  
     	VALUES 
     			 (#{IdCambio, jdbcType=NUMERIC}, #{FechaIniCambio, jdbcType=VARCHAR},#{FechaFinCambio, jdbcType=VARCHAR},#{FechaAprobacion, jdbcType=VARCHAR},
     	        #{IdMedicoSolicitante, jdbcType=NUMERIC},#{Estado, jdbcType=VARCHAR}, #{FechaCreacion, jdbcType=VARCHAR},#{IdMedicoDestino, jdbcType=NUMERIC}
-    	        ,#{TipoCambio, jdbcType=VARCHAR})
+    	        ,#{TipoCambio, jdbcType=VARCHAR},#{IdServicio, jdbcType=NUMERIC})
     	
    </insert>
    
-   <select id="getCambioGuardia" parameterType="int" resultType="com.guardias.cambios.CambiosGuardias">
+   <select id="getCambioGuardia" parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias">
 		SELECT 
 				*			   
 		FROM 	
-				guardias_cambios		
+				guardias_cambios
+		WHERE 
+				IdServicio = #{IdServicio}		
 		ORDER BY
 				FechaIniCambio  	
 			 

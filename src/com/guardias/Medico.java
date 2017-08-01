@@ -25,7 +25,16 @@ public class Medico {
 	private String PassWord = "";
 	private String Origen = "";
 	
+	private Long ServicioId = new Long(-1);
+	private Long ActivoServicio = new Long(0);
 	
+	
+	public Long getActivoServicio() {
+		return ActivoServicio;
+	}
+	public void setActivoServicio(Long activoServicio) {
+		ActivoServicio = activoServicio;
+	}
 	public String getOrigen() {
 		return Origen;
 	}
@@ -134,6 +143,12 @@ public class Medico {
 	}
 	public void setTipo(eTipo tipo) {
 		Tipo = tipo;
+	}
+	public Long getServicioId() {
+		return ServicioId;
+	}
+	public void setServicioId(Long servicioId) {
+		ServicioId = servicioId;
 	}
 
 }

@@ -4,6 +4,10 @@
 <%@page import="com.guardias.database.*"%>
 <%@page import="java.util.*"%>        
     
+    
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
+    
 <% 	
 
 
@@ -26,7 +30,7 @@
 	    
 	    //out.println (ID_MEDICO);
 	    
-	    List<Medico> lMedico = MedicoDBImpl.getMedicos(Long.parseLong(ID_MEDICO));
+	    List<Medico> lMedico = MedicoDBImpl.getMedicos(Long.parseLong(ID_MEDICO), MedicoLogged.getServicioId());
 	
 	    Medico _oMedico = lMedico.get(0);
 	    

@@ -1,7 +1,13 @@
 <html>
-<body p style="font: 15px Lato, sans-serif;">
+<body>
+<style>
 
-<p><a href="http://www.medoncalls.com"><img src="http://www.medoncalls.com/Guardias/public/images/medoncalls4_s.jpg"/></a></p>
+body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+</style>
+
+<div style="background-color: #2d9eab;"><a  href="https://medoncalls.com"><img  src="https://medoncalls.com/Guardias/public/images/medoncalls4_s.jpg"></a></div>
+
 <p>Estimado/a Usuario/a</p>
 
 <p>Se ha cambiado el estado  de su solicitud de cambio de guardia.</p>.  

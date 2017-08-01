@@ -11,6 +11,10 @@
 <%@page import="com.guardias.Util"%>
 <%@page import="java.util.*"%>
 
+
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
+
 <% 
 
   String GuardiasJSON = request.getParameter("guardias");
@@ -34,7 +38,7 @@
   
   CalendarToExcel cE = new CalendarToExcel();
   
-  CalendarToExcel.GenerateExcel(System.getProperty("java.io.tmpdir") + _Date+".xlsx",caled ,GuardiasJSON);
+  CalendarToExcel.GenerateExcel(System.getProperty("java.io.tmpdir") + _Date+".xlsx",caled ,GuardiasJSON,MedicoLogged);
 
   //response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   
@@ -88,7 +92,7 @@
   
   else // por email
   {
-	  	List<Medico> lMedicos = MedicoDBImpl.getMedicos();
+	  	List<Medico> lMedicos = MedicoDBImpl.getMedicos(new Long(-1), MedicoLogged.getServicioId());
 		List<String> lMails = new ArrayList();
 			
 	    for (Medico  oMedico :lMedicos)

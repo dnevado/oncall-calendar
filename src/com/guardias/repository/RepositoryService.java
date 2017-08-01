@@ -48,7 +48,7 @@ public class RepositoryService {
   /** E-mail address of the service account. */
   private static String SERVICE_ACCOUNT_EMAIL = "guardiasapi@guardias-155520.iam.gserviceaccount.com";
   
-  private  static String SERVICE_ACCOUNT_FILETOJSON_AUTH = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_FICHERO_P12_RUTA()).getValue();;
+  private  static String SERVICE_ACCOUNT_FILETOJSON_AUTH = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_FICHERO_P12_RUTA(),new Long(-1)).getValue();;
 
   /** Global instance of the HTTP transport. */  
   /** Global instance of the JSON factory. */  

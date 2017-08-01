@@ -39,7 +39,7 @@ public class RepositoryUtil {
 
 	Drive service =null;
 	
-	String _EMAIL_GOOGLE_ACCOUNT = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_EMAIL_OWNER()).getValue();
+	String _EMAIL_GOOGLE_ACCOUNT = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_EMAIL_OWNER(),new Long(-1)).getValue();
 	
 	public RepositoryUtil  RepositoryUtil() throws IOException, GeneralSecurityException {
 		
@@ -69,7 +69,7 @@ public class RepositoryUtil {
 	    body.setMimeType(MimeType);
 
 	    
-	    java.io.File fileContent = new java.io.File(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_BBDD_PATH()).getValue());
+	    java.io.File fileContent = new java.io.File(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_BBDD_PATH(),new Long(-1)).getValue());
 	    FileContent mediaContent = new FileContent(MimeType, fileContent);
 	    
 	    com.google.api.services.drive.model.File file2 = service.files().create(body, mediaContent).execute();

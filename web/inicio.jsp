@@ -25,9 +25,11 @@
 <!-- <link href="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet"> -->
 <link href="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
 <link href='<%=request.getContextPath()%>/css/fullcalendar.css' rel='stylesheet' />
-<link href='<%=request.getContextPath()%>/css/custom.css?er4544423423423' rel='stylesheet'/> 
 <link href="<%=request.getContextPath()%>/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
+<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">
+<link href='<%=request.getContextPath()%>/css/custom.css?er4544423423423' rel='stylesheet'/>
+	<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+ 	
 <link href="<%=request.getContextPath()%>/css/introjs.css" rel="stylesheet">
 <link href="<%=request.getContextPath()%>/css/introjs-modern.css" rel="stylesheet">
 <script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
@@ -38,35 +40,20 @@
 <script src='<%=request.getContextPath()%>/js/fullcalendar.min.js'></script>
 <script src='<%=request.getContextPath()%>/js/locale-all.js'></script>
 <script src="<%=request.getContextPath()%>/vendor/datatables/js/jquery.dataTables.patched.es.js"></script>
-<!--  <script src="<%=request.getContextPath()%>/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>-->
 <script src="<%=request.getContextPath()%>/vendor/datatables-responsive/dataTables.responsive.js"></script>
 <script src='<%=request.getContextPath()%>/js/interact.min.js'></script>
 <script src='<%=request.getContextPath()%>/js/ga.js'></script>
 <script src='<%=request.getContextPath()%>/js/intro.js'></script>
 
 
-
 </head>
-<script>  var obj = {};
-		var _CANCELADA= '<%=Util.eEstadoCambiosGuardias.CANCELADA.toString()%>';
-		var _APROBADA= '<%=Util.eEstadoCambiosGuardias.APROBADA.toString()%>';
-		var _PRESENCIA = '<%=Util.eTipoGuardia.PRESENCIA.toString().toLowerCase()%>';
-		var _LOCALIZADA= '<%=Util.eTipoGuardia.LOCALIZADA.toString().toLowerCase()%>';
-		var _REFUERZO= '<%=Util.eTipoGuardia.REFUERZO.toString().toLowerCase()%>';
-		var _ADJUNTO= '<%=Util.eTipo.ADJUNTO.toString().toLowerCase()%>';
-		var _RESIDENTE= '<%=Util.eTipo.RESIDENTE.toString().toLowerCase()%>';
-		var _SIMULADO= '<%=Util.eSubtipoResidente.SIMULADO.toString().toLowerCase()%>';		
-		var _REQUEST_CONTEXT ='<%=request.getContextPath()%>/';
-		var _REQUEST_URI ="<%=request.getRequestURI()%>";
-		var _USER_LOGGED ='<%=MedicoLogged.getID()%>';		
-		var _IS_A = $.parseJSON('<%=MedicoLogged.isAdministrator()%>');
-
-</script>
-
+<jsp:include page="common/init.jsp"/>
 <%
 
 /* por defecto de la base de datos si hay */
-String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL()).getValue();	
+String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL(),MedicoLogged.getServicioId()).getValue();
+if (_CalendarioGoogle==null) _CalendarioGoogle="N"; // POR SI VIENE SIN SERVICIO AL  PRINCIPIO
+
 String _PageToFill="get_guardias.jsp";
 String _SelectedMonth = "";
 boolean _bCalculating = false;
@@ -418,8 +405,8 @@ $(document).ready(function() {
 </script>
 <body>
     <div id="wrapper">
-       <jsp:include page="common/init.jsp"/>
-       <jsp:include page="common/navigation.jsp"/>
+    
+       <jsp:include page="common/navigation.jsp"/>       
     </div>
     <!-- /#wrapper -->
     <div id="page-wrapper">
@@ -684,6 +671,9 @@ $(document).ready(function() {
       </div>    
 		<div id="frame1"></div>
 		<div id=confirmar_cambio></div>
+	</div>
+</div>
+<jsp:include page="/common/footer.jsp"></jsp:include>		
 </body>
 </html>
 

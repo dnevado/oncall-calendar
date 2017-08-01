@@ -21,7 +21,7 @@ String desde  = request.getParameter("desde")!=null ? request.getParameter("desd
 String hasta  = request.getParameter("hasta")!=null ? request.getParameter("hasta") : "";
 
 SimpleDateFormat _sdf = new SimpleDateFormat("yyy-MM-dd");
-
+ 
 if (desde.equals(""))
 {
 	Calendar _c = Calendar.getInstance();

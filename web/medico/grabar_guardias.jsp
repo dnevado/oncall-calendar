@@ -10,6 +10,7 @@
 <%@page import="java.text.*"%>        
 <%@page import="com.google.gson.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
 
 
     
@@ -50,7 +51,7 @@
         
    
     /* VERIFICO QUE HAYA MES ANTERIOR SIEMPRE Y CUANDO NO SEA LA PRIMERA VEZ */  
-    List<Guardias> lGuardiasPrevias= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()));
+    List<Guardias> lGuardiasPrevias= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()), MedicoLogged.getServicioId());
     
 	    
 	cal1.setTime(dMes);      
@@ -60,7 +61,7 @@
     cal1.add(Calendar.MONTH, 1);    
     cal2.add(Calendar.YEAR, 1);
     
-    List<Guardias> lGuardiasPosteriores= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()));
+    List<Guardias> lGuardiasPosteriores= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()), MedicoLogged.getServicioId());
     
     cal1.setTime(dMes);      
     cal2.setTime(dMes);
@@ -69,7 +70,7 @@
     cal1.add(Calendar.MONTH, -1);        
     cal2.add(Calendar.DATE, -1);
     
-    List<Guardias> lGuardiasMesAnterior= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()));
+    List<Guardias> lGuardiasMesAnterior= GuardiasDBImpl.getGuardiasEntreFechas(_format.format(cal1.getTime()), _format.format(cal2.getTime()), MedicoLogged.getServicioId());
     
     
     
@@ -90,10 +91,10 @@
    
     lGuardias = gson.fromJson(GuardiasJSON, Guardias[].class); 
 
-    
+     
     /* CUANDO ACABE, ENVIAMOS MAIL , SI ESTA CONFIGURADO ASI */
-	String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL()).getValue();
-	String _CalendarioMinutosRecordatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_MINUTOS_RECORDATORIO()).getValue();
+	String _CalendarioGoogle = ConfigurationDBImpl.GetConfiguration(Util.getoCALENDARIO_GMAIL(),MedicoLogged.getServicioId()).getValue();
+	String _CalendarioMinutosRecordatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_MINUTOS_RECORDATORIO(),MedicoLogged.getServicioId()).getValue();
 	
 	CalendarEventUtil _calendarUtil = null;
 	if (_CalendarioGoogle.equals("S"))
@@ -110,7 +111,7 @@
     	Guardias oGuardias = lGuardias[i];
     	Guardias oGuardiaDB = null;
     	/* BORRAMOS TODO EL FUTURO */    
-    	List<Guardias> lGuardiasDB = GuardiasDBImpl.getGuardiasPorFecha(oGuardias.getDiaGuardia());
+    	List<Guardias> lGuardiasDB = GuardiasDBImpl.getGuardiasPorFecha(oGuardias.getDiaGuardia(), MedicoLogged.getServicioId());
     	if (lGuardiasDB!=null && lGuardiasDB.size()>0)
     		oGuardiaDB = lGuardiasDB.get(0);
     	if (_CalendarioGoogle.equals("S") && oGuardiaDB!=null && oGuardiaDB.getIdEventoGCalendar()!=null)   // hay guardias previas y esta el campo de eventid
@@ -122,7 +123,7 @@
     			EventId = oGuardias.getIdEventoGCalendar();
 
     	}
-		GuardiasDBImpl.DeleteGuardia(new Long(-1), oGuardias.getDiaGuardia());
+		GuardiasDBImpl.DeleteGuardia(new Long(-1), oGuardias.getDiaGuardia(), MedicoLogged.getServicioId());
     	
     	
     	
@@ -149,7 +150,7 @@
     		
     		
     		Medico _oM = null;
-    		_oM = MedicoDBImpl.getMedicos(oGuardias.getIdMedico()).get(0);
+    		_oM = MedicoDBImpl.getMedicos(oGuardias.getIdMedico(),MedicoLogged.getServicioId()).get(0);
     		
     		
     		if (!_Dia.equals("") && !oGuardias.getDiaGuardia().equals(_Dia))  // ha cambiado de dia ???
@@ -177,7 +178,7 @@
     		
     	}
     	
-    	
+    	oGuardias.setIdServicio(MedicoLogged.getServicioId());
     	GuardiasDBImpl.AddGuardia(oGuardias);
     	// actualimos las anteriores
 /*    	if (_CreatedEvent!=null)

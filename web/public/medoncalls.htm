@@ -8,6 +8,7 @@
     <meta name="description" content="Distribuye eficientemente a todo tu servicio médico de manera ágil y organizada.Olvida la rutina de cuadrar turnos manualmente. Con medONcalls  te facilitamos esta tarea ahorrando la gestión y el coste de tiempo para ello.Recordatorios en tu calendario.Turnos equitativos entre los integrantes del servicio para un remuneración homogénea.En un solo click, podrás solicitar cambios en tu turno">
     <meta name="author" content="medONcalls">
     <meta name="keywords" content="agilidad,organización,eficiencia,oncalls,médicos,turnos,cambios de turnos,guardias,médicas,justas,remuneración,calendario,doctores,vacaciones,residente,adjunto,presencia,refuerzo,localizada">
+     <meta http-equiv="refresh" content="0; URL=https://info.medoncalls.com">
     
 
     <title>medONcalls.Turnos de guardias ágiles, justas , eficientes y equitativas</title>
@@ -196,7 +197,7 @@
       margin-bottom:50px
   }
   
-    #suscribe_button  {margin-left:15px;border:0;}
+    #suscribe_button  {margin-left:15px;border:0;min-height: 59px;   font-size: 20px;}}
   #mail_button  {border:0;float:right;}
 
 	.ekko-lightbox-nav-overlay a span {
@@ -306,7 +307,7 @@
 	  	if (mode=='2')
 	  		email = $("#email_ouibounce").val();
 	  
-	  	
+	  	window.location.href="/login.jsp";
 	  	
 		$.ajax({
 		data: 'email=' + email,
@@ -415,7 +416,8 @@
 <div class="text-center">
   <form class="form-inline" role="form" method="post" data-toggle="validator" name="fsuscribe" id=fsuscribe onsubmit="return _subscribe('1')">
     <div class="input-group">
-      <input class="form-control" type="email" class="form-control"id="email" name="email" size="50" placeholder="Tu email" required>
+           <input class="form-control hide" type="email" value="demo@demo.com" class="form-control"id="email" name="email" size="50" placeholder="Tu email" required>
+
       <div class="input-group-btn">
         <button id=suscribe_button type="submit" class="btn btn-info" >Pruébalo GRATIS!</button>
       </div>
@@ -835,14 +837,14 @@ $(document).ready(function(){
         </div>
 
         <div class="modal-body">
-          <p>Suscríbete ahora y <strong>obtén un 40% de descuento</strong> en el momento del registro.</p>
-          <p>Recuerda que próximamente procederemos a comunicaros la activación oficial del servicio. Mientras tanto, te animo a suscribirte para mantenerte al día de las comunicaciones periódicas que hagamos</p>
+         <p>Suscríbete ahora <strong > GRATIS</strong>.</p>
+          <p>Queremos contar con tu opinión para seguir creciendo y mejorando el servicio</p>
 
 			<form class="form-inline" role="form" method="post" data-toggle="validator" name="fouibounce" id=fouibounce onsubmit="return _subscribe('2')">
 			    <div class="input-group">
-			      <input class="form-control" type="email" class="form-control" id="email_ouibounce" name="email_ouibounce" size="50" placeholder="Introduce tu email" required>
+			      <!-- <input class="form-control" type="email" class="form-control" id="email_ouibounce" name="email_ouibounce" size="50" placeholder="Introduce tu email" required> -->
 			      <div class="input-group-btn">
-			        <button id=suscribe_ouibounce type="submit" class="btn btn-info">QUIERO EL DESCUENTO!!</button>
+			        <button id=suscribe_ouibounce type="submit" class="btn btn-info">Registro</button>
 			      </div>
 			    </div>
 			  </form>

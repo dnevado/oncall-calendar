@@ -69,10 +69,10 @@ hasta  = sdf2.format(Dhasta);
     boolean bIsAdministrator = MedicoLogged.isAdministrator();
     if (bIsAdministrator )
     {
-    	lItems = GuardiasDBImpl.getReportGuardiasEntreFechas(desde, hasta);	
+    	lItems = GuardiasDBImpl.getReportGuardiasEntreFechas(desde, hasta,MedicoLogged.getServicioId());	
     }
     else    
-    	lItems = GuardiasDBImpl.getReportGuardiasEntreFechasMedico(desde, hasta,MedicoLogged.getID());
+    	lItems = GuardiasDBImpl.getReportGuardiasEntreFechasMedico(desde, hasta,MedicoLogged.getID(),MedicoLogged.getServicioId());
 
     GuardiasReportingUtilContainer oReport = new GuardiasReportingUtilContainer();
     
@@ -99,7 +99,7 @@ hasta  = sdf2.format(Dhasta);
 	    <td ><span class="badge"><%=oGuardia.getLocalizadas().equals(new Long(0)) ? "" : oGuardia.getLocalizadas() %></span></td>
 	    <td ><span class="badge"><%=oGuardia.getRefuerzos().equals(new Long(0)) ? "" : oGuardia.getRefuerzos() %></span></td>
 	    <td ><span class="badge"><%=oGuardia.getPresenciasF().equals(new Long(0)) ? "" : oGuardia.getPresenciasF() %></span></td>
-	    <td ><span class="badge"><%=oGuardia.getLocalizadasF().equals(new Long(0)) ? "" : oGuardia.getLocalizadasF() %></span></td>
+	    <td ><span class="badge"><%=oGuardia.getLocalizadasF().equals(new Long(0)) ? "" : oGuardia.getLocalizadasF() %></span></td> 
 	    <td ><span class="badge"><%=oGuardia.getRefuerzosF().equals(new Long(0)) ? "" : oGuardia.getRefuerzosF() %></span></td>
 	    <td ><span class="badge"><%=Total.equals(new Long(0)) ? "" : Total %></span></td>
 	    <td ><span class="badge"><%=oGuardia.getTotalSimulados().equals(new Long(0)) ? "" : oGuardia.getTotalSimulados() %></span></td>

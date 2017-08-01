@@ -42,7 +42,7 @@ Util.eTipoCambiosGuardias  _cType = Util.eTipoCambiosGuardias.CAMBIO;
 CambiosGuardias _oCambio; 
 
 if (request.getParameter("type")!=null)	
-	_cType = Util.eTipoCambiosGuardias.valueOf(request.getParameter("type"));
+	_cType = Util.eTipoCambiosGuardias.valueOf(request.getParameter("type")); 
 
 if (request.getParameter("cambioid")!=null && !request.getParameter("cambioid").equals("-1"))
 {
@@ -64,12 +64,12 @@ else
 Medico _oMedicoSolicitante = null;
 List<Guardias> _lGuardiasDiaOrigen=null;
 if (!bIsAdministrator)
-	_oMedicoSolicitante = MedicoDBImpl.getMedicos(_oCambio.getIdMedicoSolicitante()).get(0);
+	_oMedicoSolicitante = MedicoDBImpl.getMedicos(_oCambio.getIdMedicoSolicitante(), MedicoLogged.getServicioId()).get(0);
 else
-	_lGuardiasDiaOrigen =  GuardiasDBImpl.getGuardiasEntreFechas(_oCambio.getFechaIniCambio(), _oCambio.getFechaIniCambio());
+	_lGuardiasDiaOrigen =  GuardiasDBImpl.getGuardiasEntreFechas(_oCambio.getFechaIniCambio(), _oCambio.getFechaIniCambio(), MedicoLogged.getServicioId());
 	
 /* MEDICOS POR TIPO QUE HAGAN GUARDIA EN EL DIA FIN */
-List<Guardias> _lGuardiasDiaDestino =  GuardiasDBImpl.getGuardiasEntreFechas(_oCambio.getFechaFinCambio(), _oCambio.getFechaFinCambio());
+List<Guardias> _lGuardiasDiaDestino =  GuardiasDBImpl.getGuardiasEntreFechas(_oCambio.getFechaFinCambio(), _oCambio.getFechaFinCambio(), MedicoLogged.getServicioId());
 
 if (_lGuardiasDiaDestino!=null && _lGuardiasDiaDestino.size()>0)
 {
@@ -79,7 +79,7 @@ if (_lGuardiasDiaDestino!=null && _lGuardiasDiaDestino.size()>0)
 <!-- SUCCESS  -->
 <div id="success" class="alert alert-success" style="display:none">
 <div class="panel-body">
-    <p>Los datos han sido guardados satisfactoriamente</p>
+    <p>Los datos han sido guardados satisfactoriamente. Recuerde REFRESCAR la información del panel para que los cambios se presenten.</p>
 </div>                                               
 </div> 
 <!--  SUCCESS -->
@@ -104,7 +104,7 @@ if (_lGuardiasDiaOrigen!=null && !_lGuardiasDiaOrigen.isEmpty())
 	<%	for (Guardias oGuardia : _lGuardiasDiaOrigen)  // quitamos el medico que lo solicito
 		{
 			
-			Medico oMedico = MedicoDBImpl.getMedicos(oGuardia.getIdMedico()).get(0);
+			Medico oMedico = MedicoDBImpl.getMedicos(oGuardia.getIdMedico(), new Long(-1)).get(0);
 			String _ValueMedico = oMedico.getID() + "|" + oMedico.getTipo();
 			// activo , del mismo tipo y que no sea el mismo */
 			
@@ -137,7 +137,7 @@ if (_lGuardiasDiaOrigen!=null && !_lGuardiasDiaOrigen.isEmpty())
 <%	for (Guardias oGuardia : _lGuardiasDiaDestino)  // quitamos el medico que lo solicito
 	{
 		
-		Medico oMedico = MedicoDBImpl.getMedicos(oGuardia.getIdMedico()).get(0);
+		Medico oMedico = MedicoDBImpl.getMedicos(oGuardia.getIdMedico(), new Long(-1)).get(0);
 		String _NombreMedico = oMedico.getNombre().concat(" ").concat(oMedico.getApellidos());
 		String _ValueMedico = oMedico.getID() + "|" + oMedico.getTipo();
 		// activo , del mismo tipo y que no sea el mismo */

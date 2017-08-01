@@ -7,6 +7,9 @@
 <%@page import="java.util.*"%>
 <%@page import="java.text.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
+
 <script>
 
 var _DoctorTableList;
@@ -90,7 +93,7 @@ function fn_callOrdenDoctorList() {
 	
 	
 	//lItems = oUtilMedicos.LeerMedicos(_Path,true);
-	lItems =  MedicoDBImpl.getMedicos();
+	lItems =  MedicoDBImpl.getMedicos(new Long(-1),MedicoLogged.getServicioId());
 	
 	//lItems =
 	Calendar c_ = Calendar.getInstance();
@@ -110,7 +113,13 @@ function fn_callOrdenDoctorList() {
 	for (int j=0;j<lItems.size();j++)
 	{
 		
+		String _RowColor= "";
+		
+		
 		Medico oMedico = lItems.get(j);
+		
+		if (oMedico.getActivoServicio().equals(new Long(0)))
+				_RowColor = "red";
 		
 	   	List<Vacaciones_Medicos> lVacaciones = VacacionesDBImpl.getMesesVacacionesMedicosDesdeHasta(oMedico.getID(), _fINICIO, _fFIN);
 		
@@ -123,7 +132,7 @@ function fn_callOrdenDoctorList() {
 			                                </a> -->
 	
 	   
-    <tr onclick="EditarMedico(<%=oMedico.getID()%>)" class="ui-state-default"  id="id_<%=oMedico.getID()%>_medico">
+    <tr onclick="EditarMedico(<%=oMedico.getID()%>)" class="ui-state-default <%=_RowColor%>"  id="id_<%=oMedico.getID()%>_medico">
     <td><%=oMedico.getOrden()%></td>    
     <td><%=oMedico.getIDMEDICO()%></td>
     <td><%=oMedico.getNombre()%> <%=oMedico.getApellidos()%></td>
@@ -131,7 +140,7 @@ function fn_callOrdenDoctorList() {
     <td><%=oMedico.getMax_NUM_Guardias()%></td>
     <td><%=oMedico.isConfirmado() ? 'S' : 'N'%></td>
     <td><%=oMedico.getTipo()%></td>
-    <td><%=oMedico.isActivo() ? 'S' : 'N'%></td>
+    <td><%=oMedico.getActivoServicio().equals(new Long(1)) ? 'S' : 'N'%></td>
     <td>
     <%
     	if (lVacaciones!=null && !lVacaciones.isEmpty())

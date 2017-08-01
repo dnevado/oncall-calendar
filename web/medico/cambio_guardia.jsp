@@ -69,9 +69,9 @@ boolean _ExistenOrigenYDestino =true;
 Medico = MedicoLogged.getID();
 
 DateFormat _format = new SimpleDateFormat("yyyy-MM-dd");
-String ActivoCambioGuardias=  ConfigurationDBImpl.GetConfiguration(Util.getoCONST_ACTIVAR_CAMBIO_GUARDIAS()).getValue();
+String ActivoCambioGuardias=  ConfigurationDBImpl.GetConfiguration(Util.getoCONST_ACTIVAR_CAMBIO_GUARDIAS(),MedicoLogged.getServicioId()).getValue();
 
-String bValidadobyAdmin=   ConfigurationDBImpl.GetConfiguration(Util.getoCONST_VALIDAR_CAMBIOS_GUARDIAS_BY_ADM()).getValue();
+String bValidadobyAdmin=   ConfigurationDBImpl.GetConfiguration(Util.getoCONST_VALIDAR_CAMBIOS_GUARDIAS_BY_ADM(),MedicoLogged.getServicioId()).getValue();
 
 if(request.getParameter("start")!=null)
 	DIA_FINAL = request.getParameter("start");
@@ -95,9 +95,9 @@ Calendar cHOY = Calendar.getInstance();
 
 List<Guardias> lGuardiaOrigen  = null;
 if (!bIsAdministrator)
- 	lGuardiaOrigen  = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cINICIO.getTime()));
+ 	lGuardiaOrigen  = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cINICIO.getTime()),MedicoLogged.getServicioId());
 else
-	 lGuardiaOrigen  = GuardiasDBImpl.getGuardiasPorFecha(_format.format(_cINICIO.getTime()));
+	 lGuardiaOrigen  = GuardiasDBImpl.getGuardiasPorFecha(_format.format(_cINICIO.getTime()),MedicoLogged.getServicioId());
 
 Guardias GuardiaOrigen  = null;
 List<Guardias> lGuardiasDestinatarioEnOrigen =null;
@@ -109,14 +109,14 @@ if (lGuardiaOrigen!=null && lGuardiaOrigen.size()>0)
 	/* BUSCAMOS SI LOS DESTINOS, TIENEN GUARDIAS EN ORIGEN */
 	/* OJO QUE PUEDE SER QUE NO EXISTA ESA TIPO DE GUARDIA , P.E DE UNA LOCALIZADA A UNA PRESENCIA */
 	//List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasFechaTipo( _format.format(_cFIN.getTime()), GuardiaOrigen.getTipo());
-	List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasPorFecha( _format.format(_cFIN.getTime()));
+	List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasPorFecha( _format.format(_cFIN.getTime()),MedicoLogged.getServicioId());
 	Guardias GuardiaDestino  = lGuardiaDestino.get(0);
 	
 	// TIENE ALGUNOS DE LOS DESTINATARIOS GUARDIAS EN ORIGEN ??
 	//QUE NO ESTE DE GUARDIA EL DESTINATORIO   EN EL ORIGEN
 	//lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(GuardiaDestino.getIdMedico(), _format.format(_cINICIO.getTime()));
 	if (!bIsAdministrator)
-		lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cINICIO.getTime()));
+		lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cINICIO.getTime()),MedicoLogged.getServicioId());
 	
 	
 }
@@ -126,10 +126,10 @@ else
 
 
 // QUE NO ESTE DE GUARDIA EL GENERADOR  EN EL DESTINO
-List<Guardias> lGuardiasMedicoDestino = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cFIN.getTime()));
+List<Guardias> lGuardiasMedicoDestino = GuardiasDBImpl.getGuardiasMedicoFecha(Medico, _format.format(_cFIN.getTime()),MedicoLogged.getServicioId());
 
 //QUE HAYA GUARDIA GUARDADA EN ESE DIA POR ALGUIEN
-List<Guardias> lGuardiasFecha = GuardiasDBImpl.getGuardiasPorFecha(_format.format(_cFIN.getTime()));
+List<Guardias> lGuardiasFecha = GuardiasDBImpl.getGuardiasPorFecha(_format.format(_cFIN.getTime()),MedicoLogged.getServicioId());
 //VACACIONES POR EL MEDICO 
 List<Vacaciones_Medicos> lVacaciones = VacacionesDBImpl.getVacacionesMedicos(Medico, _format.format(_cFIN.getTime()));
 // FECHAS PASADAS NO 

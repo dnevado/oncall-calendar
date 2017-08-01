@@ -26,8 +26,8 @@ public class ConfigurationDBImpl {
 	  Connection MiConexion =ConexionGuardias.GetConexionGuardias();
 	  
 	  
-	  String stSQL = "UPDATE configuracion SET config_value = (?)" +
-	   " WHERE config_key=(?)"		  ;
+	  String stSQL = "UPDATE configuracion SET config_value = (?) " +
+	   " WHERE config_IdServicio=(?) and config_key=(?)"		  ;
 	  
 	  
 	  
@@ -38,7 +38,8 @@ public class ConfigurationDBImpl {
 	 
 		  stmt = MiConexion.prepareStatement(stSQL);
 		  stmt.setString(1, _oConfiguracion.getValue());	
-		  stmt.setString(2, _oConfiguracion.getKey());
+		  stmt.setLong(2, _oConfiguracion.getConfig_IdServicio());
+		  stmt.setString(3, _oConfiguracion.getKey());
 
 	
 	  MiConexion.setAutoCommit(true);
@@ -64,22 +65,63 @@ public class ConfigurationDBImpl {
 	  return true;    		 
 	  }
 	
-	public static  Configuracion GetConfiguration(String  KeyValue)
-	 {	  
+	public static  boolean InicializarConfiguration(Long ServicioTo, Long ServicioFrom )
+	{	  
+		
+		Configuracion oConfiguration= new Configuracion();
+		 Statement stmt = null;	 
+		 Connection MiConexion =ConexionGuardias.GetConexionGuardias();   
+		 
+		  
+		  
+		  String stSQL = " insert into configuracion select config_key,config_value," + ServicioTo + " from configuracion where config_IdServicio = "  + ServicioFrom;
+		  
+		  try
+			 {
+			 
+				  stmt = MiConexion.prepareStatement(stSQL);
+				 			
+				  MiConexion.setAutoCommit(true);
+				  stmt.executeUpdate(stSQL);
+				  stmt.close();
+		    
+				  MiConexion.close();
+		    
+		    
+		    
+			  } catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					try {
+						if (!MiConexion.isClosed())
+							MiConexion.close();
+					} catch (SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			
+			  return true;    		 
+		
+	}
+	
+	
+	public static  Configuracion GetConfiguration(String  KeyValue, Long IdServicio)
+	{	  
 				 	  
 	
-		Configuracion oConfiguration= new Configuracion();
-	  Statement stmt = null;	 
-	  Connection MiConexion =ConexionGuardias.GetConexionGuardias();   
+	 Configuracion oConfiguration= new Configuracion();
+	 Statement stmt = null;	 
+	 Connection MiConexion =ConexionGuardias.GetConexionGuardias();   
 	  
 	  
-	  String stSQL = "SELECT * FROM configuracion where  config_key='" + KeyValue + "'";  
+	  String stSQL = "SELECT * FROM configuracion where  config_key='" + KeyValue + "'  and config_IdServicio=" + IdServicio;  
 	  
 	 
 	 try {
 		 
 	 //stmt.setString(1, KeyValue);
-   stmt = MiConexion.createStatement();
+	 stmt = MiConexion.createStatement();
 	 ResultSet rs = stmt.executeQuery( stSQL);
 		
 	
@@ -89,9 +131,12 @@ public class ConfigurationDBImpl {
 	 {
     	String Key = rs.getString("config_key");         
     	String  Value = rs.getString("config_value");         
+    	Long  Servicio = rs.getLong("config_IdServicio");
        
     	oConfiguration.setKey(Key);
     	oConfiguration.setValue(Value);
+    	oConfiguration.setConfig_IdServicio(Servicio);
+    	
      }
 	 
      stmt.close();   
@@ -143,10 +188,12 @@ public class ConfigurationDBImpl {
     	           
     	 	String Key = rs.getString("config_key");         
         	String  Value = rs.getString("config_value");         
-           
+        	Long  Servicio = rs.getLong("config_IdServicio");
+        	
         	oConfiguration.setKey(Key);
         	oConfiguration.setKey(Value);
-          
+          oConfiguration.setConfig_IdServicio(Servicio);
+        	
         	lVConfiguration.add(oConfiguration);
          
          

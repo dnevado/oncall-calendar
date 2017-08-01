@@ -21,8 +21,9 @@ public class SecurityUtil {
 		SecretKeySpec key = new SecretKeySpec(Util._CLAVE_ENCRIPTACION.getBytes(), "AES");
 		Cipher cipher=null;
 		
+		//EncriptedEmail = EncriptedEmail.replaceAll("\\s+",""); 
 		
-		byte[] _DecodedEmail =  Base64.getDecoder().decode(EncriptedEmail.getBytes());
+		byte[] _DecodedEmail =  Base64.getUrlDecoder().decode(EncriptedEmail.getBytes());
 		
 		try
 		{		
@@ -56,7 +57,7 @@ public class SecurityUtil {
 			   e.printStackTrace();
 		}
 		//String texto_encriptado = Base64.encodeToString(encrypted, Base64.DEFAULT)
-		return Base64.getEncoder().encodeToString(campoCifrado);
+		return Base64.getUrlEncoder().encodeToString(campoCifrado);
 
 	}
 	
@@ -98,5 +99,12 @@ public class SecurityUtil {
 		 return generatedPassword;
 
 	}
+	
+	public static void main(String[] args) {
+        //El código que iniciará nuestra aplicación
+		//System.out.println(EncriptarTokenEmail("refundable.tech@gmail.com"));
+		System.out.println(DesEncriptarTokenEmail("bXOznmlG4+1508AcPgBUITMPElVM6KRtkqO7PaXcB/I="));
+												//   bXOznmlG4 1508AcPgBUITMPElVM6KRtkqO7PaXcB/I=
+    }
 	
 }

@@ -3,13 +3,17 @@
 <%@page import="com.guardias.database.MedicoDBImpl"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"     pageEncoding="UTF-8"%>
 <jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+<%@page import="com.guardias.persistence.*"%>
 <%@page import="com.guardias.*"%>
+<%@page import="com.guardias.servicios.*"%>
 <%@page import="com.guardias.database.*"%>
 <%@page import="java.util.ResourceBundle"%>
 <%@page import="java.text.SimpleDateFormat"%> 
 <%@page import="java.util.*"%>
 
 <%@page import="com.guardias.Vacaciones_Medicos"%>
+
+
 
 
 <%
@@ -52,12 +56,25 @@
 		String inputEmail = request.getParameter("inputEmail");
 		String  oldEmail= request.getParameter("oldEmail");
 		
-		Medico ExisteMedico = MedicoDBImpl.getMedicoByEmail(inputEmail);
+		Medico ExisteMedico = MedicoDBImpl.getMedicoByEmail(inputEmail,MedicoLogged.getServicioId());
+		
+		
+		
+		/* EXISTE MEDICO NO ASIGNADO A NINGUN SERVICIO */
 		
 		/* cambiado mail  */
 		if (ExisteMedico!=null && !inputEmail.equals(oldEmail)) 
 		{
-			sError = "NOOK.Por favor, has introducido un mail ya existente. Veríficalo y procede de nuevo.";
+			  
+			Guardias_Servicios _GS = Guardias_ServiciosDBImpl.getGuardias_ServiciosOfUser(ExisteMedico.getID().intValue());
+			
+			/* TOTAL : getIdServicio*/
+			if (_GS!=null && _GS.getIdServicio()>0)  // y no pertence a ningun servicio
+			{
+				sError = "NOOK.Por favor, has introducido un mail de usuario que ya pertenece a una servicio . Verifícalo y procede con otro email de contacto.";	
+			}
+			
+			
 			
 		}
 		else
@@ -71,6 +88,8 @@
 			String IDMEDICO = request.getParameter("IDMEDICO");
 			String nombre = request.getParameter("nombre");
 			String apellidos = request.getParameter("apellidos");
+			Long servicio = Long.parseLong(request.getParameter("servicio"));
+			
 			Util.eTipo tipo = Util.eTipo.ADJUNTO; 
 			
 			
@@ -96,10 +115,11 @@
 			Boolean activo = request.getParameter("activo")!=null && request.getParameter("activo").toString().equals("S") ? new Boolean(true) :  new Boolean(false);
 			
 			if (!newMedico)
-				_NuevoMedico = MedicoDBImpl.getMedicoByEmail(oldEmail);
+				_NuevoMedico = MedicoDBImpl.getMedicoByEmail(oldEmail,MedicoLogged.getServicioId());
 			
 			
 			_NuevoMedico.setActivo(activo);
+			_NuevoMedico.setActivoServicio(activo ? new Long(1) : new Long(0));
 			_NuevoMedico.setNombre(nombre);
 			_NuevoMedico.setApellidos(apellidos);
 			_NuevoMedico.setGuardiaSolo(guardiassolo);
@@ -112,10 +132,11 @@
 			_NuevoMedico.setTipo(tipo);
 			_NuevoMedico.setEmail(inputEmail);
 			_NuevoMedico.setMax_NUM_Guardias(Long.valueOf(Max_Num_Guardias));
+			_NuevoMedico.setServicioId(servicio);
 			
 			
 			/* USUARIO ADMIN LOGGED */		
-			Medico PowerMedico = MedicoDBImpl.getMedicoByEmail((String) request.getSession().getAttribute("User"));
+			Medico PowerMedico = MedicoDBImpl.getMedicoByEmail((String) request.getSession().getAttribute("User"),MedicoLogged.getServicioId());
 			
 			/* VERIFICAOS QUE NO HAYA VACACIONES CON GUARDIAS ALMACENADAS */
 			if (aVacaciones!=null)
@@ -124,7 +145,7 @@
 				{					
 					String DiaVacaciones = aVacaciones[j];
 					
-					List<Guardias>  lVacacionesDay =  GuardiasDBImpl.getGuardiasMedicoFecha(new Long(ID), DiaVacaciones);
+					List<Guardias>  lVacacionesDay =  GuardiasDBImpl.getGuardiasMedicoFecha(new Long(ID), DiaVacaciones, MedicoLogged.getServicioId());
 					if (lVacacionesDay!=null && !lVacacionesDay.isEmpty())
 					{
 						Guardias _oGuardia = lVacacionesDay.get(0);	
@@ -148,6 +169,7 @@
 					_NuevoMedico.setID(Long.parseLong(ID));
 					
 					_NuevoMedico.setPassWord(SecurityUtil.GeneratePlainRandomPassword());	
+					//_NuevoMedico.setServicioId(MedicoLogged.getServicioId());
 					/* contraseña plana */
 					MailingUtil.SendWelcomeRegistration(_NuevoMedico,PowerMedico, request);
 					/* contraseña ENCRIPTADA */
@@ -230,7 +252,7 @@
 	{
 	
 	
-
+	
 	Long _ID = new Long(-1);
 	if (request.getParameter("id") !=null)
 		_ID = Long.parseLong(request.getParameter("id"));
@@ -238,9 +260,24 @@
 	List<Medico> _lMedicos =null;
 	Medico _oMedico = null;
 	List<Vacaciones_Medicos> _lVacaciones = null;
+	
+	
+	
+	List<Guardias_Servicios> _lGS = null;
+	
+	//lItems = oUtilMedicos.LeerMedicos(_Path,true);
+	if (!MedicoLogged.isAdministrator())
+	{
+		_lGS =  Guardias_ServiciosDBImpl.getListGuardias_ServiciosOfUser(MedicoLogged.getID().intValue());		
+		
+	}		 
+	else
+		_lGS =  Guardias_ServiciosDBImpl.getGuardias_ServiciosByOwner(MedicoLogged.getID().intValue());
+	
+	
 	if (!_ID.equals(new Long(-1)))
 	{
-		_lMedicos = MedicoDBImpl.getMedicos(_ID);	
+		_lMedicos = MedicoDBImpl.getMedicos(_ID,MedicoLogged.getServicioId());	
 		if (_lMedicos!=null && _lMedicos.size()>0)		
 			_oMedico = _lMedicos.get(0);
 		
@@ -294,11 +331,12 @@ function fn_DefaultResidente(){
 
 	
 		// alert($("#residente").val());
-	
-		if ($("#residente").val()==_SIMULADO)  // metemos simulados un numero muy grande de guardias
+		var strSIMULADO = _SIMULADO.toUpperCase();			
+		if ($("#residente").val()==strSIMULADO)  // metemos simulados un numero muy grande de guardias
 		{
 				$("#max_guardias").val(9999);
 				$("#max_guardias").prop('disabled', true);			
+				$("#activo").prop('disabled', true);
 		}
 		else
 		{
@@ -382,6 +420,7 @@ function _GuardarMedico()
 //	alert($("#activo").prop('checked'));
 	obj['max_guardias']=	$("#max_guardias").val();	
 	obj['nuevo']=	$("#nuevo").val(); 
+	obj['servicio']=	$("#servicio").val();
 	obj['vacaciones']=	$('#vacaciones').multiDatesPicker('getDates');
 	obj['oldEmail']=$("#oldEmail").val();
 	//alert(obj['vacaciones']);
@@ -429,23 +468,27 @@ function _GuardarMedico()
 				<form  id=fmedico method=post role="form" data-toggle="validator" onsubmit="return _GuardarMedico();">                                     						
                         <!-- SUCCESS  -->
 						<div  id=success  class="alert alert-success" style="display:none">
-                        <div class="panel-heading"></div>
                         <div class="panel-body">
-                            <p>Los datos han sido guardados satisfactoriamente</p>
+			               <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+			               <span class="glyphicon glyphicon-ok"></span> <strong>Los datos han sido guardados satisfactoriamente</strong>
+			                <hr class="message-inner-separator">
+			                <p>En caso de ser nuevo miembro o modificación de email de contacto, se enviará notificación por correo electrónico para confirmar.</p>                            
                         </div>                                               
                     	</div> 
 						<!--  SUCCESS -->            
 						
-						<div  id=error  class="alert alert-danger" style="display:none">
-                        <div class="panel-heading"></div>
+						<div  id=error  class="alert alert-danger" style="display:none">                        
                         <div class="panel-body">
-                            <p></p>
+				                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+				                <span class="glyphicon glyphicon-hand-right"></span> <strong>Aviso</strong>
+				                <hr class="message-inner-separator">
+				                <p></p> 
                         </div>                                               
                     	</div> 
 						<!--  SUCCESS -->
 						<div class="form-group">
 						<label  class="control-label">Id Médico:</label>
-						<input   required maxlength="6" class="ui-textfield form-control" type="text" name="idmedico" id="idmedico"  value='<%=_oMedico.getIDMEDICO()%>'/>						
+						<input   required maxlength="6" type="number" class="ui-textfield form-control" type="text" name="idmedico" id="idmedico"  value='<%=_oMedico.getIDMEDICO()%>'/>						
 						</div>						
 						<div class="form-group">
 						<label  class="control-label" >Nombre:</label>
@@ -466,6 +509,24 @@ function _GuardarMedico()
 							<option <%=_oMedico.getTipo().equals(Util.eTipo.RESIDENTE) ? "selected" : ""%> value="<%=Util.eTipo.RESIDENTE %>"><%=Util.eTipo.RESIDENTE %></option>
 						</select>						
 						</div>
+						<div class="form-group">
+						<label  class="control-label">Servicio:</label>
+						<select <%=_ReadOnly %>  required class="form-control ui-select" name="servicio" id="servicio">
+						<%
+							for (Guardias_Servicios Gs : _lGS)
+							{
+								
+							
+						%>
+							<option <%=Gs.getIdServicio().equals(MedicoLogged.getServicioId()) ? "selected" : ""%> value="<%=Gs.getIdServicio() %>"><%=Gs.getNombre()%></option>
+							
+						<% 
+							}	
+						%>
+						</select>						
+						</div>
+						
+						
 						<div class="form-group">
 						    <label  class="control-label" for="inputEmail" class="control-label">Email</label>
 						    <input  required <%=_ReadOnly %> type="email" class="form-control" id="inputEmail" placeholder="Email" value="<%=_oMedico.getEmail()%>" data-error="Por favor, introduzca un mail válido" required>						    
@@ -493,7 +554,7 @@ function _GuardarMedico()
 							<input  <%=_Disabled %> <%=_selected%> type="checkbox" name="guardiassolo"  id ="guardiassolo" value='<%=_oMedico.isGuardiaSolo()%>'/>
 						</div>	
 						<% _selected=""; 
-						if (_oMedico.isActivo())
+						if (_oMedico.getActivoServicio().equals(new Long(1)))
 							_selected="checked";
 						String confirmed=""; 
 						if (!_oMedico.isConfirmado())
@@ -502,7 +563,7 @@ function _GuardarMedico()
 						%>
 						<div class="form-group">
 							<label  class="control-label" >Activo:</label>
-							<input  <%=_Disabled %> <%=confirmed%> <%=_selected%> type="checkbox" <%=_selected %> name="activo" id="activo" value='<%=_oMedico.isActivo()%>'/>
+							<input  <%=_Disabled %> <%=confirmed%> <%=_selected%> type="checkbox" <%=_selected %> name="activo" id="activo" value='<%=_oMedico.getActivoServicio()%>'/>
 						</div>					
 						<div class="form-group">
 							<label  class="control-label"></label>

@@ -30,6 +30,115 @@ import guardias.security.SecurityUtil;
 public class MailingUtil {
 
 	
+	public static void SendPasswordRecovery(Medico UserTo,  HttpServletRequest GuardiasRequest) throws IOException, TemplateException
+	{
+		 Configuration cfg = new Configuration();
+
+         // Where do we load the templates from:
+         cfg.setClassForTemplateLoading(MailingUtil.class, "/");
+
+         // Some other recommended s	ettings:
+        // cfg.setIncompatibleImprovements(new Version(2, 3, 20));
+         cfg.setDefaultEncoding("UTF-8");
+         //cfg.setLocale(Locale.);
+         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+         // 2. Proccess template(s)
+         //
+         // You will do this for several times in typical applications.
+
+         // 2.1. Prepare the template input:
+
+         Map<String, Object> input = new HashMap<String, Object>();
+         
+         String TokenEncripted= SecurityUtil.EncriptarTokenEmail(UserTo.getEmail());
+         String _ConfirmationPage = "http" + (GuardiasRequest.getProtocol().toLowerCase().contains("https") ? "s://" : "://") +  GuardiasRequest.getServerName()  +  (GuardiasRequest.getServerPort()!=80 ? ":"  + GuardiasRequest.getServerPort() : "")  +  GuardiasRequest.getContextPath() + "/guest/olvidar_contrasena.jsp?auth=" + TokenEncripted; 
+
+         input.put("USER",UserTo.getNombre() + " " + UserTo.getApellidos());
+         input.put("COMPANY","medONCALLS");         
+         input.put("ENLACEINVITACION", _ConfirmationPage);
+        
+         
+         // 2.2. Get the template
+         Template template = cfg.getTemplate("com/guardias/mail/forgot_password.ftl");
+        
+
+         // 2.3. Generate the output
+
+         // Write output to the console
+        /*  Writer consoleWriter = new OutputStreamWriter(System.out);
+         template.process(input, consoleWriter);
+*/
+         // For the sake of example, also write output into a file:
+         Writer StringWriter = new StringWriter();
+         String[] _to= {UserTo.getEmail()};
+         
+         try {
+                 template.process(input, StringWriter);
+                 
+                 Util.sendFromGMail(_to, Util._PASSWORD_REQUEST_SUBJECT.toString(), StringWriter.toString(), "", "");
+                  
+                 
+         } finally {
+        	 	StringWriter.close();
+         }
+
+	}
+	
+	public static void SendJoinRequest(Medico UserTo, Medico UserFrom, HttpServletRequest GuardiasRequest) throws IOException, TemplateException
+	{
+		 Configuration cfg = new Configuration();
+
+         // Where do we load the templates from:
+         cfg.setClassForTemplateLoading(MailingUtil.class, "/");
+
+         // Some other recommended s	ettings:
+        // cfg.setIncompatibleImprovements(new Version(2, 3, 20));
+         cfg.setDefaultEncoding("UTF-8");
+         //cfg.setLocale(Locale.);
+         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+         // 2. Proccess template(s)
+         //
+         // You will do this for several times in typical applications.
+
+         // 2.1. Prepare the template input:
+
+         Map<String, Object> input = new HashMap<String, Object>();
+         
+         
+         input.put("USER",UserTo.getNombre() + " " + UserTo.getApellidos());
+         input.put("COMPANY","medONCALLS");
+         input.put("INVITACION",UserFrom.getNombre() + " " + UserFrom.getApellidos());
+        
+         
+         // 2.2. Get the template
+         Template template = cfg.getTemplate("com/guardias/mail/join_service.ftl");
+        
+
+         // 2.3. Generate the output
+
+         // Write output to the console
+        /*  Writer consoleWriter = new OutputStreamWriter(System.out);
+         template.process(input, consoleWriter);
+*/
+         // For the sake of example, also write output into a file:
+         Writer StringWriter = new StringWriter();
+         String[] _to= {UserFrom.getEmail()};
+         
+         try {
+                 template.process(input, StringWriter);
+                 
+                 Util.sendFromGMail(_to, Util._JOIN_REQUEST_SUBJECT.toString(), StringWriter.toString(), "", "");
+                  
+                 
+         } finally {
+        	 	StringWriter.close();
+         }
+
+	}
+	
+	
 	public static void SendScheduleChangeNotification(String[] UserTo, CambiosGuardias _DataChangeRequest, boolean _Confirmation) throws IOException, TemplateException
 	{
 		 Configuration cfg = new Configuration();
@@ -52,10 +161,10 @@ public class MailingUtil {
          Map<String, Object> input = new HashMap<String, Object>();
          
          
-         List<Medico> _lSolicitante = MedicoDBImpl.getMedicos(_DataChangeRequest.getIdMedicoSolicitante());
+         List<Medico> _lSolicitante = MedicoDBImpl.getMedicos(_DataChangeRequest.getIdMedicoSolicitante(), new Long(-1));
          Medico _Solicitante = _lSolicitante.get(0);
          
-         List<Medico> _lDestino = MedicoDBImpl.getMedicos(_DataChangeRequest.getIdMedicoDestino());
+         List<Medico> _lDestino = MedicoDBImpl.getMedicos(_DataChangeRequest.getIdMedicoDestino(), new Long(-1));
          Medico _Destino = _lDestino.get(0);
          
          
@@ -115,7 +224,8 @@ public class MailingUtil {
          Map<String, Object> input = new HashMap<String, Object>();
          
          String TokenEncripted= SecurityUtil.EncriptarTokenEmail(UserTo.getEmail());
-         String _ConfirmationPage = "http" + (GuardiasRequest.getProtocol().toLowerCase().contains("https") ? "s://" : "://") +  GuardiasRequest.getServerName()  +  (GuardiasRequest.getServerPort()!=80 ? ":"  + GuardiasRequest.getServerPort() : "")  +  GuardiasRequest.getContextPath() + "/guest/confirmacion.jsp?auth=" + TokenEncripted; 
+         String ServiceInvitationEncripted= SecurityUtil.EncriptarTokenEmail(UserFrom.getServicioId().toString());
+         String _ConfirmationPage = "http" + (GuardiasRequest.getProtocol().toLowerCase().contains("https") ? "s://" : "://") +  GuardiasRequest.getServerName()  +  (GuardiasRequest.getServerPort()!=80 ? ":"  + GuardiasRequest.getServerPort() : "")  +  GuardiasRequest.getContextPath() + "/guest/confirmacion.jsp?auth=" + TokenEncripted  + ("&serviceauth=").concat(ServiceInvitationEncripted) ; 
 
          input.put("USER",UserTo.getNombre() + " " + UserTo.getApellidos());
          input.put("COMPANY","medONCALLS");

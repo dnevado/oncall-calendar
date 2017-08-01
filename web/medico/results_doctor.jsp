@@ -5,6 +5,9 @@
 <%@page import="com.guardias.database.*"%>
 <%@page import="java.util.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
+
 <% 
 	List<Medico> lItems = new ArrayList<Medico>();
 	
@@ -15,7 +18,7 @@
 	ProcesarMedicos oUtilMedicos = new ProcesarMedicos();
 	
 	
-	lItems = MedicoDBImpl.getMedicos();
+	lItems = MedicoDBImpl.getMedicos(new Long(-1),MedicoLogged.getServicioId());
 	List<Medico> lResidentes = oUtilMedicos.getResidentes(lItems);
 	List<Medico> lAdjuntos = oUtilMedicos.getAdjuntos(lItems, true);
 	

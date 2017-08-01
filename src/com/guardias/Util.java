@@ -38,6 +38,10 @@ public class Util {
 	
 		public static final String _WELCOME_REGISTRATION_SUBJECT = "Bienvenido a MEDONCALLS";
 		public static final String _SCHEDULE_CHANGE_SUBJECT = "Solicitud de cambio de guardia MEDONCALLS";
+		
+		public static final String _JOIN_REQUEST_SUBJECT = "Solicitud de unirse a tu servicio MEDONCALLS";
+		
+		public static final String _PASSWORD_REQUEST_SUBJECT = "Cambio de contraseña MEDONCALLS";
 	
 		public static final String _COLOR_PRESENCIA = "";
 		public static final String _COLOR_LOCALIZADA = ""; 
@@ -59,6 +63,11 @@ public class Util {
 	    public final static long DAYS_MILLIS = MINUTE_MILLIS*60*24;
 	    
 	    public final static String  MIME_TYPE_SQLLITE = "application/x-sqlite3";
+	    
+	    public final static String  SIMULADO_NOMBRE = "SIMULADO";
+	    public final static String  SIMULADO_APELLIDOS = "RELLENO";
+	    public final static String  SIMULADO_EMAIL = "simulado@medoncalls.com";
+	    
 	    
 	    
 	    private final static String  RUTA_DATA_XML ="";
@@ -276,8 +285,8 @@ public class Util {
         Properties props = System.getProperties();
        
         
-        _EMAIL_GOOGLE_ACCOUNT_FROM = ConfigurationDBImpl.GetConfiguration(oCONST_MAIL_FROM).getValue();
-        _EMAIL_GOOGLE_ACCOUNT_PASSWORD = ConfigurationDBImpl.GetConfiguration(oCONST_MAIL_FROM_PASSWORD).getValue();
+        _EMAIL_GOOGLE_ACCOUNT_FROM = ConfigurationDBImpl.GetConfiguration(oCONST_MAIL_FROM, new Long(-1)).getValue();
+        _EMAIL_GOOGLE_ACCOUNT_PASSWORD = ConfigurationDBImpl.GetConfiguration(oCONST_MAIL_FROM_PASSWORD,new Long(-1)).getValue();
         
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", EMAIL_GOOGLE_ACCOUNT_HOST);
@@ -444,11 +453,11 @@ public class Util {
 
 	
 	/* DIAS 1 DE CADA MES VACACIONAL */
-	public static List<java.util.Calendar> ListaMesesVacaciones() 
+	public static List<java.util.Calendar> ListaMesesVacaciones(Long IdServicio) 
 	{
 		List<java.util.Calendar> ListaMesesVacaciones= new ArrayList<java.util.Calendar>();
 		List<String> lMESES_VACACIONES= new ArrayList<String>();
-		String _MesesVacacionesSinAleatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES()).getValue();
+		String _MesesVacacionesSinAleatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES(),IdServicio).getValue();
 		if (!_MesesVacacionesSinAleatorio.equals(""))
 		{
 			lMESES_VACACIONES = Arrays.asList(_MesesVacacionesSinAleatorio.split("\\|"));
@@ -465,11 +474,11 @@ public class Util {
 	}
 	
 
-	public static boolean EsMesVacaciones(java.util.Calendar cFecha) 
+	public static boolean EsMesVacaciones(java.util.Calendar cFecha, Long IdServicio) 
 	{
 		boolean EsMes = false;
 		List<String> lMESES_VACACIONES= new ArrayList<String>();
-		String _MesesVacacionesSinAleatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES()).getValue();
+		String _MesesVacacionesSinAleatorio = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_AJUSTE_A_ESTOS_MESES_VACACIONES(),IdServicio).getValue();
 		if (!_MesesVacacionesSinAleatorio.equals(""))
 		{
 			lMESES_VACACIONES = Arrays.asList(_MesesVacacionesSinAleatorio.split("\\|"));

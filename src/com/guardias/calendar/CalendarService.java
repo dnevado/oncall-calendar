@@ -50,8 +50,8 @@ public class CalendarService {
   public  Calendar configure() {
     try {
     	
-      SERVICE_ACCOUNT_EMAIL	= ConfigurationDBImpl.GetConfiguration(Util.getoCONST_GOOGLE_SERVICE_ACCOUNT()).getValue();
-      SERVICE_ACCOUNT_FILETOJSON_AUTH =  ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_FICHERO_P12_RUTA()).getValue();
+      SERVICE_ACCOUNT_EMAIL	= ConfigurationDBImpl.GetConfiguration(Util.getoCONST_GOOGLE_SERVICE_ACCOUNT(),new Long(-1)).getValue();
+      SERVICE_ACCOUNT_FILETOJSON_AUTH =  ConfigurationDBImpl.GetConfiguration(Util.getoCONST_CALENDARIO_FICHERO_P12_RUTA(),new Long(-1)).getValue();
     	
       httpTransport = new NetHttpTransport();
 	// check for valid setup

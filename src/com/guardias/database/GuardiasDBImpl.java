@@ -118,7 +118,7 @@ public class GuardiasDBImpl {
 	  }
 	
 	
-	public static  boolean DeleteGuardia(Long IdMedico, String Day)
+	public static  boolean DeleteGuardia(Long IdMedico, String Day, Long ServicioId)
 	 {	  
 		
 		 
@@ -136,7 +136,9 @@ public class GuardiasDBImpl {
 	  {
 			stSQL+=" and  IdMedico=" + IdMedico;
 	  }
-	  	   
+	  	 
+	  stSQL+=" and  IdServicio=" + ServicioId;
+	  
 	 try
 	 {
 	 
@@ -181,9 +183,9 @@ public class GuardiasDBImpl {
 	  Connection MiConexion =ConexionGuardias.GetConexionGuardias();
 	  
 	  
-	  String stSQL = "INSERT INTO guardias_medicos (IdMedico , FGuardia , Festivo, Tipo, IdEventoGCalendar " +
+	  String stSQL = "INSERT INTO guardias_medicos (IdMedico , FGuardia , Festivo, Tipo, IdEventoGCalendar, IdServicio " +
 	  ") VALUES (" +
-	  " (?) ,  (?),  (?) , (?), (?) ) ";
+	  " (?) ,  (?),  (?) , (?), (?),(?) ) ";
 	  	  
 	  
 	  
@@ -197,6 +199,8 @@ public class GuardiasDBImpl {
 		  stmt.setLong(3, _oG.isEsFestivo());
 		  stmt.setString(4, _oG.getTipo());
 		  stmt.setString(5, _oG.getIdEventoGCalendar());
+		  stmt.setLong(6, _oG.getIdServicio());
+		  
 		  
 	  //System.out.println(stSQL + ",IdMedico:" + IdMedico + "," + 	_oMedico.getNombre() + ",setAutoCommit(true);") ;  
 	
@@ -223,37 +227,37 @@ public class GuardiasDBImpl {
 	  return true;    		 
 	  }
 	
-	public static  List<Guardias>  getGuardiasEventoGCalendar(String CalId)
+	public static  List<Guardias>  getGuardiasEventoGCalendar(String CalId, Long servicioId)
 	{
-		return getGuardias(new Long(-1), "", "", new Long(-1),CalId, "");
+		return getGuardias(new Long(-1), "", "", new Long(-1),CalId, "",servicioId);
 				
 	}
 	
-	public static  List<Guardias>  getGuardiasMedicoFecha(Long IdMedico, String _FGuardia)
+	public static  List<Guardias>  getGuardiasMedicoFecha(Long IdMedico, String _FGuardia, Long servicioId)
 	{
-		return getGuardias(IdMedico, _FGuardia, "", new Long(-1),"", "");
+		return getGuardias(IdMedico, _FGuardia, "", new Long(-1),"", "",servicioId);
 				
 	}
-	public static  List<Guardias>  getGuardiasFechaTipo(String _FGuardia, String _TipoGuardia)
+	public static  List<Guardias>  getGuardiasFechaTipo(String _FGuardia, String _TipoGuardia, Long servicioId)
 	{
-		return getGuardias(new Long(-1), _FGuardia, _TipoGuardia, new Long(-1),"", "");
+		return getGuardias(new Long(-1), _FGuardia, _TipoGuardia, new Long(-1),"", "",servicioId);
 				
 	}
-	public static  List<Guardias>  getGuardiasMedicoFechaTipo(Long IdMedico, String _FGuardia, String _TipoGuardia)
+	public static  List<Guardias>  getGuardiasMedicoFechaTipo(Long IdMedico, String _FGuardia, String _TipoGuardia, Long servicioId)
 	{
-		return getGuardias(IdMedico, _FGuardia, _TipoGuardia, new Long(-1),"", "");
+		return getGuardias(IdMedico, _FGuardia, _TipoGuardia, new Long(-1),"", "",servicioId);
 				
 	}
-	public static  List<Guardias>  getReportGuardiasEntreFechasMedico(String _FGuardia, String _FGuardia2,Long MedicoIdFilter)
+	public static  List<Guardias>  getReportGuardiasEntreFechasMedico(String _FGuardia, String _FGuardia2,Long MedicoIdFilter,Long ServicioId)
 	{
-		return getReportGuardiasEntreFechasyMedico( _FGuardia, _FGuardia2, MedicoIdFilter);
+		return getReportGuardiasEntreFechasyMedico( _FGuardia, _FGuardia2, MedicoIdFilter,ServicioId);
 	}
-	public static  List<Guardias>  getReportGuardiasEntreFechas(String _FGuardia, String _FGuardia2)
+	public static  List<Guardias>  getReportGuardiasEntreFechas(String _FGuardia, String _FGuardia2, Long ServicioId)
 	{
-		return getReportGuardiasEntreFechasyMedico( _FGuardia, _FGuardia2, new Long(-1));
+		return getReportGuardiasEntreFechasyMedico( _FGuardia, _FGuardia2, new Long(-1),ServicioId);
 	}
 	
-	private static  List<Guardias>  getReportGuardiasEntreFechasyMedico(String _FGuardia, String _FGuardia2, Long MedicoIdFilter)
+	private static  List<Guardias>  getReportGuardiasEntreFechasyMedico(String _FGuardia, String _FGuardia2, Long MedicoIdFilter, Long ServicioId)
 	 {
 		 {	  
 				
@@ -274,7 +278,7 @@ public class GuardiasDBImpl {
 				
 				/* 1.presencias, localizadas y residentes */ 
 				StringBuilder _sbSQL = new StringBuilder("SELECT count(*) AS ID, R.Tipo, Festivo, R.IdMedico, G.Tipo as eTipo,G.apellidos FROM guardias_medicos R,medicos  G ");				
-				_sbSQL.append(" WHERE  R.idmedico = G.id  AND fGuardia>='" + _FGuardia + "' and fGuardia<='" + _FGuardia2 + "'");
+				_sbSQL.append(" WHERE R.IdServicio=" + ServicioId + " and  R.idmedico = G.id  AND fGuardia>='" + _FGuardia + "' and fGuardia<='" + _FGuardia2 + "'");
 				if (!MedicoIdFilter.equals(new Long(-1)))
 						_sbSQL.append(" AND R.idmedico = " + MedicoIdFilter);
 				_sbSQL.append(" GROUP BY  R.Tipo, Festivo, R.IdMedico");
@@ -285,7 +289,7 @@ public class GuardiasDBImpl {
 				if (!MedicoIdFilter.equals(new Long(-1)))
 					_sbSQL.append(" AND R.idmedico = " + MedicoIdFilter);
 				_sbSQL.append(" and fGuardia<='" + _FGuardia2 + "')  e ");
-				_sbSQL.append(" WHERE  e.fGuardia = t.fGuardia and t.tipo='' and M.SubTipo='" + Util.eTipoGuardia.SIMULADO.toString() + "' and t.idmedico = M.ID");
+				_sbSQL.append(" WHERE t.IdServicio=" + ServicioId   + " and  e.fGuardia = t.fGuardia and t.tipo='' and M.SubTipo='" + Util.eTipoGuardia.SIMULADO.toString() + "' and t.idmedico = M.ID");
 				_sbSQL.append(" GROUP BY e.IdMedico");
 				//_sbSQL.append(" ORDER  BY  eTipo, IdMedico, Festivo");
 				
@@ -297,7 +301,7 @@ public class GuardiasDBImpl {
 				_sbSQL.append(" and  CAMBIOS.FechaIniCambio<='" + _FGuardia2 + "'");
 				if (!MedicoIdFilter.equals(new Long(-1)))
 					_sbSQL.append(" AND G.idmedico = " + MedicoIdFilter);
-				_sbSQL.append(" and  CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia and CAMBIOS.IdMedicoDestino = GUARDIAS.IdMedico");
+				_sbSQL.append(" and CAMBIOS.IdServicio =" + ServicioId +  " and GUARDIAS.IdServicio =" + ServicioId + " and  CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia and CAMBIOS.IdMedicoDestino = GUARDIAS.IdMedico");
 				_sbSQL.append(" GROUP BY GUARDIAS.IdMedico ");				
 				//_sbSQL.append(" GROUP BY GUARDIAS.Tipo, Festivo, GUARDIAS.IdMedico ");
 				
@@ -348,33 +352,33 @@ public class GuardiasDBImpl {
 			  } 
 	 }
 	
-	public static  List<Guardias>  getGuardiasEntreFechas(String _FGuardia, String _FGuardia2)
+	public static  List<Guardias>  getGuardiasEntreFechas(String _FGuardia, String _FGuardia2,Long servicioId)
 	 {
-		 return getGuardias(new Long(-1), _FGuardia,  "", new Long(-1),"",_FGuardia2);
+		 return getGuardias(new Long(-1), _FGuardia,  "", new Long(-1),"",_FGuardia2, servicioId);
 	 }
 	
-	 public static  List<Guardias>  getGuardiasPorFecha(String _FGuardia)
+	 public static  List<Guardias>  getGuardiasPorFecha(String _FGuardia,Long servicioId)
 	 {
-		 return getGuardias(new Long(-1), _FGuardia,  "", new Long(-1),"","");
+		 return getGuardias(new Long(-1), _FGuardia,  "", new Long(-1),"","",servicioId);
 	 }
 	 
 	 /* HISTORICO 
 	  * _TipoGuardia --> presencia, localizada , refuerzo
 	  * 	si es residente, ""
 	  * */
-	 public static  int  getTotalGuardiasPorMedicoTipo(Long IdMedico, String _TipoGuardia, Long Festivo)
+	 public static  int  getTotalGuardiasPorMedicoTipo(Long IdMedico, String _TipoGuardia, Long Festivo,Long servicioId)
 	 {
-		 return getGuardias(IdMedico, "", _TipoGuardia,Festivo,"","").size();
+		 return getGuardias(IdMedico, "", _TipoGuardia,Festivo,"","",servicioId).size();
 	 }
 	 
 	 /* ADJUNTOS */
-	 public static  int  getTotalGuardiasPorMedicoTipoEntreFechas(Long IdMedico, String _TipoGuardia, Long Festivo, String _FGuardia, String _FGuardia2 , Calendar _cInicio)
+	 public static  int  getTotalGuardiasPorMedicoTipoEntreFechas(Long IdMedico, String _TipoGuardia, Long Festivo, String _FGuardia, String _FGuardia2 , Calendar _cInicio,Long servicioId)
 	 {
 		 /* PARA LOS MESES DE VERANO, EL TOTAL DE GUARDIAS HISTORICAS SERAN LAS DE LOS MESES ESTABLECIDOS COMO VACACIONALES */
 		 DateFormat _format = new SimpleDateFormat(Util._FORMATO_FECHA);		 
 		 int TotalGuardias=0;
-		 boolean _bMES_VACACIONAL =  Util.EsMesVacaciones(_cInicio); // QUITAMOS O NO LOS ALEATORIOS
-		 List<Calendar> lMeses = Util.ListaMesesVacaciones();
+		 boolean _bMES_VACACIONAL =  Util.EsMesVacaciones(_cInicio,servicioId); // QUITAMOS O NO LOS ALEATORIOS
+		 List<Calendar> lMeses = Util.ListaMesesVacaciones(servicioId);
 		 if  (_bMES_VACACIONAL && lMeses!=null && !lMeses.isEmpty()) // QUE SEA UN MES VACACIONAL  QUE HAYA MESES VACACIONAL SELECCIONADOS 
 		 {
 			 for (Calendar MesVacacional : lMeses)
@@ -386,28 +390,28 @@ public class GuardiasDBImpl {
 				 _cTFin.add(Calendar.MONTH, 1);
 				 _cTFin.add(Calendar.DATE, -1);
 				 String _FIN  = _format.format(_cTFin.getTime());
-				 TotalGuardias +=  getGuardias(IdMedico, _INICIO, _TipoGuardia,Festivo,"",_FIN).size();
+				 TotalGuardias +=  getGuardias(IdMedico, _INICIO, _TipoGuardia,Festivo,"",_FIN,servicioId).size();
 			 }
 			 
 		 }
 		 else
-			 TotalGuardias =  getGuardias(IdMedico, _FGuardia, _TipoGuardia,Festivo,"",_FGuardia2).size();
+			 TotalGuardias =  getGuardias(IdMedico, _FGuardia, _TipoGuardia,Festivo,"",_FGuardia2,servicioId).size();
 		 
 		 return TotalGuardias;
 	 }
 	 
-	 public static  int  getTotalGuardiasPorMedico_DeSimulados(Long IdMedico,  Long Festivo, String FGuardia, String FGuardia2)
+	 public static  int  getTotalGuardiasPorMedico_DeSimulados(Long IdMedico,  Long Festivo, String FGuardia, String FGuardia2, Long ServicioId)
 	 {
-		 return getGuardiasSimulados(IdMedico, Festivo,FGuardia, FGuardia2);
+		 return getGuardiasSimulados(IdMedico, Festivo,FGuardia, FGuardia2,ServicioId);
 	 }	 
 	
 	 
-	 public static  List<Guardias>  getGuardiasPorMedico(Long IdMedico)
+	 public static  List<Guardias>  getGuardiasPorMedico(Long IdMedico, Long ServicioId)
 	 {
-		 return getGuardias(IdMedico, "", "", new Long(-1),"", "");
+		 return getGuardias(IdMedico, "", "", new Long(-1),"", "",ServicioId);
 	 }	  
 	 
-	 private  static  int  getGuardiasSimulados(Long IdMedico, Long Festivo, String FGuardia, String _FGuardiaHasta)
+	 private  static  int  getGuardiasSimulados(Long IdMedico, Long Festivo, String FGuardia, String _FGuardiaHasta,Long servicioId)
 	 {
 		 Connection MiConexion =ConexionGuardias.GetConexionGuardias();
 			int total = 0;
@@ -418,7 +422,7 @@ public class GuardiasDBImpl {
 			stmt = MiConexion.createStatement();
 			
 			String stSQL= "SELECT  COUNT(*) total  FROM guardias_medicos g1, medicos m1,guardias_medicos g2, medicos m2 "
-					+ " WHERE  g1.idmedico = m1.id and m1.tipo='" + Util.eTipo.ADJUNTO + "' and g1.tipo='" + Util.eTipoGuardia.PRESENCIA.toString().toLowerCase() + "'"					
+					+ " WHERE g1.IdServicio = g2.IdServicio and g1.IdServicio=" + servicioId + " and  g1.idmedico = m1.id and m1.tipo='" + Util.eTipo.ADJUNTO + "' and g1.tipo='" + Util.eTipoGuardia.PRESENCIA.toString().toLowerCase() + "'"					
 					+ " AND g2.fguardia=g1.fguardia AND g2.tipo='' and m2.id = g2.idmedico and m2.subtipo='" + Util.eSubtipoResidente.SIMULADO + "'";
 			
 			if (!IdMedico.equals(new Long(-1)))
@@ -475,7 +479,7 @@ public class GuardiasDBImpl {
 	 //public static  int  getTotalGuardiasPorMedicoTipoEntreFechas(Long IdMedico, String _TipoGuardia, Long Festivo, String _FGuardia, String _FGuardia2)
 	 
 	 // para saber que asignar a los nuevos para el historico del año 
-	 public  static  int  getMediaTotalGuardiasTipoEntreFechas( Util.eTipo TipoMedico, String TipoGuardia ,Long Festivo, String FGuardia, String _FGuardiaHasta)
+	 public  static  int  getMediaTotalGuardiasTipoEntreFechas( Util.eTipo TipoMedico, String TipoGuardia ,Long Festivo, String FGuardia, String _FGuardiaHasta,Long servicioId)
 	 {
 		 Connection MiConexion =ConexionGuardias.GetConexionGuardias();
 		 int total = 0;
@@ -486,7 +490,7 @@ public class GuardiasDBImpl {
 			stmt = MiConexion.createStatement();
 			
 			String stSQL= "SELECT  count(g1.Id) / count(DISTINCT m1.ID)  total  FROM guardias_medicos g1, medicos m1 "
-					+ " WHERE  g1.idmedico = m1.id and m1.tipo='" + TipoMedico + "' and g1.tipo='" + TipoGuardia.toString().toLowerCase() + "'";										
+					+ " WHERE g1.IdServicio=" + servicioId + " and  g1.idmedico = m1.id and m1.tipo='" + TipoMedico + "' and g1.tipo='" + TipoGuardia.toString().toLowerCase() + "'";										
 						
 			if (!Festivo.equals(new Long(-1)))
 			{
@@ -536,7 +540,7 @@ public class GuardiasDBImpl {
 	 
 	 
 	
-	 private  static  List<Guardias>  getGuardias(Long IdMedico, String _FGuardia , String _TipoGuardia, Long Festivo, String EventID, String _FGuardiaHasta)
+	 private  static  List<Guardias>  getGuardias(Long IdMedico, String _FGuardia , String _TipoGuardia, Long Festivo, String EventID, String _FGuardiaHasta, Long ServicioId)
 	 {	  
 		
 		 
@@ -559,7 +563,7 @@ public class GuardiasDBImpl {
 		 * */
 		
 		String stSQL= "SELECT *, CASE WHEN Tipo = 'localizada' THEN 'flocalizada' WHEN Tipo = 'refuerzo' THEN 'flocalizada' WHEN Tipo='' THEN 'guardiaresidente'  ELSE Tipo END as Sorted ";
-		stSQL +=" FROM guardias_medicos WHERE 1=1";
+		stSQL +=" FROM guardias_medicos WHERE 1=1 and IdServicio=" + ServicioId;
 		
 		
 		if (!IdMedico.equals(new Long(-1)))
@@ -599,6 +603,7 @@ public class GuardiasDBImpl {
          String  fguardia = rs.getString("fguardia");         
          String  tipo = rs.getString("tipo");         
          int festivo   = rs.getInt("festivo");
+         int servicio   = rs.getInt("idservicio");
          String  calId   = rs.getString("ideventogcalendar");         
          
          oGuardias.setID(new Long(id));
@@ -607,6 +612,8 @@ public class GuardiasDBImpl {
          oGuardias.setTipo(tipo);
          oGuardias.setEsFestivo(new Long(festivo));
          oGuardias.setIdEventoGCalendar(calId);
+         oGuardias.setIdServicio(new Long(servicio));
+         
          
          lGuardias.add(oGuardias);
          

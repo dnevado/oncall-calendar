@@ -34,7 +34,7 @@ public class GuardiasReportingUtilContainer {
 		for (int j=0;j<lItems.size();j++)
 		{
 			Guardias _oGuardia = lItems.get(j);
-			Medico _oMedico = MedicoDBImpl.getMedicos(_oGuardia.getIdMedico()).get(0);
+			Medico _oMedico = MedicoDBImpl.getMedicos(_oGuardia.getIdMedico(), new Long(-1)).get(0);
 			
 			/* VA CAMBIANDO */
 			if (!IDMEDICO.equals(_oMedico.getID()))

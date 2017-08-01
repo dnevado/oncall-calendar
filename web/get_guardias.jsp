@@ -11,6 +11,8 @@
 <%@page import="java.util.*"%>
 <%@page import="java.util.Map.*"%>
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
+
 
 
 <%
@@ -85,7 +87,7 @@ for (int j=1;j<=_daysOfMonth;j++)
 {
 	
 	String _DATE = _format.format(_cINICIO.getTime());
-	lGuardias = GuardiasDBImpl.getGuardiasPorFecha(_DATE);
+	lGuardias = GuardiasDBImpl.getGuardiasPorFecha(_DATE, MedicoLogged.getServicioId());
 
 	if (lGuardias.size()>0)
 	{
@@ -108,7 +110,7 @@ for (int j=1;j<=_daysOfMonth;j++)
 			  
 			 String sFestivo = _EsFestivo ? "festivoc" : "";
 			   
-			List<Medico> oLM =  MedicoDBImpl.getMedicos(lGuardias.get(x).getIdMedico());
+			List<Medico> oLM =  MedicoDBImpl.getMedicos(lGuardias.get(x).getIdMedico(), MedicoLogged.getServicioId());
 			
 			Medico oM = (Medico) oLM.get(0);
 			

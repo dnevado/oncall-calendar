@@ -188,13 +188,13 @@ public class CambiosGuardiasDBImpl extends CambiosGuardias {
 	 }
 	
 	
-	public static  List<CambiosGuardias> getCambiosGuardia()
+	public static  List<CambiosGuardias> getCambiosGuardia(CambiosGuardias _Cambio)
 	 {
 		SqlSession _oSession = _createSession();
 		List<CambiosGuardias> olCambio = null;
 		try
 		{
-			 olCambio =  _oSession.selectList("CambiosGuardias.getCambioGuardia");
+			 olCambio =  _oSession.selectList("CambiosGuardias.getCambioGuardia", _Cambio);
 		}
 		catch (Exception e)
 		{

@@ -52,12 +52,15 @@ DateFormat _format = new SimpleDateFormat(Util._FORMATO_FECHA);
 oCambioGuardias.setFechaCreacion(_format.format(cHOY.getTime()));
 oCambioGuardias.setIdCambio(new Long(CambiosGuardiasDBImpl.getMaxIDCambiosGuardiasID()));
 
+
+oCambioGuardias.setIdServicio(MedicoLogged.getServicioId());
+
 if (bIsAdministrator)
 	oCambioGuardias.setEstado(Util.eEstadoCambiosGuardias.APROBADA.toString());
 
 
-List<Guardias> lGuardiaOrigen  = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaIniCambio());
-List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaFinCambio());
+List<Guardias> lGuardiaOrigen  = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaIniCambio(),MedicoLogged.getServicioId());
+List<Guardias> lGuardiaDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaFinCambio(),MedicoLogged.getServicioId());
 Guardias GuardiaOrigen  = null;
 Guardias GuardiaDestino  = null;
 
@@ -72,8 +75,8 @@ if (lGuardiaDestino!=null && lGuardiaDestino.size()>0)
 
 String sError="";
 
-Medico oSolicitante = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoSolicitante()).get(0);
-Medico oDestino = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoDestino()).get(0);
+Medico oSolicitante = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoSolicitante(), MedicoLogged.getServicioId()).get(0);
+Medico oDestino = MedicoDBImpl.getMedicos(oCambioGuardias.getIdMedicoDestino(),MedicoLogged.getServicioId()).get(0);
 
 
 
@@ -86,8 +89,8 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toSt
 
 	//QUE NO ESTE DE GUARDIA EL GENERADOR  EN EL DESTINO
 	  
-	lGuardiasSolicitanteEnDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaFinCambio());
-	lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
+	lGuardiasSolicitanteEnDestino = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoSolicitante(), oCambioGuardias.getFechaFinCambio(),MedicoLogged.getServicioId());
+	lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio(),MedicoLogged.getServicioId());
 	
 	if (lGuardiasSolicitanteEnDestino!=null && lGuardiasSolicitanteEnDestino.size()>0)
 	{	
@@ -135,9 +138,10 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toSt
 	cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
 	// SUMAMOS UN DIA 
 	cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,1);	
-	List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+	List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 	
-	if (!oSolicitante.isResidenteSimulado()  &&  lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0)
+	// que sea de presencia el cambio tambien 
+	if (!oSolicitante.isResidenteSimulado()  &&  lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0 && GuardiaDestino.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
 	{	
 			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
 			//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
@@ -155,9 +159,9 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toSt
 	// RESTAMOS  UN DIA 
 	cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
 	cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,-1);	
-	List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+	List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 	
-	if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0)
+	if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaDestino.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
 	{	
 			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
 			//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
@@ -182,7 +186,7 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CESION.toSt
 	// TIENE ALGUNOS DE LOS DESTINATARIOS GUARDIAS EN ORIGEN ??
 	//QUE NO ESTE DE GUARDIA EL DESTINATORIO   EN EL ORIGEN
 	//lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(GuardiaDestino.getIdMedico(), _format.format(_cINICIO.getTime()));
-	lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
+	lGuardiasDestinatarioEnOrigen = GuardiasDBImpl.getGuardiasMedicoFecha(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio(),MedicoLogged.getServicioId());
 	
 	// VACACIONES DEL RECEPTOR DE LA GUARDIA EN EL ORIGEN
 	List<Vacaciones_Medicos> lVacacionesDESTINATARIO = VacacionesDBImpl.getVacacionesMedicos(oCambioGuardias.getIdMedicoDestino(), oCambioGuardias.getFechaIniCambio());
@@ -209,19 +213,25 @@ Calendar cGuardiaDIASCONSECUTIVOS = Calendar.getInstance();
 cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
 // SUMAMOS UN DIA 
 cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,1);	
-List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 
-if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0)
+if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaOrigen.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
 {	
 		//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
 		//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
 		//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
 		
-		sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_despues");
-//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
-		Map<String, String> valuesMap = new HashMap<String, String>();
-		sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
-		sError = sError.replace("{FECHA}",_format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+		/* verificamos que no sea de presencia 
+		Guardias _gAntes = lGuardiaDIAANTES.get(0);
+		if (_gAntes.getTipo().equals(Util.eTipoGuardia.PRESENCIA) && oCambioGuardias.getTipoCambio().equals(Util.eTipoGuardia.PRESENCIA))  // presencia - presencia, error 
+		{
+			*/
+			sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_despues");
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+			sError = sError.replace("{FECHA}",_format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+		
+	//	}
 	
 		
 }
@@ -229,17 +239,21 @@ if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIA
 // RESTAMOS  UN DIA 
 cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
 cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,-1);	
-List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString());
+List<Guardias> lGuardiaDIADESPUES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 
-if (!oSolicitante.isResidenteSimulado()  && lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0)
+if (!oSolicitante.isResidenteSimulado()  && lGuardiaDIADESPUES!=null && lGuardiaDIADESPUES.size()>0 && GuardiaOrigen.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
 {	
 	
-		
-		sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
-//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
-		Map<String, String> valuesMap = new HashMap<String, String>();
-		sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
-		sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+		/* verificamos que no sea de presencia 
+		Guardias _gDIADESPUES = lGuardiaDIADESPUES.get(0);
+		if (_gDIADESPUES.getTipo().equals(Util.eTipoGuardia.PRESENCIA) && oCambioGuardias.getTipoCambio().equals(Util.eTipoGuardia.PRESENCIA))  // presencia - presencia, error 
+		{*/
+			sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
+	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+			Map<String, String> valuesMap = new HashMap<String, String>();
+			sError = sError.replace("{MEDICO}", oDestino.getNombre() + " " + oDestino.getApellidos());
+			sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+	//	}
 	
 		
 }
@@ -259,7 +273,7 @@ else
 	
 	CambiosGuardiasDBImpl.AddCambioGuardias(oCambioGuardias);	
 	// enviamos email  administrador e usuarios 
-	List<Medico> lAdministradores =  MedicoDBImpl.getMedicosAdministradores();
+	List<Medico> lAdministradores =  MedicoDBImpl.getMedicosAdministradores(MedicoLogged.getServicioId());
 	String[] Emails;
 	List<String> lEmails = new ArrayList<String>();	
 	for (Medico oMedico : lAdministradores)

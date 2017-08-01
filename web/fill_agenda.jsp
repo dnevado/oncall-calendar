@@ -10,6 +10,7 @@
 <%@page import="java.util.*"%>        
 
 
+<jsp:useBean id="MedicoLogged" class="com.guardias.Medico" scope="session"/>
 
 <%
 
@@ -74,7 +75,7 @@ System.out.println(_end);
 
 List lItems = new ArrayList();
 
-lItems = MedicoDBImpl.getMedicos();
+	 lItems = MedicoDBImpl.getMedicos(new Long(-1),MedicoLogged.getServicioId());
 
 
 List<Long> lGenerada = new ArrayList();
@@ -88,7 +89,7 @@ int _Index;
 boolean  bEncontrado = false;
 
 
-String poolDay = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY()).getValue();
+String poolDay = ConfigurationDBImpl.GetConfiguration(Util.getoCONST_EXISTE_POOLDAY(), MedicoLogged.getServicioId()).getValue();
 
 
 // para ir iterando por bloques 

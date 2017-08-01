@@ -1,10 +1,16 @@
 <html>
-<body p style="font: 15px Lato, sans-serif;">
+<body>
+<style>
 
-<p><a href="http://www.medoncalls.com"><img src="http://www.medoncalls.com/Guardias/public/images/medoncalls4_s.jpg"/></a></p>
+body { font-family: "Helvetica Neue",Helvetica,Arial,sans-serif; }
+
+</style>
+
+<div style="background-color: #2d9eab;"><a  href="https://medoncalls.com"><img  src="https://medoncalls.com/Guardias/public/images/medoncalls4_s.jpg"></a></div>
+
 <p>Estimado/a Usuario/a</p>
 
-<p>El sistema ha procedido a almacenar la solicitud de cambio de guardia. Se enviará notificación una vez se confirme por el Administrador.</p>.  
+<p>El sistema ha procedido a almacenar la solicitud de cambio de guardia. Se enviar&aacute; notificaci&oacute;n una vez se confirme por el Administrador.</p>.  
 
 <p>Los datos son,</p>
 

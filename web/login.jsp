@@ -1,3 +1,4 @@
+<%@page import="com.guardias.database.Guardias_ServiciosDBImpl"%>
 <%@page import="org.brickred.socialauth.AuthProvider"%>
 <%@page import="org.brickred.socialauth.AuthProviderFactory"%>
 <%@page import="guardias.security.SecurityUtil"%>
@@ -40,6 +41,8 @@
 	<link href="<%=request.getContextPath()%>/dist/css/sb-admin-2.css" rel="stylesheet">	
 	<link href='<%=request.getContextPath()%>/css/custom.css?erddd444' rel='stylesheet'/>
 	<link href='<%=request.getContextPath()%>/css/login.css?erddd444' rel='stylesheet'/>
+		<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+	
 	<script src='<%=request.getContextPath()%>/js/lib/moment.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/lib/jquery.min.js'></script>
 	<script src='<%=request.getContextPath()%>/js/bootstrap.min.js'></script>
@@ -78,23 +81,42 @@ if ((request.getParameter("oauth_token")!=null && request.getParameter("oauth_to
 	
 	Profile p = provider.getUserProfile();
 	
+	try 
+	{
+		List<Contact> _lContacts = provider.getContactList();	
+		for (Contact _Contacto : _lContacts)
+		{
+			System.out.println(_Contacto.getEmail());
+		}
+	}
+	catch (Exception e)
+	{
+		
+	}
+	
+	
 	//System.out.println(p.getFirstName() + "," + p.getEmail());
 	
+	
 	Medico oMNew;
+	String PageConfirmation = request.getContextPath().concat("/inicio.jsp");
 	if (p.getEmail()!=null)  // no existe y el mail viene de twitter	
 	{
 		
-		oMNew = MedicoDBImpl.getMedicoByEmail(p.getEmail());
-
-		if (oMNew==null)
+		oMNew = MedicoDBImpl.getMedicoByEmail(p.getEmail(),  new Long(-1));
+		System.out.println(oMNew);
+		if (oMNew==null || (oMNew!=null && oMNew.getEmail().equals("")))
 		{
+			
+			
+			PageConfirmation = request.getContextPath().concat("/guest/confirmacion.jsp");
 			
 			oMNew = new Medico();
 			
 			Medico ThisMedico = MedicoDBImpl.getUltimoIDMedico();
 			
 			oMNew.setActivo(true);
-			oMNew.setAdministrator(true);
+			oMNew.setAdministrator(false);
 			oMNew.setApellidos(p.getLastName()!=null ? p.getLastName() : "Sin apellido"); 
 			oMNew.setConfirmado(true);
 			oMNew.setEmail(p.getEmail());
@@ -104,6 +126,16 @@ if ((request.getParameter("oauth_token")!=null && request.getParameter("oauth_to
 			
 			MedicoDBImpl.AddMedico(oMNew);
 		
+		}
+		else
+		{
+			// si viene el servicio a -1 buscamos un servicio por defecto ya que probablemente exiata previamente.
+			Medico _ServiceOfMedico = MedicoDBImpl.getServicioPorDefecto(oMNew.getID());
+			if (_ServiceOfMedico!=null)
+			{
+				oMNew.setServicioId(_ServiceOfMedico.getServicioId());	
+			}
+			
 		}
 		
 		HttpSession _session = request.getSession(false);
@@ -117,7 +149,7 @@ if ((request.getParameter("oauth_token")!=null && request.getParameter("oauth_to
 		cookie.setHttpOnly(true);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
-		response.sendRedirect(request.getContextPath() +"/inicio.jsp");
+		response.sendRedirect(PageConfirmation);
 	
 	}
 	
@@ -192,7 +224,15 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
 		
 		String resultPassword = SecurityUtil.GenerateEncriptedRandomPassword(Password);
 		String resultUser = SecurityUtil.GenerateEncriptedRandomPassword(User);
-		Medico oMLogged = MedicoDBImpl.getMedicoByEmail(User);
+		Medico oMLogged = MedicoDBImpl.getMedicoByEmail(User, new Long(-1));
+		
+		if (oMLogged!=null &&  oMLogged.getServicioId().equals(new Long(-1)))  // servicio por defecto
+		{
+			Medico MedicoServicioDefault = MedicoDBImpl.getServicioPorDefecto(oMLogged.getID());
+			oMLogged.setServicioId(MedicoServicioDefault.getServicioId());
+			
+		}
+		
 		// en bbdd, activo, contraseña correcta y confirmado 
 		if (oMLogged!=null &&  oMLogged.isActivo() && oMLogged.getPassWord().equals(resultPassword) && oMLogged.isConfirmado())
 		{
@@ -237,8 +277,6 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
         <div class="row">
             <div class="col-md-4 col-md-offset-4">
             	
-            	 
-            	
  
                 <div class="auth login-panel panel panel-default">
                     <div class="panel-heading">
@@ -273,10 +311,10 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
 								                              
                                 <!-- Change this to a button or input when using this as a form -->
                                 <div class="auth-button-container">
-                                	<button class="btn btn-primary btn-padded" type="submit">Entrar</button>
-                                	<a class="forgotten-password">Olvidé la contraseña</a></div>
+                                	<button class="btn btn-primary btn-padded pull-right" type="submit">Entrar</button>
+                                	</div>
                                 </div>
-                               <div class="auth-text"><a href="<%=request.getContextPath()%>/register.jsp">¿No dispones de una cuenta todavía?</a></div>
+                               <div class="auth-text"><a class="forgotten-password"><a href="<%=request.getContextPath() %>/guest/olvidar_contrasena.jsp">Olvidé la contraseña</a></div>
                                 
                                 <!--  RESDES SOCIALES  -->
                                
@@ -285,17 +323,20 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
                     </div>
                      <div class="auth-text">
                                 
-                                 		<div class="social-login" style="display:none">o entra con
+                                 		<div class="social-login">o entra con (* Condiciones legales aceptadas)
                                  			
 			                        		<div class="social-login-buttons">
 				                        	<a class="btn btn-link-1 btn-link-1-facebook" href="login.jsp?loginrrss=facebook">
 				                        		<i class="fa fa-facebook"></i> Facebook
 				                        	</a>
-				                        	<a class="btn btn-link-1 btn-link-1-twitter" href="login.jsp?loginrrss=twitter">
+				                        	<!-- <a class="btn btn-link-1 btn-link-1-twitter" href="login.jsp?loginrrss=twitter">
 				                        		<i class="fa fa-twitter"></i> Twitter
-				                        	</a>
+				                        	</a> -->
 				                        	<a class="btn btn-link-1 btn-link-1-google-plus" href="login.jsp?loginrrss=googleplus">
 				                        		<i class="fa fa-google-plus"></i> Google
+				                        	</a>
+				                        	<a class="btn btn-link-1 btn-link-1-microsoft" href="login.jsp?loginrrss=hotmail">
+				                        		<i class="fa fa-windows"></i> Microsoft
 				                        	</a>
 			                        		</div>
 	                     			   </div>
@@ -308,15 +349,13 @@ if (request.getParameter("email")!=null && request.getParameter("password")!=nul
 $(document).ready(function() 
 {
 	$('#login').validator();
-	$('#login').removeAttr('novalidate');
-	fmedico
+	$('#login').removeAttr('novalidate');	
 	if ("<%=Error%>"=="true")
 		$("#error").show();
-		
 	
-
 });
 </script>
+<jsp:include page="/common/footer.jsp"></jsp:include>
 </body>
 </html>
 
