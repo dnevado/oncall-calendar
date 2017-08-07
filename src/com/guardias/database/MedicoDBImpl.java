@@ -403,7 +403,7 @@ public class MedicoDBImpl {
 		if (_Tipo!=null)
 			stSQL.append(" AND tipo='" + _Tipo + "'");
 		if (!ServicioId.equals(new Long(-1))  && !Administrador.equals(new Long(-1)))
-			stSQL.append(" AND GSERVICIO.administrator=" + Administrador);
+			stSQL.append(" AND GSERVICIO.isAdministrator=" + Administrador);
 		
 		if (!ServicioId.equals(new Long(-1)))
 		{

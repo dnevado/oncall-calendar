@@ -126,8 +126,14 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 		{
 			_GuardiaDestino  = _lGuardiaDestino.get(0);
 			
-			Medico _oM = null;
-    		_oM = MedicoDBImpl.getMedicos(_GuardiaSolicitante.getIdMedico(),MedicoLogged.getServicioId()).get(0);
+			/* AL solicitantnte , HACEMOS LO MISMO QUE AL SOLICITANTE SI LLEVA GOOGLE CALENDAR */
+			Medico _oMSolicitante = null;
+    		_oMSolicitante = MedicoDBImpl.getMedicos(_GuardiaSolicitante.getIdMedico(),MedicoLogged.getServicioId()).get(0);
+    		
+    		/* AL DESTINATARIO, HACEMOS LO MISMO QUE AL SOLICITANTE SI LLEVA GOOGLE CALENDAR 
+    		Medico _oMDestino = null;
+			_oMDestino = MedicoDBImpl.getMedicos(_GuardiaDestino.getIdMedico(),MedicoLogged.getServicioId()).get(0);
+			*/ 
 			
 			/* BORRO CALENDARIO DE GOOGLE SOLICITANTE  */
 			if (_GuardiaSolicitante.getIdEventoGCalendar()!=null && !_GuardiaSolicitante.getIdEventoGCalendar().equals(""))
@@ -135,7 +141,25 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				_calendarUtil.DeleteEventByEventId(_GuardiaSolicitante.getIdEventoGCalendar());
 			}
 			
-			
+			boolean _bCambioTipoResidente = false; // SI SE CAMBIO A UN R4 / R5, HAY QUE DEJARLA LA DEL ADJUNTO COMO LOCALIZADA O EN SU DEFECTO COMO REFUERZO
+		
+			if (_oMSolicitante.getTipo().toString().equals(Util.eTipo.RESIDENTE.toString()))
+			{
+				// SOLICITANTE R4 R5 Y DESTINO DISTINTO 
+				if ((_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+						&& 	!oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+				{	
+					_bCambioTipoResidente =true;
+				}
+				// DESTINO  R4 R5 Y SOLICITANTE DISTINTO
+				if ((oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+						&& 	!_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+				{	
+					_bCambioTipoResidente =true;
+				}
+							
+			}
+					
 			/* SI EL SOLICITANDO ESTA CAMBIANDO  LA GUARDIA ????, NO CESION */
 		    if (_ChangeType.equals(Util.eTipoCambiosGuardias.CAMBIO))
 		    {
@@ -170,7 +194,7 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 	        			_Evento = _calendarUtil.SetRemainder(_Evento, _Minutos);
 	    			// enviamos 
 	    			List<String> _lEmails = new ArrayList<String>();
-	    			_lEmails.add(_oM.getEmail());
+	    			_lEmails.add(_oMSolicitante.getEmail());
 					 _CreatedEvent =_calendarUtil.SendEvent(_Evento, _lEmails);
 					 _lEmails.clear();
 					 
@@ -179,10 +203,31 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				}
 				
 				GuardiasDBImpl.UpdateGuardiasFechayCalId(_GuardiaSolicitante.getIdEventoGCalendar(), _GuardiaSolicitante.getDiaGuardia(), _GuardiaSolicitante.getID(), _GuardiaSolicitante.isEsFestivo(),_GuardiaSolicitante.getTipo());
+				if (_bCambioTipoResidente)
+				{
+				 
+					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
+					if (_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					{
+						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
+						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					}
+					
+					/*  GURDIAS DE LOS REFUERZOS O LOCALIZADAS SE CAMBIAN */
+					List<Guardias>  _lGuardias =  GuardiasDBImpl.getGuardiasFechaTipo(_GuardiaSolicitante.getDiaGuardia(), _OldTipoGuardia.toString(), MedicoLogged.getServicioId());
+					for (Guardias oGToChange : _lGuardias)
+					{
+						oGToChange.setTipo(_NewTipoGuardia.toString().toLowerCase());
+						GuardiasDBImpl.UpdateGuardiasFechayCalId(oGToChange.getIdEventoGCalendar(), oGToChange.getDiaGuardia(), oGToChange.getID(), oGToChange.isEsFestivo(),oGToChange.getTipo());
+
+					}
+					
+					
+					
+				}
 				
-				
-				/* AL DESTINATARIO, HACEMOS LO MISMO QUE AL SOLICITANTE SI LLEVA GOOGLE CALENDAR */ 
-				_oM = MedicoDBImpl.getMedicos(_GuardiaDestino.getIdMedico(),MedicoLogged.getServicioId()).get(0);
+				/* AL DESTINATARIO, HACEMOS LO MISMO QUE AL SOLICITANTE SI LLEVA GOOGLE CALENDAR */
 				
 				/* BORRO CALENDARIO DE GOOGLE DESTINO   */
 				if (_GuardiaDestino.getIdEventoGCalendar()!=null && !_GuardiaDestino.getIdEventoGCalendar().equals(""))
@@ -216,7 +261,7 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 	        			_Evento = _calendarUtil.SetRemainder(_Evento, _Minutos);
 	    			// enviamos 
 	    			List<String> _lEmails = new ArrayList<String>();
-	    			_lEmails.add(_oM.getEmail());
+	    			_lEmails.add(oDestinationMedico.getEmail());
 					 _CreatedEvent =_calendarUtil.SendEvent(_Evento, _lEmails);
 					 
 					 
@@ -226,11 +271,35 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				
 				
 				GuardiasDBImpl.UpdateGuardiasFechayCalId(_GuardiaDestino.getIdEventoGCalendar(), _GuardiaDestino.getDiaGuardia(), _GuardiaDestino.getID(),_GuardiaDestino.isEsFestivo(),_GuardiaDestino.getTipo());
+				if (_bCambioTipoResidente)
+				{
+				 
+					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
+					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					{
+						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
+						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					}
+					
+					/*  GURDIAS DE LOS REFUERZOS O LOCALIZADAS SE CAMBIAN */
+					List<Guardias>  _lGuardias =  GuardiasDBImpl.getGuardiasFechaTipo(_GuardiaDestino.getDiaGuardia(), _OldTipoGuardia.toString(), MedicoLogged.getServicioId());
+					for (Guardias oGToChange : _lGuardias)
+					{
+						oGToChange.setTipo(_NewTipoGuardia.toString().toLowerCase());
+						GuardiasDBImpl.UpdateGuardiasFechayCalId(oGToChange.getIdEventoGCalendar(), oGToChange.getDiaGuardia(), oGToChange.getID(), oGToChange.isEsFestivo(),oGToChange.getTipo());
+
+					}
+					
+					
+					
+				}
 			
 			} // FIN DE SI ES UN CAMBIO DE GUARDIA
 		    else // es una cesion, le borro la guardia del dia. 
 		    {
-			    	GuardiasDBImpl.DeleteGuardia(_GuardiaSolicitante.getIdMedico(), _GuardiaSolicitante.getDiaGuardia(),MedicoLogged.getServicioId());
+			    
+		    	GuardiasDBImpl.DeleteGuardia(_GuardiaSolicitante.getIdMedico(), _GuardiaSolicitante.getDiaGuardia(),MedicoLogged.getServicioId());
 		    	
 		    	// falta crear una para el origen puesto que se ha eliminado.
 		    	
@@ -242,6 +311,7 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 		    	oGuardiaCesion.setIdMedico(DestinationMedico);
 		    	oGuardiaCesion.setTipo(_GuardiaSolicitante.getTipo());
 		    	oGuardiaCesion.setIdEventoGCalendar(null);
+		    	oGuardiaCesion.setIdServicio(MedicoLogged.getServicioId());  	  	
 		    	
 		    	if (_CalendarioGoogle.equals("S"))
 				{
@@ -261,7 +331,7 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 	        			_Evento = _calendarUtil.SetRemainder(_Evento, _Minutos);
 	    			// enviamos 
 	    			List<String> _lEmails = new ArrayList<String>();
-	    			_lEmails.add(_oM.getEmail());
+	    			_lEmails.add(oDestinationMedico.getEmail());
 					 _CreatedEvent =_calendarUtil.SendEvent(_Evento, _lEmails);
 					 
 					 
@@ -271,8 +341,32 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 		    	
 		    	//oGuardiaCesion.setIdEventoGCalendar(idEventoGCalendar)
 		    	
-		    	
 		    	GuardiasDBImpl.AddGuardia(oGuardiaCesion);
+		    	
+		    	if (_bCambioTipoResidente)
+				{
+				 
+					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
+					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					{
+						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
+						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
+					}
+					
+					/*  GURDIAS DE LOS REFUERZOS O LOCALIZADAS SE CAMBIAN */
+					List<Guardias>  _lGuardias =  GuardiasDBImpl.getGuardiasFechaTipo(oGuardiaCesion.getDiaGuardia(), _OldTipoGuardia.toString(), MedicoLogged.getServicioId());
+					for (Guardias oGToChange : _lGuardias)
+					{
+						oGToChange.setTipo(_NewTipoGuardia.toString().toLowerCase());
+						GuardiasDBImpl.UpdateGuardiasFechayCalId(oGToChange.getIdEventoGCalendar(), oGToChange.getDiaGuardia(), oGToChange.getID(), oGToChange.isEsFestivo(),oGToChange.getTipo());
+
+					}
+					
+					
+					
+				}
+		    	
 		    	
 		    	
 		    }

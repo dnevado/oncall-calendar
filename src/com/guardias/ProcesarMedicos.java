@@ -1855,6 +1855,8 @@ public class ProcesarMedicos {
 		Long TotalHISTORICO =  new Long(0);
 		
 		Long MAYOR_TOTAL_GUARDIA_MES = new Long(0);
+		Long MENOR_TOTAL_GUARDIA_MES = new Long(999999999);
+		
 		
 		
 		/* 20170516  SI ES MES VACACIONES, CONTEMPLAMOS TOTALES DE TODAS LAS TIPOS DE GUARDIAS DEL MES, NO HISTORICO
@@ -1966,6 +1968,9 @@ public class ProcesarMedicos {
 	    		
 	    		lUnSortedListaGuardiasMedicos.put(oAdjunto.getID(), new Long(TotalMES + TotalHISTORICO));
 	    		
+	    		/* ESTOS DOS CONTADORES ES PARA CONTROLAR EL MAYOR DE GUARDIAS MES Y EL QUE MENOS */
+	    		if (TotalMES<MENOR_TOTAL_GUARDIA_MES)
+	    			MENOR_TOTAL_GUARDIA_MES = TotalMES;
 	    		if (MAYOR_TOTAL_GUARDIA_MES<TotalMES)
 	    			MAYOR_TOTAL_GUARDIA_MES = TotalMES;
 	    		
@@ -2003,6 +2008,7 @@ public class ProcesarMedicos {
 		long _MININO_GUARDIAS_RESTO_MEDICOS_MES = 9999999;
 		
 		
+		/* SIEMPRE CONTEMPLAMOS EL PRIMERO POR DEFECTO */
 		Long IdMedicoMenosGuardias = new Long(-1);
 		
 		java.util.Map<Long, Hashtable> _NewSortedByTotal =   new java.util.LinkedHashMap<Long, Hashtable>();
@@ -2017,9 +2023,19 @@ public class ProcesarMedicos {
 		 
 		
 		Iterator entries = _NewSortedByTotal.entrySet().iterator();
-		
+		boolean _bFirst = true;
 		while (entries.hasNext()) 
 		{
+		  
+		  Entry thisEntry = (Entry) entries.next();
+		  Long keyMEDICO = (Long) thisEntry.getKey(); 			
+			
+		  /* INICIALIZAMOS EL PRIMER VALOR */	
+		  if (_bFirst)
+		  {
+			  IdMedicoMenosGuardias = keyMEDICO;
+			  _bFirst = false;
+		  }
 			
 		  TotalMES =  new Long(0);
 		  TotalHISTORICO =  new Long(0);
@@ -2027,8 +2043,7 @@ public class ProcesarMedicos {
 		 
 		  boolean ExcedeHorasSeguidasMedico  = false; 			
 			
-		  Entry thisEntry = (Entry) entries.next();
-		  Long keyMEDICO = (Long) thisEntry.getKey();
+		
 		  Hashtable lDatosTemp = (Hashtable) thisEntry.getValue();		  
 		  if (ExisteMedicoPorId(listaMedico,keyMEDICO) && !lExcluirIDMedicoPresencia.contains(keyMEDICO))		  
 		  {	 		  
@@ -2112,7 +2127,7 @@ public class ProcesarMedicos {
 	  			  TotalGuardiasMes = TotalMES; 	  			  
 	  			  if (!_bMES_VACACIONAL)   // viene ordenado  por tipo de guardia MES + HISTORICO
 	  			  {
-	  				  TotalGuardiasMes=0;
+	  				  //TotalGuardiasMes=0;   /20170806 , comentado, 
 	  				  for (String Clave : lKeysGuardias)
 		    			{
 		    				if (lDatosTemp.containsKey(Clave))
@@ -2125,7 +2140,11 @@ public class ProcesarMedicos {
 	  			 /* SI LAS GUARDIAS SON MENORES, ENTONCES NO EXCEDEN
 	  			   SI LAS GUARDIAS DEL MEDICO SON MAYORES, NO DEBE EXISTIR DIFERENCIA */
 	  			  
-				 _ExcedeMayorMenorLimiteConfigMes = (TotalGuardiasMes >  MAYOR_TOTAL_GUARDIA_MES && MAYOR_TOTAL_GUARDIA_MES-TotalGuardiasMes>MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF);
+				 //_ExcedeMayorMenorLimiteConfigMes = (TotalGuardiasMes >=  MAYOR_TOTAL_GUARDIA_MES && MAYOR_TOTAL_GUARDIA_MES-TotalGuardiasMes>=MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF);
+				 //_ExcedeMayorMenorLimiteConfigMes = (TotalGuardiasMes >=  MAYOR_TOTAL_GUARDIA_MES && (MAYOR_TOTAL_GUARDIA_MES-MENOR_TOTAL_GUARDIA_MES) -TotalGuardiasMes>=MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF);
+				 _ExcedeMayorMenorLimiteConfigMes =  (TotalGuardiasMes >=  MAYOR_TOTAL_GUARDIA_MES && TotalGuardiasMes-MENOR_TOTAL_GUARDIA_MES>=MAX_DIF_MAYOR_MENOR_ADJUNTO_GUARDIAS_PRE_LOC_REF);
+				 
+				 							
 				
 	  		  }
 	  		   
@@ -2147,13 +2166,13 @@ public class ProcesarMedicos {
 					  
 					  
 				  }
-				  else  // CONTROLAMOS QUE SI HAY UNA LIMITE DIFERENCIA DE GUARDIAS, ENTONCES, NO PERMITIMOS QUE SE EXCEDA
+				  /*  else  // CONTROLAMOS QUE SI HAY UNA LIMITE DIFERENCIA DE GUARDIAS, ENTONCES, NO PERMITIMOS QUE SE EXCEDA
 					  if (_ExcedeMayorMenorLimiteConfigMes)
 					  {
 						  IdMedicoMenosGuardias = keyMEDICO;
 						  break;
 					  }
-				 
+				 */
 			 }
 
 		  }	  
