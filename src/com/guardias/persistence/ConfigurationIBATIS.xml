@@ -9,7 +9,7 @@
       <dataSource type="POOLED">
         <property name="driver" value="com.mysql.jdbc.Driver"/>
         <!-- <property name="url" value="jdbc:sqlite:D:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\BBDD_sqllite\\guardias.db"/>-->
-        <property name="url" value="jdbc:mysql://localhost/medoncalls_prod?useUnicode=true&amp;characterEncoding=utf8"/>
+        <property name="url" value="jdbc:mysql://localhost/medoncalls_prod_20170803?useUnicode=true&amp;characterEncoding=utf8"/>
          <!--  <property name="url" value="jdbc:mysql://localhost:3306/hmkcode"/> -->
          <property name="username" value="root"/>
          <property name="password" value="***REMOVED***"/>
