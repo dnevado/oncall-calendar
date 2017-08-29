@@ -54,13 +54,17 @@ public class LoginFilter implements Filter {
 	    
 	    String path = ((HttpServletRequest) request).getRequestURI();
 	    if (!path.contains(pathToBeIgnored)  &&  // login.jsp img css js
-	    			!path.contains("/js")   && 
+	    			!path.contains("/js")   &&
+	    				!path.endsWith(".js")   && 
 	    					!path.contains("img") && 
 	    						!path.contains("css") &&  
 	    							!path.contains("/guest") &&
 	    								!path.contains("/public") &&
 	    									!path.contains("font") &&
-	    									( session == null || session.getAttribute("User") == null || (User!=null && User.getEmail().equals("")))) {
+	    									( session == null || session.getAttribute("User") == null || (User!=null && User.getEmail().equals("")))) 
+	    {
+	    	
+	    	System.out.println("LoginFilter:DoFilter" +  request.getContextPath());
 	        response.sendRedirect(request.getContextPath() + "/login.jsp"); // No logged-in user found, so redirect to login page.
 	    } else {
 	        chain.doFilter(req, res); // Logged-in user found, so just continue request.

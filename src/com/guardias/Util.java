@@ -36,12 +36,12 @@ import javax.mail.internet.*;
 public class Util {
 		
 	
-		public static final String _WELCOME_REGISTRATION_SUBJECT = "Bienvenido a MEDONCALLS";
-		public static final String _SCHEDULE_CHANGE_SUBJECT = "Solicitud de cambio de guardia MEDONCALLS";
+		public static final String _WELCOME_REGISTRATION_SUBJECT = "Hola y Bienvenido a medONcalls";
+		public static final String _SCHEDULE_CHANGE_SUBJECT = "Solicitud de cambio de guardia medONcalls";
 		
-		public static final String _JOIN_REQUEST_SUBJECT = "Solicitud de unirse a tu servicio MEDONCALLS";
+		public static final String _JOIN_REQUEST_SUBJECT = "Solicitud de unirse a tu servicio medONcalls";
 		
-		public static final String _PASSWORD_REQUEST_SUBJECT = "Cambio de contraseña MEDONCALLS";
+		public static final String _PASSWORD_REQUEST_SUBJECT = "Cambio de contraseña medONcalls";
 	
 		public static final String _COLOR_PRESENCIA = "";
 		public static final String _COLOR_LOCALIZADA = ""; 
