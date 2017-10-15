@@ -18,6 +18,8 @@
 
 <%
 
+	SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
 	ResourceBundle RB = ResourceBundle.getBundle(Util.PROPERTIES_FILE, Locale.getDefault());
 
 
@@ -152,7 +154,12 @@
 						sError = "NOOK Existe el día de vacaciones " + _oGuardia.getDiaGuardia() + " con guardia activa";
 						break;
 					}
+					/* 20171015 
+					
+					QUITAMOS EL AÑADIR VACACACIONES Y BORRAMOS TODAS LAS VACACIONES SI LAS HUBIERA AL FINAL DESDE EL MES EN CUESTION 
 					VacacionesDBImpl.AddVacacionesMedico(new Long(ID), DiaVacaciones);
+					*/
+					
 					
 				}			
 			}
@@ -200,7 +207,7 @@
 				/* OJO, PARA LAS VACACIONES, AL SER FUTURAS, BORRAMOS CADA REGISTRO PREVIO QUE HUBIERA EN EL FUTURO, DEL MES EN CURSO Y DEL SGTE */
 				/* vamos a borrar vacaciones del mes actual */
 				
-				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				
 				
 				Date _Hoy = new Date();
 				_Hoy.setDate(1);// desde el dia uno
@@ -281,8 +288,14 @@
 		if (_lMedicos!=null && _lMedicos.size()>0)		
 			_oMedico = _lMedicos.get(0);
 		
-		
+		/* 20171015 SOLO SACO LAS DE UN MES ANTERIOR Y UN AÑO ADELANTE, ya que es lo que muestra el picker */
 		_lVacaciones = VacacionesDBImpl.getVacacionesMedicos(new Long(_ID), ""); 
+		Calendar _VHoy = Calendar.getInstance();
+		_VHoy.add(Calendar.MONTH, -1);
+		_VHoy.set(Calendar.DATE, 1);
+		Calendar _VFuture = Calendar.getInstance();
+		_VFuture.add(Calendar.YEAR, 2);
+		_lVacaciones = VacacionesDBImpl.getVacacionesMedicosDesdeHasta(new Long(_ID),formatter.format(_VHoy.getTime()), formatter.format(_VFuture.getTime())); 
 		
 	}
 	else
@@ -570,7 +583,7 @@ function _GuardarMedico()
 							<div id="vacaciones"></div>
 							<script>
 							<% 
-							
+												
 							if (_lVacaciones!=null && _lVacaciones.size()>0)
 							{
 								for (int j=0;j<_lVacaciones.size();j++)

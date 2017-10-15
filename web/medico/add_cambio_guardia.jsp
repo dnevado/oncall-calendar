@@ -155,26 +155,41 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CAMBIO.toSt
 		
 			
 	}
+
+	
+	//cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
+	Calendar _cDiaAnterior = Calendar.getInstance();
+	_cDiaAnterior.setTimeInMillis(cGuardiaDIASCONSECUTIVOS.getTimeInMillis());
+	_cDiaAnterior.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
 	
 	// RESTAMOS  UN DIA 
 	cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
 	cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,-1);	
-	List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 	
-	if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaDestino.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
-	{	
-			//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
-			//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
-			//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
-			
-			sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
-	//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
-			Map<String, String> valuesMap = new HashMap<String, String>();
-			sError = sError.replace("{MEDICO}", oSolicitante.getNombre() + " " + oSolicitante.getApellidos());
-			sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
+	/* NO CONTROLAMOSEL DIA ANTES  SI SON CORRELATIVAS */
+	if (cGuardiaDIASCONSECUTIVOS.compareTo(_cDiaAnterior)!=0)
+	{
+		List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oSolicitante.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 		
+		if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaDestino.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
+		{	
+				//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
+				//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
+				//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
+				
+				sError = RB.getString("cambio_guardias.existe_presencia_medico_fecha_antes");
+		//		WelcomeMessage=Welcome Mr. ${firstName} ${lastName} !!!
+				Map<String, String> valuesMap = new HashMap<String, String>();
+				sError = sError.replace("{MEDICO}", oSolicitante.getNombre() + " " + oSolicitante.getApellidos());
+				sError = sError.replace("{FECHA}", _format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
 			
+				
+		}
 	}
+	
+	
+	
+	
 	
 	
 	
@@ -211,12 +226,22 @@ if (oCambioGuardias.getTipoCambio().equals(Util.eTipoCambiosGuardias.CESION.toSt
 Calendar cGuardiaDIASCONSECUTIVOS = Calendar.getInstance();
 
 cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
-// SUMAMOS UN DIA 
+// SUMAMOS UN DIA , SIEMPRE QUE NO SEAN CORRELATIVOS 
 cGuardiaDIASCONSECUTIVOS.add(Calendar.DATE,1);	
-List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
 
-if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaOrigen.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
-{	
+Calendar _cDiaSiguiente = Calendar.getInstance();
+_cDiaSiguiente.setTimeInMillis(cGuardiaDIASCONSECUTIVOS.getTimeInMillis());
+_cDiaSiguiente.setTime(_format.parse(oCambioGuardias.getFechaFinCambio()));
+
+
+/* VERIFICAMOS EL DIA SIGUIENTE DE LA FECHA INICIO CUANDO EL INICIO Y EL FIN NO SEA CORRELATIVOS */
+if (_cDiaSiguiente.compareTo(cGuardiaDIASCONSECUTIVOS)!=0)
+{
+
+	List<Guardias> lGuardiaDIAANTES = GuardiasDBImpl.getGuardiasMedicoFechaTipo(oDestino.getID(), _format.format(cGuardiaDIASCONSECUTIVOS.getTime()), Util.eTipoGuardia.PRESENCIA.toString(),MedicoLogged.getServicioId());
+
+	if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIAANTES.size()>0 && GuardiaOrigen.getTipo().toUpperCase().equals(Util.eTipoGuardia.PRESENCIA.toString()))
+	{	
 		//cambio_guardias.existe_vacaciones_medico_fecha=No es posible realizar el cambio. {MEDICO} está de vacaciones el día {FECHA} 
 		//cambio_guardias.existe_presencia_medico_fecha_antes=No es posible realizar el cambio. {MEDICO} está de presencia el día anterior a la fecha del cambio {FECHA}
 		//cambio_guardias.existe_presencia_medico_fecha_despues=No es posible realizar el cambio. {MEDICO} está de presencia el día posterior a la fecha del cambio {FECHA}
@@ -232,9 +257,9 @@ if (!oSolicitante.isResidenteSimulado() && lGuardiaDIAANTES!=null && lGuardiaDIA
 			sError = sError.replace("{FECHA}",_format.format(cGuardiaDIASCONSECUTIVOS.getTime()));
 		
 	//	}
-	
-		
+	}
 }
+
 
 // RESTAMOS  UN DIA 
 cGuardiaDIASCONSECUTIVOS.setTime(_format.parse(oCambioGuardias.getFechaIniCambio()));
