@@ -256,13 +256,7 @@ float  _OBJETIVO_MES_GUARDIAS_ADJUNTOS = MEDIA_GUARDIAS_VACACIONAL_X_ADJUNTO_NOR
 /* SACAMOS LOS OBJETIVOS EN BASE A LA DISPONIBILIDAD DE LOS RESIDENTES */
 float  _REFUERZOS_MES_NORMAL_X_ADJUNTO = ProcesarMedicos.getDisponibilidadRefuerzo(_lResidentes) / (float)_lResidentes.size();
 float _LOCALIZADAS_MES_NORMAL_X_ADJUNTO  = ProcesarMedicos.getDisponibilidadLocalizada(_lResidentes) / (float) _lResidentes.size();
-
- 
-
-
- 
 int  _OBJETIVO_MES_ADJUNTOS_LOCALIZADAS = Math.round(_LOCALIZADAS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION)/2);
-
 int  _OBJETIVO_MES_ADJUNTOS_REFUERZO =   Math.round(_REFUERZOS_MES_NORMAL_X_ADJUNTO * (1 + _FACTOR_GUARDIAS_CORRECCION)/2);
 int  _OBJETIVO_MES_ADJUNTOS_PRESENCIAS =  Math.round((_OBJETIVO_MES_GUARDIAS_ADJUNTOS - (_OBJETIVO_MES_ADJUNTOS_LOCALIZADAS + _OBJETIVO_MES_ADJUNTOS_REFUERZO))/2);
 
@@ -300,9 +294,9 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 		_EsFestivo = Boolean.parseBoolean(request.getParameter("festivo" + j));
 		
 		if (PRESENCIA_EN_SECUENCIA.equalsIgnoreCase("S"))
-	lMedicosGuardias = UtilMedicos.setGuardiaPresenciaSecuencia(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo);
+			lMedicosGuardias = UtilMedicos.setGuardiaPresenciaSecuencia(lMedicosGuardias, _lAdjuntos,_cINICIO.getTime(), _EsFestivo);
 		else
-	lMedicosGuardias = ProcesarMedicos.setGuardiaPresenciaAleatoria(lMedicosGuardias, lAdjuntosVacacionesDESC,_cINICIO.getTime(), _EsFestivo,_daysOfMonth, _OBJETIVO_MES_ADJUNTOS_PRESENCIAS, MedicoLogged.getServicioId());
+			lMedicosGuardias = ProcesarMedicos.setGuardiaPresenciaAleatoria(lMedicosGuardias, lAdjuntosVacacionesDESC,_cINICIO.getTime(), _EsFestivo,_daysOfMonth, _OBJETIVO_MES_ADJUNTOS_PRESENCIAS, MedicoLogged.getServicioId());
 
 			//ProcesarMedicos.setlGeneradaSecuencia(new ArrayList(Long));
 
@@ -751,8 +745,7 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 				//System.out.println("_TIPODIA:" + _TIPODIA);
 				cGuardiaDia.set(Calendar.DATE, DIASEMANAMES.intValue());
 
-				boolean bExisteMedicoConGuardiaSolo = ProcesarMedicos
-						.ExisteMedicoConGuardiaSolo_EnElMes(lMedicosGuardias, _lAdjuntos, DIASEMANAMES);
+				boolean bExisteMedicoConGuardiaSolo = ProcesarMedicos.ExisteMedicoConGuardiaSolo_EnElMes(lMedicosGuardias, _lAdjuntos, DIASEMANAMES);
 
 				/* 20170301 --> CONTEMPLAMOS QUE HAYA UN POOLDAY ASIGNADO Y UN MEDICO PREVIO CUANDO SOLO HAYA UN MEDICO DE GUARDIA */
 
