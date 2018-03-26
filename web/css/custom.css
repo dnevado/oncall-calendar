@@ -384,7 +384,8 @@ ul li:hover  {background-color:#f9f4cc!important;}
 }
 
 .badge {
-    background-color: #2d9eab; 
+    background-color: #2d9eab;
+    text-align:center; 
 }
 
 .sinborde {border:0px}
@@ -612,3 +613,6 @@ hr.message-inner-separator
   border-color: #5cb85c; }
 .radio-success input[type="radio"]:checked + label::after {
   background-color: #5cb85c; }
+
+  
+    
