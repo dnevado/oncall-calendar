@@ -66,18 +66,18 @@ function EditarMedico(ID) {
 }
 
 function sortMe(a, b) {
-	return a.className < b.className;
+	return a.className < b.className ? -1 : 1; // This is the added code
 }
 
 /* class=orden1 orden2 DE LOS TIPOS DE GUARDIAS */
 function _OrdenarGuardias() {
 
-	$('.fc-title').each(function(index) {
-		// obtenemos el #residente #tipo A / B
-		var elem = $(this).find("div").sort(sortMe);
-
-		$(this).append(elem);
-	})
+		$('.fc-title').each(function(index) {
+			// obtenemos el #residente #tipo A / B
+			var elem = $(this).find("div").sort(sortMe);
+	
+			$(this).append(elem);
+		})
 
 }
 

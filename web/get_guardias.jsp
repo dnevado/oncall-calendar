@@ -129,6 +129,8 @@ for (int j=1;j<=_daysOfMonth;j++)
 			_EventsJSON += "<div " + _classINTROTour + " class='orden" + classContador + " " + oM.getTipo().toString().toLowerCase()  +  " " + _classTipo+" " + _EsSimulado.toLowerCase() + " " +  sFestivo + "' id=" + oM.getID() + ">"   + oM.getApellidos()+ "," + oM.getNombre() + "</div>";
 			
 			classContador+=1;
+			
+			System.out.println(oM.getApellidos() + "," + _classTipo);
 								
 		}		
 		_EventsJSON += "\",\"start\": \"" + _DATE + "\",";

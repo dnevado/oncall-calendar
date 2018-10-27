@@ -1114,7 +1114,8 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 					_TipoGuardiaAdjunto, _Key, lMedicosGuardias, _lAdjuntos, lIDAdjuntoGuardiaDia, j,
 					_daysOfMonth, _DATE, MedicoLogged.getServicioId());
 
-			System.out.println("ListAdjuntoConMenosSimulados:" + ListAdjuntoConMenosSimulados);
+			System.out.println(
+					"AdjuntoConMenosGuardias: " + AdjuntoConMenosGuardias + " dia : " + j + "," + _TipoGuardiaAdjunto);	
 
 			if (_bMES_VACACIONAL) {
 				int _OBJETIVO_MINIMO_GUARDIA_POR_ADJUNTO = _OBJETIVO_MES_ADJUNTOS_REFUERZO;
@@ -1302,12 +1303,12 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 			//if 
 			if (_sGuardia.toString().equals(Util.eTipoGuardia.LOCALIZADA.toString())
 					|| _sGuardia.toString().equals(Util.eTipoGuardia.REFUERZO.toString()))
-				classContador = 2;
+				classContador = 3;
 			else {
 				if (_sGuardia.toString().equals(Util.eTipoGuardia.PRESENCIA.toString()))
-					classContador = 3;
-				else
 					classContador = 1;
+				else
+					classContador =2;
 
 			}
 
@@ -1315,6 +1316,9 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 					+ _sGuardia.toString().toLowerCase() + " " + _GuardiaSimulado.toLowerCase() + " " + sFestivo
 					+ "' id=" + _GuardiaMedicoID + ">" + _GuardiaApellidos + "," + _GuardiaNombre + "</div>";
 			// classContador+=1;
+			
+			
+			
 		}
 
 		_EventsJSON += "\",\"start\": \"" + _DATE + "\",";

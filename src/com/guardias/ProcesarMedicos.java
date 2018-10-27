@@ -200,7 +200,7 @@ public class ProcesarMedicos {
 					bTieneMinimoExigido = _GuardiasMes.intValue()>=_OBJETIVO_MES_ADJUNTOS_;
 					
 				}   // f
-				
+				System.out.println("XXMedico:" + oM.getApellidos() + "_AdjuntoConMenosGuardias:" + _AdjuntoConMenosGuardias + ",NoTieneVacaciones:" + NoTieneVacaciones + ",bTieneMinimoExigido:" + bTieneMinimoExigido + ","  + NoEstaDeGuardiaDiaAntes + ",ExcedeHorasSeguidasMedico:" +  ExcedeHorasSeguidasMedico  + ",EstaPresenciaEseDia:" + EstaPresenciaEseDia);
 				if (NoTieneVacaciones  && !bTieneMinimoExigido && bEstaActivo && NoEstaDeGuardiaDiaAntes && !ExcedeHorasSeguidasMedico && !EstaPresenciaEseDia)
 				{
 					AdjuntoConMenosGuardias = oM.getID(); 
@@ -215,7 +215,7 @@ public class ProcesarMedicos {
 				
 				if (!bEncontrado)
 				{
-					System.out.println("Removing del dia : " + _DATE + ", médico adjunto:" + oM.getID()  + ",size:" + lAdjuntos.size());
+					//System.out.println("Removing del dia : " + _DATE + ", médico adjunto:" + oM.getID()  + ",size:" + lAdjuntos.size());
 					lAdjuntosByVaciones.remove(oM);
 				}
 				//Random r = new Random();
@@ -1940,7 +1940,9 @@ public class ProcesarMedicos {
 		for (Medico oAdjunto : listaMedico)
 		{
 			
-			if (oAdjunto.isActivo() && _ListaGuardiasMedicos.containsKey(oAdjunto.getID()))
+	  		boolean NoTieneVacaciones = NoTieneVacaciones(oAdjunto, _Fecha);
+			//&& NoTieneVacaciones
+			if (oAdjunto.isActivo()  && _ListaGuardiasMedicos.containsKey(oAdjunto.getID()))
 			{
 				
 	    		TotalMES =  new Long(0);
@@ -2027,11 +2029,14 @@ public class ProcesarMedicos {
 		while (entries.hasNext()) 
 		{
 		  
+			
+			
 		  Entry thisEntry = (Entry) entries.next();
 		  Long keyMEDICO = (Long) thisEntry.getKey(); 			
-			
+		  Medico oMedico = GetMedicoPorID(listaMedico,keyMEDICO);
 		  /* INICIALIZAMOS EL PRIMER VALOR */	
-		  if (_bFirst)
+  		  boolean NoTieneVacaciones = NoTieneVacaciones(oMedico, _Fecha);
+		  if (_bFirst && NoTieneVacaciones)
 		  {
 			  IdMedicoMenosGuardias = keyMEDICO;
 			  _bFirst = false;
@@ -2066,14 +2071,14 @@ public class ProcesarMedicos {
 	    		}
 			  
 			  Long _TotalMedico = TotalMES + TotalHISTORICO;
-			  Medico oMedico = GetMedicoPorID(listaMedico,keyMEDICO);
+			 
 						  
 			  Long MAX_NUMERO_DIAS_SEGUIDOS_ADJUNTOS = Long.parseLong(ConfigurationDBImpl.GetConfiguration(Util.getoCONST_NUMERO_DIAS_SEGUIDOS_ADJUNTOS(),IdServicio).getValue());
 			  
 			  ExcedeHorasSeguidasMedico = ProcesarMedicos.ExcedeAdjuntoDiasSeguidos(_Dia, lDatosTemp, MAX_NUMERO_DIAS_SEGUIDOS_ADJUNTOS.longValue(),_GuardiaTipo, DiasMes);			  		
 			  
 			  boolean bEstaActivo = oMedico.isActivo();
-	  		  boolean NoTieneVacaciones = NoTieneVacaciones(oMedico, _Fecha);
+	  		  
 	  		  
 	  		/* 20170617*/
 				/* Verificamos que no esté de guardia en el día n-1, por ejemplo , en los cambios de mes, solo para dia 1 */
@@ -2154,7 +2159,7 @@ public class ProcesarMedicos {
 					  	&& !ExcedeHorasSeguidasMedico 
 					  			&& bEstaActivo && NoTieneVacaciones &&  NoEstaDeGuardiaDiaAntes)		  
 			 {	  
-				  System.out.println("Dia:" + _Dia + ",Medico:" + oMedico.getApellidos() + ",total:" + _TotalMedico + ",_ExcedeMayorMenorLimiteConfigMes:" + _ExcedeMayorMenorLimiteConfigMes + ",_ExcedeLimiteGuardias_P_R_Festivas:" + _ExcedeLimiteGuardias_P_R_Festivas);
+				  System.out.println("Dia:" + _Dia + ",Medico:" + oMedico.getApellidos() + ",NoTieneVacaciones:" + NoTieneVacaciones + ",total:" + _TotalMedico + ",_ExcedeMayorMenorLimiteConfigMes:" + _ExcedeMayorMenorLimiteConfigMes + ",_ExcedeLimiteGuardias_P_R_Festivas:" + _ExcedeLimiteGuardias_P_R_Festivas);
  				  /* MIENTRAS QUE NO EXCEDA EL LIMITE DE GUARDIAS , VERIFICAMOS QUE ANTE IGUALDAD DE GUARDIAS, COGAMOS EL QUE MENOS HAGA EN EL MES */ 
 				  if ((_TotalMedico.longValue()<_MININO_RESTO_MEDICOS || (_TotalMedico.longValue()==_MININO_RESTO_MEDICOS &&   TotalMES<_MININO_GUARDIAS_RESTO_MEDICOS_MES))
 						  && !_ExcedeMayorMenorLimiteConfigMes && !_ExcedeLimiteGuardias_P_R_Festivas)

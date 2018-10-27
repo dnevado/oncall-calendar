@@ -589,7 +589,7 @@ public class GuardiasDBImpl {
 		
 		//stSQL+=" ORDER BY Id desc";
 		
-		stSQL+=" ORDER BY Sorted ";
+		stSQL+=" ORDER BY Sorted  Desc"; 
 		
 		ResultSet rs = stmt.executeQuery( stSQL);
 		
