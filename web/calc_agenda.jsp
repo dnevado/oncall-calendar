@@ -1,4 +1,3 @@
-
 <%@page import="com.guardias.database.CambiosGuardiasDBImpl"%>
 <%@page import="com.guardias.database.GuardiasDBImpl"%>
 <%@page import="com.guardias.database.MedicoDBImpl"%>
@@ -1088,8 +1087,9 @@ if (_EsFestivo && !lFestivos.contains(new Long(j)))
 				//oResidente = _lResidentes.get(IDResidenteGuardiaDia.intValue());
 				Util.eSubtipoResidente _TipoResidente = oResidente.getSubTipoResidente();
 				_TipoGuardiaAdjunto = Util.eTipoGuardia.REFUERZO;
-				/* R4, R5 */
-				if (_TipoResidente.equals(Util.eSubtipoResidente.R4)
+				/* R4, R5, R3 */
+				if (_TipoResidente.equals(Util.eSubtipoResidente.R3) 
+						||_TipoResidente.equals(Util.eSubtipoResidente.R4)
 						|| _TipoResidente.equals(Util.eSubtipoResidente.R5)) {
 					_TipoGuardiaAdjunto = Util.eTipoGuardia.LOCALIZADA;
 
