@@ -9,6 +9,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.client.json.JsonFactory;
@@ -39,123 +40,50 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class GmailAPITEST {
-    /** Application name. */
-    private static final String APPLICATION_NAME ="Gmail API Java Quickstart";
+    private static final String APPLICATION_NAME = "Gmail API Java Quickstart";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String TOKENS_DIRECTORY_PATH = "tokens";
 
-    /** Directory to store user credentials for this application. */
-    private static final java.io.File DATA_STORE_DIR = new java.io.File( System.getProperty("user.home"), ".credentials/gmail-java-quickstart");;
-
-    /** Global instance of the {@link FileDataStoreFactory}. */
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
-
-    /** Global instance of the JSON factory. */
-    private static final JsonFactory JSON_FACTORY =
-        JacksonFactory.getDefaultInstance();
-
-    /** Global instance of the HTTP transport. */
-    private static HttpTransport HTTP_TRANSPORT;
-
-    /** Global instance of the scopes required by this quickstart.
-     *
-     * If modifying these scopes, delete your previously saved credentials
-     * at ~/.credentials/gmail-java-quickstart
+    /**
+     * Global instance of the scopes required by this quickstart.
+     * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    private static final List<String> SCOPES =
-        Arrays.asList(GmailScopes.GMAIL_LABELS);
-
-    static {
-        try {
-            HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            System.exit(1);
-        }
-    }
+    private static final List<String> SCOPES = Collections.singletonList(GmailScopes.GMAIL_LABELS);
+    private static final String CREDENTIALS_FILE_PATH = "c:\\tradeable.json";
 
     /**
      * Creates an authorized Credential object.
-     * @return an authorized Credential object.
-     * @throws IOException
-     * @throws GeneralSecurityException 
+     * @param HTTP_TRANSPORT The network HTTP Transport.
+     * @return An authorized Credential object.
+     * @throws IOException If the credentials.json file cannot be found.
      */
-    public static Credential authorize() throws IOException, GeneralSecurityException {
+    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
-    	File initialFileP12 = new File("c:\\Guardias-718fedead1ea.json");
-        InputStream in = new FileInputStream(initialFileP12);
-        /* InputStream in =
-            GmailAPITEST.class.getResourceAsStream(); 
-        
-        Collection<String> SCOPES 
-        = Collections.unmodifiableCollection(
-                Arrays.asList(
-                        new String[]{
-                                GmailScopes.GMAIL_COMPOSE,
-                                GmailScopes.GMAIL_SEND,
-                                GmailScopes.MAIL_GOOGLE_COM,
-                                GmailScopes.
-                                
-                        }));
-        
-        */
+        InputStream in = GmailAPITEST.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-        
-        
-     // Build flow and trigger user authorization request.
-        GoogleAuthorizationCodeFlow flow =
-                new GoogleAuthorizationCodeFlow.Builder(
-                        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                .setDataStoreFactory(DATA_STORE_FACTORY)
+
+        // Build flow and trigger user authorization request.
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
                 .setAccessType("offline")
                 .build();
-        Credential credential = new AuthorizationCodeInstalledApp(
-            flow, new LocalServerReceiver()).authorize("user");
-        
-
-        //credential.refreshToken();
-        
-        
-        
-        
-       
-        System.out.println(
-                "Credentials saved to " + DATA_STORE_DIR.getAbsolutePath());
-        return credential;
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
     }
 
-    /**
-     * Build and return an authorized Gmail client service.
-     * @return an authorized Gmail client service
-     * @throws IOException
-     * @throws GeneralSecurityException 
-     */
-    public static Gmail getGmailService() throws IOException, GeneralSecurityException {
-        Credential credential = authorize();
-        return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+    public static void main(String[] args) throws IOException, GeneralSecurityException {
+        // Build a new authorized API client service.
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        Gmail service = new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
-    }
 
-    public static void main(String[] args) throws IOException, GeneralSecurityException, AddressException, MessagingException, javax.mail.MessagingException {
-        // Build a new authorized API client service.
-        Gmail service = getGmailService();
-
-        //Message message = createMessageWithEmail("dnevado@gmail.com");
-        //message = service.users().messages().send("refundable.tech@gmail.com", message).execute();
-
-                
-        MimeMessage mimeMessage = createEmail("refundable.tech@gmail.com", "dnevado@gmail.com", "Testing", "hey");
-        sendMessage(service, "me", mimeMessage);
-        
-        
-
-        
         // Print the labels in the user's account.
-        String user = "refundable.tech@gmail.com";
-        ListLabelsResponse listResponse =
-            service.users().labels().list(user).execute();
+        String user = "me";
+        ListLabelsResponse listResponse = service.users().labels().list(user).execute();
         List<Label> labels = listResponse.getLabels();
-        if (labels.size() == 0) {
+        if (labels.isEmpty()) {
             System.out.println("No labels found.");
         } else {
             System.out.println("Labels:");
@@ -164,74 +92,4 @@ public class GmailAPITEST {
             }
         }
     }
-    /**
-     * Create a MimeMessage using the parameters provided.
-     *
-     * @param to email address of the receiver
-     * @param from email address of the sender, the mailbox account
-     * @param subject subject of the email
-     * @param bodyText body text of the email
-     * @return the MimeMessage to be used to send email
-     * @throws MessagingException
-     * @throws javax.mail.MessagingException 
-     * @throws AddressException 
-     */
-    public static MimeMessage createEmail(String to,
-                                          String from,
-                                          String subject,
-                                          String bodyText)
-            throws MessagingException, AddressException, javax.mail.MessagingException {
-        Properties props = new Properties();
-        Session session = Session.getDefaultInstance(props, null);
-
-        MimeMessage email = new MimeMessage(session);
-
-        email.setFrom(new InternetAddress(from));
-        email.addRecipient(javax.mail.Message.RecipientType.TO,
-                new InternetAddress(to));
-        email.setSubject(subject);
-        email.setText(bodyText);
-        return email;
-    }
-
-    /**
-       * Send an email from the user's mailbox to its recipient.
-       *
-       * @param service Authorized Gmail API instance.
-       * @param userId User's email address. The special value "me"
-       * can be used to indicate the authenticated user.
-       * @param email Email to be sent.
-       * @throws MessagingException
-       * @throws IOException
-     * @throws javax.mail.MessagingException 
-       */
-      public static void sendMessage(Gmail service, String userId, MimeMessage email)
-          throws MessagingException, IOException, javax.mail.MessagingException {
-        Message message = createMessageWithEmail(email);
-        System.out.println("userId = " + userId);
-        message = service.users().messages().send(userId, message).execute();
-
-        System.out.println("Message id: " + message.getId());
-        System.out.println(message.toPrettyString());
-      }
-
-      /**
-       * Create a Message from an email
-       *
-       * @param email Email to be set to raw of message
-       * @return Message containing base64url encoded email.
-       * @throws IOException
-       * @throws MessagingException
-     * @throws javax.mail.MessagingException 
-       */
-      public static Message createMessageWithEmail(MimeMessage email)
-          throws MessagingException, IOException, javax.mail.MessagingException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        email.writeTo(baos);
-        String encodedEmail = Base64.encodeBase64URLSafeString(baos.toByteArray());
-        Message message = new Message();
-        message.setRaw(encodedEmail);
-        return message;
-      }
-
 }

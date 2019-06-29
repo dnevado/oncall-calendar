@@ -146,14 +146,14 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 			if (_oMSolicitante.getTipo().toString().equals(Util.eTipo.RESIDENTE.toString()))
 			{
 				// SOLICITANTE R4 R5 Y DESTINO DISTINTO 
-				if ((_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
-						&& 	!oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+				if ((_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+						&& 	!oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString()) && !oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
 				{	
 					_bCambioTipoResidente =true;
 				}
 				// DESTINO  R4 R5 Y SOLICITANTE DISTINTO
-				if ((oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
-						&& 	!_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+				if ((oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+						&&  !_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString()) && 	!_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString()) &&  !_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
 				{	
 					_bCambioTipoResidente =true;
 				}
@@ -208,7 +208,9 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				 
 					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
 					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
-					if (_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					if (_oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString())  
+									|| _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  
+											|| _oMSolicitante.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
 					{
 						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
 						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
@@ -276,7 +278,9 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				 
 					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
 					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
-					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString())  ||
+								oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || 
+									oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
 					{
 						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
 						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
@@ -348,7 +352,9 @@ if (oCambioG.getEstado().equals(Util.eEstadoCambiosGuardias.APROBADA.toString())
 				 
 					Util.eTipoGuardia _NewTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 
 					Util.eTipoGuardia _OldTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5
-					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
+					if (oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R3.toString())  || 
+									oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R4.toString())  || 
+											oDestinationMedico.getSubTipoResidente().toString().equals(Util.eSubtipoResidente.R5.toString()))
 					{
 						_NewTipoGuardia = Util.eTipoGuardia.LOCALIZADA; // R4 / R5 
 						_OldTipoGuardia = Util.eTipoGuardia.REFUERZO; // R4 / R5 

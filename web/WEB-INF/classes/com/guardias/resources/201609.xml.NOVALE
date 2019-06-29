@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<g>
+    <day n="2016-09-01">
+        <medicos>
+            <m id="1"/>               
+            <m id="2"/>
+        </medicos>	
+    </day>
+    <day n="2016-09-02">
+        <medicos>
+            <m id="1"/>               
+            <m id="2"/>
+        </medicos>	
+    </day>    
+</g>

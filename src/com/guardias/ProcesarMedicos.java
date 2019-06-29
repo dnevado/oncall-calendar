@@ -1111,8 +1111,9 @@ public class ProcesarMedicos {
 		{
 			Medico oMedico = lMedicos.get(j);
 			if (oMedico.isActivo() && oMedico.getTipo().equals(Util.eTipo.RESIDENTE) && 
-					(oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.R4) ||
-							oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.R4)))				
+					(oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.R3) || 
+								oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.R4) ||
+									oMedico.getSubTipoResidente().equals(Util.eSubtipoResidente.R5)))				
 			{	
 				TOTAL+=oMedico.getMax_NUM_Guardias();				
 			}

@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "tradeable-185422",
+  "private_key_id": "c586d2aff5b188c22c537e0bfe44bf91494f6a97",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDDyI34DSpzE2Fg\nut5WV2jn44pk/GP0ahSAlQVA8Ze1Ae6fb2twa6lT2EmfP3ItGBXLXoAmT2gYfmNI\nF5A4ZvKGJ7oxUsDvRPwuweBvl+niU1r5Ha4G10iDPo0ADvIkJ3h4oM0759hVLgKF\n0mGZhVXxv82p+emV4GpQvfJj3rnPZUUmHnjOPP2y73Ek1RHw6Okt1c7d4igbcbX5\n1UR6nxIIdHOd1r5zE+/CABfVHp5Uj2HjP/iAIXDiBLpsycN3XPW0kbRD+ZUyZsxY\nCPf/r1ad0K4slBPSUaF8nKr0IA2LKMSN0IjeJpiCuQiQiYMaTpPbCGiN83NDBUr7\nZoagpJiDAgMBAAECggEASK4GDgSNMqUKLEeSzEisuBDfSnfrf0t2CvnHNoG5SMfL\n1sIdB2HgPTD4u7Zo41aimJmfRxmJUjZxEs00i8uj0qui0jafSvO4Dn+ImsSxXYSG\nLB6ZgQ6ga6Bn5ZKmz0cb0OQY7Fk4FP78jsM32i8GZbVHWwdccHgb35d0CSEgp12Q\nuK3XH+YABdxvyD5ALAemi6Qlr7DSIEo/EmbhKZooPDU6u2wRqaAUMR8GWoVG0HAC\nyKqWBbwhRb+1JSHJG1EQIhPxRKjwGCByZfLtjqrdWlx47jhb7nboVvts3TTkHCOs\n9I3IE5GH27BjztJVv9YBinMI/vG6htU3xZylOV3ysQKBgQD4n9I9nMQRXPe+4q/3\nBqjiItscVSQizuABGOuvcrPR+UvIe72eIuoPVM0dmGX9sDQ6PlNYD0s6TlGZLFfO\n8YOofwAP4osbDUvP8FYD7di/KpqulSgJXe8MaQdgbUdac9QpmeDMGpn9j9ZNBclS\nELSoasgTvLcZ0uITxDiXXlPJ+QKBgQDJl27SC6Hl+KD8G6y0BhrV0OCxa6R2srTW\nTS2aiiQdd9ohOC/Se2R0+DABUtUr205WEpMYPuVQEvVGYxXvH69Sqz2IYnXolm0b\noacxzGgomA1ApPNpAs7JVP42OOuFVt38Ksg4EouR0CCkK2Jw+E4R8hzrLtXonFhO\nMsQiJTV1WwKBgFxstXB4FZ9Ky0Kn7LhNPn0Kbh/jOtLByx49UGhhoJ1/Kn/2GDBw\nVEiswq+s1sVvOosoXj1POi0LrmPdyyrAN6xswe4lzoaY88TyWFePlNLEGMqr4j1R\nMSuQ49Ah77OdeZKZhKr7fKF5VjY933Bli3NMduJ3di3ganDkshD7XPSpAoGALRwG\nv1e9BaHqHB/xOGN5U8kmzmzA45K/poikoMUyqaltFSvmf5n+87GpxFINw3+Seu4z\nHiTM2Ws0mWiIuvaDG+OXpFIsAjzO83Tr3dfYouTLamC+2wu2zBSJwgZgpXi3ubq1\nDN8RfjJta28N2yulBJ0B3ZqgYSnDFNSFUQK0gKsCgYEAvWPRavx/um7doGxervTS\nslNqe1khkMKTTl7cA4iHM/Z+ntlRSVEUE5TefSeGcp2dYQbAie4o61DlpRFMLWFf\n+cTTL6NElP0SRhJ35sNWmfgsHe7gynu+q5HN9AZodT9GgFFOhaAKCCd9peDDesyJ\nIg7Kog63Y/rGcmNkC444A9w=\n-----END PRIVATE KEY-----\n",
+  "client_email": "tradeable@tradeable-185422.iam.gserviceaccount.com",
+  "client_id": "117575158791110590890",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/tradeable%40tradeable-185422.iam.gserviceaccount.com"
+}

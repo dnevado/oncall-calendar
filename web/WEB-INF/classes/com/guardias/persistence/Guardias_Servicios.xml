@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="Guardias_Servicios">
+
+	
+	<!--  <select id="getTotalCambiosHechosPorTipoMedicoFecha"  parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias"> 
+		SELECT 
+				count(*) as IdCambio, GUARDIAS.Tipo as TipoCambio, GUARDIAS.Festivo as UsuarioAprobacion   
+		FROM  
+				guardias_cambios CAMBIOS, guardias_medicos GUARDIAS   
+		WHERE  
+				CAMBIOS.IdMedicoSolicitante = #{IdMedicoSolicitante} and
+				CAMBIOS.FechaIniCambio >= #{FechaIniCambio} and  
+				CAMBIOS.FechaIniCambio &lt;= #{FechaFinCambio} and 
+				TipoCambio = #{TipoCambio} and 
+				CAMBIOS.FechaFinCambio = GUARDIAS.fGuardia and 
+				CAMBIOS.IdMedicoDestino = GUARDIAS.IdMedico
+				and CAMBIOS.Estado = #{Estado}			
+		GROUP BY
+				 GUARDIAS.Tipo, GUARDIAS.Festivo
+	</select>
+	
+	
+	<select id="getTotalCambiosRecibidosPorTipoMedicoFecha" parameterType="com.guardias.cambios.CambiosGuardias" resultType="com.guardias.cambios.CambiosGuardias">
+		SELECT 
+				count(*) as IdCambio, GUARDIAS.Tipo as TipoCambio, GUARDIAS.Festivo as UsuarioAprobacion 
+		FROM  
+				guardias_cambios CAMBIOS, guardias_medicos GUARDIAS  
+		WHERE  
+				CAMBIOS.FechaFinCambio >=#{FechaIniCambio} 
+				and  CAMBIOS.FechaFinCambio &lt;= #{FechaFinCambio}  
+				and CAMBIOS.IdMedicoDestino = #{IdMedicoDestino}
+				and TipoCambio =#{TipoCambio} 
+				and CAMBIOS.FechaIniCambio = GUARDIAS.fGuardia 
+				and CAMBIOS.IdMedicoSolicitante = GUARDIAS.IdMedico
+				and CAMBIOS.Estado = #{Estado}
+		GROUP BY
+				 GUARDIAS.Tipo, GUARDIAS.Festivo
+	</select>
+-->
+
+		
+
+
+	<select id="getGuardias_ServiciosByName" parameterType="com.guardias.servicios.Guardias_Servicios" resultType="com.guardias.servicios.Guardias_Servicios">
+	 <bind name="pattern" value="'%' + Nombre + '%'" />
+		SELECT 
+			    count(*) AS TotalMiembros , B.IdServicio, B.Nombre, B.Descripcion, B.Activo, B.Visible, B.FechaCreacion, B.IdMedicoOwner,B.CodigoInterno , CONCAT(M.NOMBRE, ' ', M.APELLIDOS) as MedicoOwner			   	   
+				
+		FROM 	
+				guardias_servicios  B
+		INNER JOIN
+				guardias_servicios_medicos GSM
+		ON 
+				B.IdServicio = GSM.IdServicio
+		
+		INNER JOIN
+				medicos  M
+		ON 
+				M.Id = B.IdMedicoOwner
+		
+		WHERE 
+				B.Visible = #{Visible} AND
+				B.Activo = #{Activo}
+				AND (
+					B.Nombre like #{pattern} or
+					B.Descripcion like #{pattern} 
+				)
+		GROUP BY 	 B.IdServicio,B.Nombre, B.Descripcion, B.Activo, B.Visible, B.FechaCreacion, B.IdMedicoOwner,B.CodigoInterno ,MedicoOwner
+		
+	</select>
+
+	<select id="getListAllGuardias_ServiciosOfUser" parameterType="int" resultType="com.guardias.servicios.Guardias_Servicios">
+		SELECT 
+				B.* 			   
+		FROM 	
+				guardias_servicios_medicos  A, guardias_servicios  B
+		WHERE 
+				A.IdMedico = #{IdMedico}
+			   and A.IdServicio = B.IdServicio
+		
+	</select>
+
+	<select id="getListGuardias_ServiciosOfUser" parameterType="int" resultType="com.guardias.servicios.Guardias_Servicios">
+		SELECT 
+				B.* 			   
+		FROM 	
+				guardias_servicios_medicos  A, guardias_servicios  B
+		WHERE 
+				A.IdMedico = #{IdMedico}
+				and A.ActivoServicio=1 and A.IdServicio = B.IdServicio
+		
+	</select>
+
+	<select id="getGuardias_ServiciosByOwner" parameterType="int" resultType="com.guardias.servicios.Guardias_Servicios">
+		SELECT 
+				*			   
+		FROM 	
+				guardias_servicios
+		WHERE 
+				IdMedicoOwner = #{IdMedicoOwner}
+		
+	</select>
+	
+
+   	<select id="getMaxIDGuardias_ServiciosID" resultType="com.guardias.servicios.Guardias_Servicios">
+		SELECT 
+				max(IdServicio) as IdServicio			   
+		FROM 	
+				guardias_servicios
+	</select>
+
+	<select id="getGuardias_ServiciosById" parameterType="int" resultType="com.guardias.servicios.Guardias_Servicios">
+		SELECT 
+				*			   
+		FROM 	
+				guardias_servicios
+		WHERE 
+				IdServicio = #{id}
+		
+	</select>
+	
+	
+
+       
+   <insert id="insertGuardias_Servicios" parameterType="com.guardias.cambios.CambiosGuardias">
+   
+   		INSERT INTO 
+   				guardias_servicios
+   				 (IdServicio,Nombre, Descripcion, IdMedicoOwner, CodigoInterno,activo, visible) 
+   		VALUES (#{IdServicio},#{Nombre}, #{Descripcion}, #{IdMedicoOwner}, #{CodigoInterno},#{activo},#{visible});
+   
+   		
+    	
+   </insert>
+   
+ 
+   
+	   
+   <update id="updateGuardias_Servicios" parameterType="com.guardias.servicios.Guardias_Servicios" flushCache="true"   statementType="PREPARED">
+   
+   		UPDATE  
+   				guardias_servicios
+   		SET
+   				nombre = #{nombre},
+   				descripcion = #{descripcion},
+   				activo = #{activo},
+   				visible= #{visible},
+   				CodigoInterno = #{CodigoInterno}
+   				
+		WHERE
+				IdServicio=#{IdServicio}   				
+    	
+    	
+   </update>
+   
+  
+  	
+</mapper>
