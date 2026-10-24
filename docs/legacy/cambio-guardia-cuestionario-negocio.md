@@ -7,7 +7,7 @@
 
 | Respondido por | Rol | Fecha |
 |---|---|---|
-| | | |
+| David | Administrador | 2026-10-24 |
 
 ---
 
