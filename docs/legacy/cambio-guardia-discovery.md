@@ -133,10 +133,23 @@ El alta es `INSERT INTO vacaciones_medicos (IdMedico, FDay)` (`VacacionesDBImpl.
 - Sin probar: `getCambiosGuardiasBySolicitante` recibe un único `Integer` (`lista_cambiosguardias.jsp:52`) pero usa `#{IdMedicoSolicitante}` y `#{IdServicio}` (`CambiosGuardias.xml:73-74`); MyBatis vincularía ambos al mismo valor (`IdServicio = IdMedico`).
 
 ### Validaciones dudosas
-- CESION: el receptor solo puede elegirse entre quienes tienen guardia en `FechaFinCambio` (`_list_medicos_cambio_guardia.jsp:72`, `:137-158`), y el servidor lo exige (`add_cambio_guardia.jsp:63`, `:292`). Sin embargo, al aplicar la cesión esa guardia del receptor no se modifica (`cambio_estado_guardia.jsp:306-348`): la fecha destino solo sirve de filtro. No consta si es intencionado o un efecto de reutilizar la interfaz del CAMBIO (cuestionario P2).
+- CESION: el receptor solo puede elegirse entre quienes tienen guardia en `FechaFinCambio` (`_list_medicos_cambio_guardia.jsp:72`, `:137-158`), y el servidor lo exige (`add_cambio_guardia.jsp:63`, `:292`). Sin embargo, al aplicar la cesión esa guardia del receptor no se modifica (`cambio_estado_guardia.jsp:306-348`): la fecha destino solo sirve de filtro. Según negocio (P2), se debe a que CAMBIO y CESION comparten formulario; además, el reparto la usa como atajo para obtener el tipo de guardia cedida (ver «Cómputo de cesiones en el reparto»).
 - CESION: `lGuardiasDestinatarioEnOrigen` calculado y no evaluado (`add_cambio_guardia.jsp:204`).
 - V13: la exención de residente simulado mira al solicitante, no al destinatario.
 - V6: compara con la hora actual; una guardia de hoy no puede cederse.
+
+### Cómputo de cesiones en el reparto
+El generador de agenda descuenta las cesiones de los totales acumulados para equilibrar el reparto: total = guardias del calendario + cesiones hechas − cesiones disfrutadas (`ProcesarMedicos.java:507-516`, `:565-573`, `:620-631`). Así, la guardia cuenta para quien la tenía asignada, que es lo que negocio confirma en P10. La implementación tiene tres defectos:
+
+| Defecto | Evidencia | Dato (dump 2026-08-26) |
+|---|---|---|
+| «Hechas» toma el tipo y el festivo de la guardia del **receptor en `FechaFinCambio`**, no de la guardia cedida | `CambiosGuardias.xml:9-24` (join `FechaFinCambio = fGuardia` e `IdMedicoDestino`) | Cuenta 2.127 de 3.582 cesiones; el tipo y el festivo coinciden con la guardia cedida en 880 de 1.868 casos comparables (47 %) |
+| «Disfrutadas» busca la guardia del **cedente en `FechaIniCambio`**, que la cesión ya borró (`cambio_estado_guardia.jsp:306`) | `CambiosGuardias.xml:27-44` | Solo encuentra 186 de 3.582 (5 %) |
+| En los totales festivos se restan los disfrutes **no festivos** | `ProcesarMedicos.java:628-630` (`TOTAL_*_CESIONES_DISFRUTADOS` en lugar de `TOTAL_*_FESTIVO_CESIONES_DISFRUTADOS`) | — |
+
+Además, el ajuste no se aplica en los meses vacacionales (`:623`). La consulta «Hechas» tampoco filtra por servicio.
+
+**Implicación para la migración:** el sistema nuevo DEBE guardar en el propio cambio el tipo y el festivo de la guardia cedida y calcular el equilibrio sin reconstruirlo con joins. El reparto resultante diferirá del legacy para los médicos con cesiones; es una desviación intencionada que la especificación tiene que documentar.
 
 ### Código muerto / duplicado
 - `bValidadobyAdmin` sin uso (`cambio_guardia.jsp:74`); `bIsAdministrator` sin uso (`cambio_estado_guardia.jsp:56`).
@@ -152,6 +165,8 @@ Las decisiones de negocio pendientes están en [cambio-guardia-cuestionario-nego
 - **Fuente:** dump MySQL `bbdd/Guardias_prod_2026-08-26.db` (MySQL 5.7.33, base `medoncalls_prod`). Su uso para análisis lo autorizó el propietario el 2026-10-24. El fichero está excluido de git (`.gitignore`: `/bbdd/`).
 - **Método:** análisis en solo lectura del texto del dump con un script local. Solo se extrajeron agregados de IDs, fechas, estados y tipos. Este documento no incluye nombres, emails, contraseñas ni valores de `configuracion`.
 - **Limitación:** es una foto del 2026-08-26. Los cambios posteriores sobre una misma guardia pueden alterar el contraste entre `guardias_cambios` y `guardias_medicos`.
+- **Inserciones manuales:** según el propietario, parte de los datos se insertó a mano por SQL y no hay registro de cuáles. Solo 8 filas de `guardias_cambios` tienen huellas identificables (sin aprobador ni fecha de aprobación, `IdCambio` repetido o fuera de orden). Un INSERT manual completo es indistinguible de uno de la aplicación, así que **los datos no prueban qué hizo la aplicación**: solo indican el estado actual y patrones de uso. Las reglas se deciden con negocio y con el código, no con estos recuentos.
+- **Tipo de médico actual:** `medicos.Tipo` guarda el tipo actual, no el que tenía el médico en la fecha del cambio.
 
 ### 8.1 Esquema relevante
 
@@ -172,11 +187,11 @@ No hay claves foráneas, triggers ni procedimientos almacenados.
 |---|---|---|---|
 | D1 | Todos los cambios están APROBADA | 5.484 de 5.484; 0 PENDIENTE, CANCELADA o RECHAZADA | El circuito solicitud → aprobación **no se usa en la práctica** |
 | D2 | Los registran los administradores en nombre de los médicos | Aprobación el mismo día que la creación: 5.475/5.484. Aprobador administrador: 100 % (2 administradores). Solicitante sin rol de administrador: 5.190 | El flujo real es «el administrador registra y autoaprueba» (V15) |
-| D3 | El riesgo de `max+1` se ha materializado | 3 `IdCambio` duplicados | Confirma la condición de carrera; la tabla no tiene PK |
+| D3 | `IdCambio` repetidos | 3 pares, todos entre las 8 filas con huellas de inserción manual | Probablemente inserciones manuales, no una condición de carrera. El riesgo de `max+1` sigue en el código, pero los datos no lo demuestran. La tabla no tiene PK |
 | D4 | Cambios repetidos | 44 combinaciones (solicitante, origen, destino) duplicadas | Doble envío o falta de idempotencia |
-| D5 | APROBADA sin aprobador | 8 cambios con `UsuarioAprobacion` NULL | Probable autoaprobación cuya llamada a `cambio_estado_guardia.jsp` falló: posible cambio **no aplicado** |
+| D5 | APROBADA sin aprobador | 8 cambios con `UsuarioAprobacion` y `FechaAprobacion` NULL | La aplicación siempre rellena ambos al aprobar (`cambio_estado_guardia.jsp:85-87`): muy probablemente son inserciones manuales, no fallos de la aplicación |
 | D6 | Las cesiones siempre tienen dos fechas | 3.582 cesiones, todas con `FechaIni ≠ FechaFin` | Coherente con P2: la cesión se modela como un arrastre entre dos días |
-| D7 | Mezcla de tipos de médico | 627 cambios (11 %) entre médicos de distinto tipo | V8 (mismo tipo) no se cumple en los cambios que registran los administradores |
+| D7 | Mezcla de tipos de médico | 627 cambios (11 %), todos entre residente y adjunto, de 2017 a 2023 (ninguno desde 2024), con solo 10 médicos implicados; en 324 hay algún médico hoy inactivo | Hipótesis principal: residentes que después pasaron a adjuntos (`medicos.Tipo` es el tipo actual). Inserciones manuales posibles. No demuestra que se incumpla V8 |
 | D8 | Cesión a quien ya tenía guardia | 6 cesiones con el destinatario con más de una guardia el día origen | Ocurre, pero es raro (P1) |
 | D9 | Varias guardias del mismo médico el mismo día | 3 casos (localizada+presencia: 2; presencia+refuerzo: 1) | Sin restricción de unicidad en la base de datos |
 | D10 | Presencias consecutivas | 3 pares en todo el calendario | La regla se cumple casi siempre (P4) |
