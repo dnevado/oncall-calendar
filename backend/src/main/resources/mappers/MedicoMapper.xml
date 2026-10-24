@@ -2,27 +2,27 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="es.medoncalls.guardias.cambios.infrastructure.MedicoMapper">
 
-  <select id="selectById" resultType="es.medoncalls.guardias.cambios.infrastructure.MedicoFila">
+  <select id="lockById" resultType="long">
+    SELECT m.ID FROM medicos m WHERE m.ID = #{id} FOR UPDATE
+  </select>
+
+  <select id="selectByIds" resultType="es.medoncalls.guardias.cambios.infrastructure.MedicoFila">
     SELECT m.ID AS id, m.Nombre AS nombre, m.Apellidos AS apellidos, m.Activo AS activo
       FROM medicos m
-     WHERE m.ID = #{id}
+     WHERE m.ID IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
   </select>
 
-  <select id="perteneceAServicio" resultType="boolean">
-    SELECT COUNT(*) &gt; 0
+  <select id="selectMiembros" resultType="long">
+    SELECT DISTINCT sm.IdMedico
       FROM guardias_servicios_medicos sm
-     WHERE sm.IdMedico = #{medicoId}
-       AND sm.IdServicio = #{servicioId}
+     WHERE sm.IdServicio = #{servicioId}
+       AND sm.IdMedico IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
   </select>
 
-  <select id="selectTipoEnFecha" resultType="es.medoncalls.guardias.cambios.infrastructure.TipoMedicoFila">
-    SELECT h.Tipo AS tipo, h.SubTipo AS subTipo
+  <select id="selectHistoricoTipo" resultType="es.medoncalls.guardias.cambios.infrastructure.HistoricoTipoFila">
+    SELECT h.IdMedico AS medicoId, h.Tipo AS tipo, h.SubTipo AS subTipo, h.Desde AS desde, h.Hasta AS hasta
       FROM medicos_tipo_historico h
-     WHERE h.IdMedico = #{medicoId}
-       AND (h.Desde IS NULL OR h.Desde &lt;= #{fecha})
-       AND (h.Hasta IS NULL OR h.Hasta &gt; #{fecha})
-     ORDER BY h.Desde DESC
-     LIMIT 1
+     WHERE h.IdMedico IN <foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
   </select>
 
   <select id="selectActivosDelServicio" resultType="es.medoncalls.guardias.cambios.infrastructure.MedicoFila">

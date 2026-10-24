@@ -125,7 +125,7 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 - [X] T042 [P] [US1] Frontend test `frontend/src/features/cambios/CesionForm.test.tsx` (MSW): candidates shown, success refreshes the calendar, 422 lists every infraction with médico and fecha
 - [X] T043 [US1] Implement `frontend/src/features/cambios/CesionForm.tsx` and connect it from «Ceder» in `frontend/src/features/cambios/CalendarioPage.tsx` (Idempotency-Key per form submission; disable button while sending)
 
-**Checkpoint**: la cesión funciona de extremo a extremo y se puede desplegar como MVP.
+**Checkpoint**: la cesión funciona de extremo a extremo y se puede integrar. No desplegar en producción hasta completar US3: una cesión entre residentes de distinto subtipo puede añadir o quitar un R3–R5 del día y, sin FR-020, las guardias de adjunto quedarían sin ajustar (revisión de migración del MVP).
 
 ---
 

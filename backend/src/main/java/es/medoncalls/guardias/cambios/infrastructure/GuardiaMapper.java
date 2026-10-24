@@ -1,6 +1,7 @@
 package es.medoncalls.guardias.cambios.infrastructure;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,8 +20,8 @@ public interface GuardiaMapper {
 
     GuardiaFila selectById(@Param("id") long id);
 
-    List<GuardiaFila> selectByMedicoFechaServicio(@Param("medicoId") long medicoId,
-            @Param("fecha") String fecha, @Param("servicioId") long servicioId);
+    List<GuardiaFila> selectByMedicosFechasServicio(@Param("medicoIds") Collection<Long> medicoIds,
+            @Param("fechas") Collection<String> fechas, @Param("servicioId") long servicioId);
 
     List<GuardiaFila> selectByServicioYFecha(@Param("servicioId") long servicioId,
             @Param("fecha") String fecha);
@@ -40,9 +41,10 @@ public interface GuardiaMapper {
         return Optional.ofNullable(selectById(id)).map(GuardiaFila::aGuardia);
     }
 
-    default List<Guardia> delMedicoEnFecha(long medicoId, LocalDate fecha, long servicioId) {
-        return selectByMedicoFechaServicio(medicoId, FechaLegacy.texto(fecha), servicioId).stream()
-                .map(GuardiaFila::aGuardia).toList();
+    default List<Guardia> deMedicosEnFechas(Collection<Long> medicoIds, Collection<LocalDate> fechas,
+            long servicioId) {
+        return selectByMedicosFechasServicio(medicoIds, fechas.stream().map(FechaLegacy::texto).toList(), servicioId)
+                .stream().map(GuardiaFila::aGuardia).toList();
     }
 
     default List<Guardia> delServicioEnFecha(long servicioId, LocalDate fecha) {

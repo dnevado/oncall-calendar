@@ -42,6 +42,19 @@ describe('CesionForm', () => {
     expect(peticion?.clave).toMatch(/.{8,}/);
   });
 
+  it('la confirmación desaparece al cambiar de mes', async () => {
+    server.use(
+      http.post('*/api/v1/servicios/:servicioId/cambios', () => HttpResponse.json(cambioRegistrado, { status: 201 })),
+    );
+    const formulario = await abrirCesionDelDia20();
+    await userEvent.click(await within(formulario).findByRole('radio', { name: 'Carla Prueba' }));
+    await userEvent.click(within(formulario).getByRole('button', { name: 'Registrar cesión' }));
+    await screen.findByRole('status');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mes siguiente' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
   it('con un 422 lista todas las infracciones y no cierra el formulario', async () => {
     const problema: ReglasIncumplidas = {
       type: 'about:blank',

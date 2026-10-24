@@ -3,6 +3,7 @@ package es.medoncalls.guardias.cambios.application;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -49,15 +50,18 @@ public class CandidatosService {
         Participante cedente = contextos.participante(origen.medicoId(), servicioId, fechas);
         LocalDate hoy = contextos.hoy();
 
+        List<MedicoFila> activos = medicos.selectActivosDelServicio(servicioId).stream()
+                .filter(m -> m.id() != origen.medicoId())
+                .toList();
+        Map<Long, Participante> receptores = contextos.participantes(
+                activos.stream().map(MedicoFila::id).toList(), servicioId, fechas);
+
         List<MedicoFila> candidatos = new ArrayList<>();
-        for (MedicoFila medico : medicos.selectActivosDelServicio(servicioId)) {
-            if (medico.id() == origen.medicoId()) {
-                continue;
-            }
+        for (MedicoFila medico : activos) {
             SolicitudCambio hipotetica = new SolicitudCambio(TipoCambio.CESION, servicioId, origen.id(),
                     origen.medicoId(), medico.id(), null);
             ContextoValidacion contexto = new ContextoValidacion(hipotetica, hoy, origen, null, cedente,
-                    contextos.participante(medico.id(), servicioId, fechas));
+                    receptores.get(medico.id()));
             if (reglas.evaluar(contexto).isEmpty()) {
                 candidatos.add(medico);
             }

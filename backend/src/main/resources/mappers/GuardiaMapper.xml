@@ -23,11 +23,11 @@
      WHERE g.Id = #{id}
   </select>
 
-  <select id="selectByMedicoFechaServicio" resultType="es.medoncalls.guardias.cambios.infrastructure.GuardiaFila">
+  <select id="selectByMedicosFechasServicio" resultType="es.medoncalls.guardias.cambios.infrastructure.GuardiaFila">
     SELECT <include refid="columnasGuardia"/>, NULL AS medicoNombre, NULL AS medicoApellidos
       FROM guardias_medicos g
-     WHERE g.IdMedico = #{medicoId}
-       AND LEFT(g.FGuardia, 10) = #{fecha}
+     WHERE g.IdMedico IN <foreach collection="medicoIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+       AND LEFT(g.FGuardia, 10) IN <foreach collection="fechas" item="f" open="(" separator="," close=")">#{f}</foreach>
        AND g.IdServicio = #{servicioId}
      ORDER BY g.Id
   </select>

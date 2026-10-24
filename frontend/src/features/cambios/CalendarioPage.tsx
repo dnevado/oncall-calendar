@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Cambio, type Guardia } from '../../api/client';
 import { CesionForm } from './CesionForm';
 import { desplazarMes, etiquetaTipo, fechaLarga, hoyEnServicio, mesDe, nombreMes, rangoDelMes, type Mes } from './fechas';
@@ -20,12 +20,16 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   const [seleccionada, setSeleccionada] = useState<Guardia>();
   const [cediendo, setCediendo] = useState(false);
   const [confirmacion, setConfirmacion] = useState<string>();
+  // Solo cuenta la respuesta de la última petición: una tardía de otro mes se descarta.
+  const ultimaPeticion = useRef(0);
 
   const cargar = useCallback(async () => {
+    const peticion = ++ultimaPeticion.current;
     const { desde, hasta } = rangoDelMes(mes);
     const { data, error: problema } = await api.GET('/servicios/{servicioId}/guardias', {
       params: { path: { servicioId }, query: { desde, hasta } },
     });
+    if (peticion !== ultimaPeticion.current) return;
     if (data) {
       setGuardias(data);
       setError(undefined);
@@ -39,6 +43,13 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
     setCediendo(false);
     void cargar();
   }, [cargar]);
+
+  function cambiarMes(meses: number) {
+    setMes((m) => desplazarMes(m, meses));
+    setGuardias(undefined);
+    setError(undefined);
+    setConfirmacion(undefined);
+  }
 
   function seleccionar(guardia: Guardia | undefined) {
     setSeleccionada(guardia);
@@ -65,11 +76,11 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   return (
     <main className="calendario">
       <header>
-        <button type="button" onClick={() => setMes((m) => desplazarMes(m, -1))} aria-label="Mes anterior">
+        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
           ‹
         </button>
         <h2>{nombreMes(mes)}</h2>
-        <button type="button" onClick={() => setMes((m) => desplazarMes(m, 1))} aria-label="Mes siguiente">
+        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">
           ›
         </button>
       </header>

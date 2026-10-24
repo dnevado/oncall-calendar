@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { CalendarioPage } from './CalendarioPage';
-import { HOY, SERVICIO_ID, server } from '../../test/server';
+import { HOY, SERVICIO_ID, guardias, server } from '../../test/server';
 
 describe('CalendarioPage', () => {
   it('lista las guardias por día con médico, tipo y festivo', async () => {
@@ -29,6 +29,54 @@ describe('CalendarioPage', () => {
     await screen.findByRole('heading', { name: /febrero de 2030/ });
 
     expect(rangos).toEqual(['2030-01-01..2030-01-31', '2030-02-01..2030-02-28']);
+  });
+
+  it('al cambiar de mes no muestra las guardias del mes anterior mientras carga', async () => {
+    let liberar: () => void = () => undefined;
+    server.use(
+      http.get('*/api/v1/servicios/:servicioId/guardias', async ({ request }) => {
+        if (new URL(request.url).searchParams.get('desde') === '2030-02-01') {
+          await new Promise<void>((resolver) => {
+            liberar = resolver;
+          });
+          return HttpResponse.json([]);
+        }
+        return HttpResponse.json(guardias);
+      }),
+    );
+    render(<CalendarioPage servicioId={SERVICIO_ID} hoy={HOY} />);
+    await screen.findByText('Bruno Prueba — Presencia (festivo)');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mes siguiente' }));
+    expect(screen.getByRole('heading', { name: /febrero de 2030/ })).toBeInTheDocument();
+    expect(screen.getByText('Cargando…')).toBeInTheDocument();
+    expect(screen.queryByText('Bruno Prueba — Presencia (festivo)')).not.toBeInTheDocument();
+
+    liberar();
+    expect(await screen.findByText('No hay guardias este mes.')).toBeInTheDocument();
+  });
+
+  it('una respuesta tardía de otro mes no sustituye al mes visible', async () => {
+    let liberarEnero: () => void = () => undefined;
+    server.use(
+      http.get('*/api/v1/servicios/:servicioId/guardias', async ({ request }) => {
+        if (new URL(request.url).searchParams.get('desde') === '2030-01-01') {
+          await new Promise<void>((resolver) => {
+            liberarEnero = resolver;
+          });
+          return HttpResponse.json(guardias);
+        }
+        return HttpResponse.json([]);
+      }),
+    );
+    render(<CalendarioPage servicioId={SERVICIO_ID} hoy={HOY} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Mes siguiente' }));
+    await screen.findByText('No hay guardias este mes.');
+
+    liberarEnero();
+    await new Promise((resolver) => setTimeout(resolver, 50));
+    expect(screen.queryByText('Bruno Prueba — Presencia (festivo)')).not.toBeInTheDocument();
+    expect(screen.getByText('No hay guardias este mes.')).toBeInTheDocument();
   });
 
   it('solo las guardias futuras se pueden seleccionar y ofrecen Ceder e Intercambiar', async () => {

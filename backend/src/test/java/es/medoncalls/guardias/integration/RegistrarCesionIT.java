@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -179,6 +181,26 @@ class RegistrarCesionIT extends IntegracionBase {
     }
 
     @Test
+    void candidatosConVariosMedicos_cadaUnoSeEvaluaConSusPropiosDatos() throws Exception {
+        long carla = datos.adjunto("Carla");
+        long david = datos.adjunto("David");
+        long elena = datos.adjunto("Elena");
+        long rita = datos.residente("Rita", "R2");
+        for (long medico : new long[] {carla, david, elena, rita}) {
+            datos.miembro(servicio, medico);
+        }
+        datos.vacaciones(carla, DIA_10);
+        datos.guardia(david, DIA_10.plusDays(1), TipoGuardia.PRESENCIA, false, servicio);
+        datos.guardia(elena, DIA_10.plusDays(1), TipoGuardia.LOCALIZADA, false, servicio);
+
+        mvc.perform(get("/api/v1/servicios/{s}/guardias/{g}/receptores-candidatos", servicio, guardiaAna)
+                        .param("tipo", "CESION").session(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].medico.id").value(
+                        org.hamcrest.Matchers.containsInAnyOrder((int) admin, (int) bruno, (int) elena)));
+    }
+
+    @Test
     void escenario7_guardiaDeHoyOPasadaSeRechaza() throws Exception {
         long deHoy = datos.guardia(ana, HOY, TipoGuardia.LOCALIZADA, false, servicio);
         long pasada = datos.guardia(ana, HOY.minusDays(3), TipoGuardia.LOCALIZADA, false, servicio);
@@ -243,6 +265,47 @@ class RegistrarCesionIT extends IntegracionBase {
             hilos.shutdownNow();
         }
         assertThat(datos.contar("guardias_cambios")).isEqualTo(1);
+    }
+
+    @Test
+    void cesionSimultaneaDelDiaSiguienteAlMismoReceptor_seVeAntesDeEvaluarCg013() throws Exception {
+        long carla = datos.adjunto("Carla");
+        datos.miembro(servicio, carla);
+        long guardiaCarla = datos.guardia(carla, DIA_10.plusDays(1), TipoGuardia.PRESENCIA, false, servicio);
+        CountDownLatch bloqueado = new CountDownLatch(1);
+        ExecutorService hilo = Executors.newSingleThreadExecutor();
+        try {
+            // Otra transacción en curso hace lo mismo que el registro: bloquea al receptor y le da el día 11.
+            Future<?> otra = hilo.submit(() -> {
+                try (Connection conexion = jdbc.getDataSource().getConnection()) {
+                    conexion.setAutoCommit(false);
+                    try (Statement sql = conexion.createStatement()) {
+                        sql.executeQuery("SELECT ID FROM medicos WHERE ID = " + bruno + " FOR UPDATE").close();
+                        sql.executeUpdate("UPDATE guardias_medicos SET IdMedico = " + bruno + " WHERE Id = " + guardiaCarla);
+                    }
+                    bloqueado.countDown();
+                    Thread.sleep(500);
+                    conexion.commit();
+                }
+                return null;
+            });
+            bloqueado.await();
+            ceder(guardiaAna, ana, bruno)
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.infracciones[0].regla").value("CG-013"))
+                    .andExpect(jsonPath("$.infracciones[0].fecha").value("2030-02-11"));
+            otra.get();
+        } finally {
+            hilo.shutdownNow();
+        }
+        assertSinCambios();
+    }
+
+    @Test
+    void idempotencyKeyDeMasDe64CaracteresEs400() throws Exception {
+        mvc.perform(peticion(guardiaAna, ana, bruno).header("Idempotency-Key", "k".repeat(65)))
+                .andExpect(status().isBadRequest());
+        assertSinCambios();
     }
 
     @Test

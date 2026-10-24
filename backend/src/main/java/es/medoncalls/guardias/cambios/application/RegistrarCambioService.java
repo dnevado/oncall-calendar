@@ -19,6 +19,7 @@ import es.medoncalls.guardias.cambios.infrastructure.CambioFila;
 import es.medoncalls.guardias.cambios.infrastructure.CambioMapper;
 import es.medoncalls.guardias.cambios.infrastructure.FechaLegacy;
 import es.medoncalls.guardias.cambios.infrastructure.GuardiaMapper;
+import es.medoncalls.guardias.cambios.infrastructure.MedicoMapper;
 import es.medoncalls.guardias.cambios.infrastructure.NuevoCambio;
 import es.medoncalls.guardias.common.ConflictoException;
 import es.medoncalls.guardias.common.PeticionInvalidaException;
@@ -26,21 +27,23 @@ import es.medoncalls.guardias.common.RecursoNoEncontradoException;
 
 /**
  * Registra y aplica un cambio en una única transacción (FR-002, FR-021, R9): bloquea las guardias
- * afectadas, carga la foto, evalúa todas las reglas y, si se cumplen, actualiza el calendario e
+ * afectadas y después a quien las recibe (siempre en ese orden), carga la foto, evalúa todas las reglas y, si se cumplen, actualiza el calendario e
  * inserta el registro. Si algo falla no queda nada aplicado.
  */
 @Service
 public class RegistrarCambioService {
 
     private final GuardiaMapper guardias;
+    private final MedicoMapper medicos;
     private final CambioMapper cambios;
     private final ContextoLoader contextos;
     private final ReglasCambio reglas;
     private final Clock clock;
 
-    public RegistrarCambioService(GuardiaMapper guardias, CambioMapper cambios, ContextoLoader contextos,
-            ReglasCambio reglas, Clock clock) {
+    public RegistrarCambioService(GuardiaMapper guardias, MedicoMapper medicos, CambioMapper cambios,
+            ContextoLoader contextos, ReglasCambio reglas, Clock clock) {
         this.guardias = guardias;
+        this.medicos = medicos;
         this.cambios = cambios;
         this.contextos = contextos;
         this.reglas = reglas;
@@ -61,6 +64,9 @@ public class RegistrarCambioService {
                 .filter(g -> g.servicioId() == solicitud.servicioId())
                 .findFirst()
                 .orElseThrow(() -> new RecursoNoEncontradoException("La guardia no existe en este servicio."));
+        // El índice único cubre CG-011, pero no los días adyacentes de CG-013: bloquear también a
+        // quien recibe, antes de cualquier lectura no bloqueante, para ver lo que otro cambio le dio.
+        medicos.lockById(solicitud.receptorId());
 
         if (claveIdempotencia != null) {
             CambioFila previo = cambios.selectByIdempotencyKey(claveIdempotencia);
