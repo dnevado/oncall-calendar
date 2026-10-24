@@ -1,0 +1,26 @@
+# Plantilla procesada por la imagen oficial de nginx (envsubst): ${LEGACY_UPSTREAM}.
+server {
+    listen 80;
+
+    # Aplicación nueva (React)
+    location /app/ {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+    }
+
+    # API nueva (Spring Boot)
+    location /api/ {
+        proxy_pass http://backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Todo lo demás: legacy
+    location / {
+        proxy_pass http://${LEGACY_UPSTREAM};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.medoncalls.guardias.auth.MedicoAuthMapper">
+
+  <sql id="columnasAuth">
+    m.ID AS id, m.Nombre AS nombre, m.Apellidos AS apellidos, m.Password AS password,
+    m.PasswordHashV2 AS passwordHashV2, m.PasswordHashV2Origen AS passwordHashV2Origen,
+    m.LoginFallidosV2 AS loginFallidosV2, m.BloqueadoHastaV2 AS bloqueadoHastaV2,
+    m.Activo AS activo, m.Confirmado AS confirmado
+  </sql>
+
+  <select id="selectPorEmail" resultType="es.medoncalls.guardias.auth.MedicoAuthFila">
+    SELECT <include refid="columnasAuth"/>
+      FROM medicos m
+     WHERE m.Email = #{email}
+       AND m.ID IS NOT NULL
+  </select>
+
+  <select id="selectPorId" resultType="es.medoncalls.guardias.auth.MedicoAuthFila">
+    SELECT <include refid="columnasAuth"/>
+      FROM medicos m
+     WHERE m.ID = #{id}
+  </select>
+
+  <update id="updateHashV2">
+    UPDATE medicos SET PasswordHashV2 = #{hash}, PasswordHashV2Origen = #{origen} WHERE ID = #{id}
+  </update>
+
+  <!-- MySQL evalúa las asignaciones de izquierda a derecha: la segunda ve el contador ya actualizado. -->
+  <update id="registrarFallo">
+    UPDATE medicos
+       SET LoginFallidosV2 = CASE
+             WHEN BloqueadoHastaV2 IS NOT NULL AND BloqueadoHastaV2 &lt;= #{ahora} THEN 1
+             ELSE COALESCE(LoginFallidosV2, 0) + 1 END,
+           BloqueadoHastaV2 = CASE
+             WHEN LoginFallidosV2 &gt;= #{maxIntentos} THEN #{bloqueadoHasta}
+             WHEN BloqueadoHastaV2 IS NOT NULL AND BloqueadoHastaV2 &lt;= #{ahora} THEN NULL
+             ELSE BloqueadoHastaV2 END
+     WHERE ID = #{id}
+  </update>
+
+  <update id="reiniciarFallos">
+    UPDATE medicos SET LoginFallidosV2 = 0, BloqueadoHastaV2 = NULL WHERE ID = #{id}
+  </update>
+
+  <select id="selectServiciosAdministrados" resultType="es.medoncalls.guardias.auth.ServicioResumen">
+    SELECT s.IdServicio AS id, s.Nombre AS nombre
+      FROM guardias_servicios_medicos sm
+      JOIN guardias_servicios s ON s.IdServicio = sm.IdServicio
+     WHERE sm.IdMedico = #{medicoId}
+       AND sm.IsAdministrator = 1
+     ORDER BY s.Nombre
+  </select>
+
+  <select id="esAdministrador" resultType="boolean">
+    SELECT COUNT(*) &gt; 0
+      FROM guardias_servicios_medicos sm
+     WHERE sm.IdMedico = #{medicoId}
+       AND sm.IdServicio = #{servicioId}
+       AND sm.IsAdministrator = 1
+  </select>
+</mapper>

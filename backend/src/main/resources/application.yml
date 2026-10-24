@@ -1,0 +1,47 @@
+# Configuración base. Los secretos (credenciales de la base de datos) llegan como
+# secretos de Docker montados en /run/secrets y se leen con configtree (R14):
+#   /run/secrets/guardias_db_url, guardias_db_user, guardias_db_password
+spring:
+  application:
+    name: guardias-backend
+  config:
+    import: optional:configtree:/run/secrets/
+  datasource:
+    # Vacíos por defecto: en pruebas la conexión la aporta Testcontainers (@ServiceConnection).
+    url: ${guardias_db_url:}
+    username: ${guardias_db_user:}
+    password: ${guardias_db_password:}
+  liquibase:
+    # Local y pruebas: al arrancar. En producción se desactiva (application-prod.yml, R6).
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    drop-first: false
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: MOC_SESSION
+        http-only: true
+        secure: true
+        same-site: strict
+        path: /api
+      timeout: 30m
+
+mybatis:
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    auto-mapping-unknown-column-behavior: NONE
+    map-underscore-to-camel-case: false
+    # Las filas se mapean a records por nombre: alias de columna = nombre del componente.
+    arg-name-based-constructor-auto-mapping: true
+
+guardias:
+  zona-horaria: Europe/Madrid
+  login:
+    max-intentos: 5
+    bloqueo-minutos: 15

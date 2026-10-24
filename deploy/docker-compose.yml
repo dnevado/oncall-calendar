@@ -1,0 +1,52 @@
+# Despliegue del sistema nuevo junto al legacy (R1).
+# El proxy enruta /app/ → frontend, /api/ → backend y el resto → legacy.
+# Las credenciales de la base se entregan como secretos de Docker (R14): ficheros en
+# deploy/secrets/ (fuera de git), montados en /run/secrets/ solo en el backend.
+# Los Dockerfile del backend y del frontend se añaden en T061.
+
+name: guardias
+
+services:
+  backend:
+    build: ../backend
+    environment:
+      SPRING_PROFILES_ACTIVE: ${GUARDIAS_PERFIL:-prod}
+    secrets:
+      - guardias_db_url
+      - guardias_db_user
+      - guardias_db_password
+    networks: [interna, legacy]
+    restart: unless-stopped
+
+  frontend:
+    build: ../frontend
+    networks: [interna]
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "${GUARDIAS_PUERTO:-80}:80"
+    environment:
+      # Host:puerto del Tomcat del legacy dentro de la red "legacy".
+      LEGACY_UPSTREAM: ${LEGACY_UPSTREAM:-legacy:8080}
+    volumes:
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on: [backend, frontend]
+    networks: [interna, legacy]
+    restart: unless-stopped
+
+secrets:
+  guardias_db_url:
+    file: ./secrets/guardias_db_url
+  guardias_db_user:
+    file: ./secrets/guardias_db_user
+  guardias_db_password:
+    file: ./secrets/guardias_db_password
+
+networks:
+  interna: {}
+  # Red existente donde están el legacy y su MySQL.
+  legacy:
+    external: true
+    name: ${LEGACY_NETWORK:-legacy}

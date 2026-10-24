@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.medoncalls.guardias.cambios.infrastructure.VacacionesMapper">
+
+  <select id="existe" resultType="boolean">
+    SELECT COUNT(*) &gt; 0
+      FROM vacaciones_medicos v
+     WHERE v.IdMedico = #{medicoId}
+       AND v.FDay = #{dia}
+  </select>
+</mapper>

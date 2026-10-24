@@ -1,0 +1,13 @@
+# Changelog maestro. Solo cambios aditivos y compatibles con el legacy (R6).
+# En producción NO se ejecuta al arrancar (application-prod.yml); se lanza desde el runbook.
+databaseChangeLog:
+  - include:
+      file: db/changelog/001-guardias-cambios-columnas.yaml
+  - include:
+      file: db/changelog/002-medicos-password-v2.yaml
+  - include:
+      file: db/changelog/003-medicos-tipo-historico.yaml
+  - include:
+      file: db/changelog/004-guardias-cambios-pk.yaml
+  - include:
+      file: db/changelog/005-guardias-medicos-unicidad.yaml

@@ -1,3 +1,19 @@
 /bin/
 .claude/settings.local.json
 /bbdd/
+
+# Backend (Maven)
+/backend/target/
+
+# Frontend (Vite)
+/frontend/node_modules/
+/frontend/dist/
+/frontend/coverage/
+*.tsbuildinfo
+*.log
+
+# Despliegue: los secretos nunca se versionan (R14)
+/deploy/secrets/*
+!/deploy/secrets/README.md
+.env
+.env.*

@@ -1,0 +1,23 @@
+# Columnas nuevas en guardias_cambios (data-model, «Cambio de guardia»).
+# Todas nullable: el legacy no las conoce y MyBatis legacy no mapea columnas desconocidas.
+databaseChangeLog:
+  - changeSet:
+      id: 001-guardias-cambios-columnas
+      author: guardias-001
+      changes:
+        - addColumn:
+            tableName: guardias_cambios
+            columns:
+              - column: { name: TipoGuardiaOrigen, type: varchar(20) }
+              - column: { name: FestivoOrigen, type: int }
+              - column: { name: TipoGuardiaDestino, type: varchar(20) }
+              - column: { name: FestivoDestino, type: int }
+              - column: { name: FechaHoraRegistro, type: datetime }
+              - column: { name: Canal, type: varchar(20) }
+              - column: { name: IdempotencyKey, type: varchar(64) }
+        - createIndex:
+            tableName: guardias_cambios
+            indexName: UX_CAMBIO_IDEMPOTENCY
+            unique: true
+            columns:
+              - column: { name: IdempotencyKey }

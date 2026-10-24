@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.medoncalls.guardias.cambios.infrastructure.CambioMapper">
+
+  <!-- Correspondencia del data-model: Estado fijo APROBADA para el legacy, Canal APP, Observaciones NULL. -->
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="IdCambio">
+    INSERT INTO guardias_cambios
+      (TipoCambio, FechaIniCambio, FechaFinCambio, IdMedicoSolicitante, IdMedicoDestino,
+       FechaCreacion, FechaAprobacion, UsuarioAprobacion, Estado, Observaciones, IdServicio,
+       TipoGuardiaOrigen, FestivoOrigen, TipoGuardiaDestino, FestivoDestino,
+       FechaHoraRegistro, Canal, IdempotencyKey)
+    VALUES
+      (#{tipoCambio}, #{fechaIniCambio}, #{fechaFinCambio}, #{idMedicoSolicitante}, #{idMedicoDestino},
+       #{fechaRegistro}, #{fechaRegistro}, #{usuarioAprobacion}, 'APROBADA', NULL, #{servicioId},
+       #{tipoGuardiaOrigen}, #{festivoOrigen}, #{tipoGuardiaDestino}, #{festivoDestino},
+       #{fechaHoraRegistro}, 'APP', #{idempotencyKey})
+  </insert>
+
+  <sql id="selectCambio">
+    SELECT c.IdCambio AS id, c.TipoCambio AS tipoCambio,
+           c.FechaIniCambio AS fechaIniCambio, c.FechaFinCambio AS fechaFinCambio,
+           c.IdMedicoSolicitante AS cedenteId, mc.Nombre AS cedenteNombre, mc.Apellidos AS cedenteApellidos,
+           c.IdMedicoDestino AS receptorId, mr.Nombre AS receptorNombre, mr.Apellidos AS receptorApellidos,
+           c.UsuarioAprobacion AS registradoPorId, ma.Nombre AS registradoPorNombre,
+           ma.Apellidos AS registradoPorApellidos,
+           c.IdServicio AS servicioId,
+           c.TipoGuardiaOrigen AS tipoGuardiaOrigen, c.FestivoOrigen AS festivoOrigen,
+           c.TipoGuardiaDestino AS tipoGuardiaDestino, c.FestivoDestino AS festivoDestino,
+           c.FechaHoraRegistro AS fechaHoraRegistro, c.IdempotencyKey AS idempotencyKey
+      FROM guardias_cambios c
+      LEFT JOIN medicos mc ON mc.ID = c.IdMedicoSolicitante
+      LEFT JOIN medicos mr ON mr.ID = c.IdMedicoDestino
+      LEFT JOIN medicos ma ON ma.ID = c.UsuarioAprobacion
+  </sql>
+
+  <select id="selectById" resultType="es.medoncalls.guardias.cambios.infrastructure.CambioFila">
+    <include refid="selectCambio"/>
+     WHERE c.IdCambio = #{id}
+  </select>
+
+  <select id="selectByIdempotencyKey" resultType="es.medoncalls.guardias.cambios.infrastructure.CambioFila">
+    <include refid="selectCambio"/>
+     WHERE c.IdempotencyKey = #{clave}
+  </select>
+</mapper>

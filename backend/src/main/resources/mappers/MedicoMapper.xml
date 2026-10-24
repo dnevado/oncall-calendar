@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.medoncalls.guardias.cambios.infrastructure.MedicoMapper">
+
+  <select id="selectById" resultType="es.medoncalls.guardias.cambios.infrastructure.MedicoFila">
+    SELECT m.ID AS id, m.Nombre AS nombre, m.Apellidos AS apellidos, m.Activo AS activo
+      FROM medicos m
+     WHERE m.ID = #{id}
+  </select>
+
+  <select id="perteneceAServicio" resultType="boolean">
+    SELECT COUNT(*) &gt; 0
+      FROM guardias_servicios_medicos sm
+     WHERE sm.IdMedico = #{medicoId}
+       AND sm.IdServicio = #{servicioId}
+  </select>
+
+  <select id="selectTipoEnFecha" resultType="es.medoncalls.guardias.cambios.infrastructure.TipoMedicoFila">
+    SELECT h.Tipo AS tipo, h.SubTipo AS subTipo
+      FROM medicos_tipo_historico h
+     WHERE h.IdMedico = #{medicoId}
+       AND (h.Desde IS NULL OR h.Desde &lt;= #{fecha})
+       AND (h.Hasta IS NULL OR h.Hasta &gt; #{fecha})
+     ORDER BY h.Desde DESC
+     LIMIT 1
+  </select>
+
+  <select id="selectActivosDelServicio" resultType="es.medoncalls.guardias.cambios.infrastructure.MedicoFila">
+    SELECT m.ID AS id, m.Nombre AS nombre, m.Apellidos AS apellidos, m.Activo AS activo
+      FROM medicos m
+      JOIN guardias_servicios_medicos sm ON sm.IdMedico = m.ID
+     WHERE sm.IdServicio = #{servicioId}
+       AND m.Activo = 1
+     ORDER BY m.Apellidos, m.Nombre
+  </select>
+</mapper>

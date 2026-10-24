@@ -1,0 +1,6 @@
+# Perfil de producción: Liquibase NO se ejecuta al arrancar.
+# Las migraciones se lanzan de forma explícita desde el runbook (deploy/RUNBOOK.md, R6),
+# después de la copia de seguridad y de la limpieza de datos confirmada.
+spring:
+  liquibase:
+    enabled: false

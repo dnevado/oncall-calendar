@@ -1,0 +1,22 @@
+# PK y AUTO_INCREMENT en guardias_cambios (R7). Se detiene si quedan IdCambio duplicados:
+# la limpieza previa requiere autorización explícita (deploy/db/README.md).
+databaseChangeLog:
+  - changeSet:
+      id: 004-guardias-cambios-pk
+      author: guardias-001
+      preConditions:
+        - onFail: HALT
+        - onFailMessage: >
+            Hay IdCambio duplicados en guardias_cambios. Ejecutar antes el diagnóstico de
+            deploy/db/limpieza-duplicados.sql y la corrección confirmada (deploy/RUNBOOK.md).
+        - sqlCheck:
+            expectedResult: 0
+            sql: >
+              SELECT COUNT(*) FROM (SELECT IdCambio FROM guardias_cambios
+              GROUP BY IdCambio HAVING COUNT(*) > 1) d
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE guardias_cambios
+                ADD PRIMARY KEY (IdCambio),
+                MODIFY IdCambio int NOT NULL AUTO_INCREMENT

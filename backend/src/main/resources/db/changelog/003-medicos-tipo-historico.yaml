@@ -1,0 +1,58 @@
+# Histórico de tipo de médico (FR-024, R11).
+# Carga inicial con el tipo actual (Desde = NULL, «desde siempre») y triggers en medicos
+# para que los cambios hechos desde el legacy también queden registrados.
+databaseChangeLog:
+  - changeSet:
+      id: 003-medicos-tipo-historico-tabla
+      author: guardias-001
+      changes:
+        - createTable:
+            tableName: medicos_tipo_historico
+            columns:
+              - column:
+                  name: Id
+                  type: int
+                  autoIncrement: true
+                  constraints: { primaryKey: true, nullable: false }
+              - column: { name: IdMedico, type: int, constraints: { nullable: false } }
+              - column: { name: Tipo, type: varchar(20), constraints: { nullable: false } }
+              - column: { name: SubTipo, type: varchar(20) }
+              - column: { name: Desde, type: date }
+              - column: { name: Hasta, type: date }
+        - createIndex:
+            tableName: medicos_tipo_historico
+            indexName: IX_TIPO_HISTORICO_MEDICO
+            columns:
+              - column: { name: IdMedico }
+              - column: { name: Desde }
+
+  - changeSet:
+      id: 003-medicos-tipo-historico-carga-inicial
+      author: guardias-001
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO medicos_tipo_historico (IdMedico, Tipo, SubTipo, Desde, Hasta)
+              SELECT ID, Tipo, SubTipo, NULL, NULL FROM medicos WHERE ID IS NOT NULL
+
+  - changeSet:
+      id: 003-medicos-tipo-historico-trigger-update
+      author: guardias-001
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/003-trigger-medicos-tipo-update.sql
+            splitStatements: false
+            stripComments: false
+      rollback:
+        - sql: { sql: DROP TRIGGER IF EXISTS trg_medicos_tipo_update }
+
+  - changeSet:
+      id: 003-medicos-tipo-historico-trigger-insert
+      author: guardias-001
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/003-trigger-medicos-tipo-insert.sql
+            splitStatements: false
+            stripComments: false
+      rollback:
+        - sql: { sql: DROP TRIGGER IF EXISTS trg_medicos_tipo_insert }
