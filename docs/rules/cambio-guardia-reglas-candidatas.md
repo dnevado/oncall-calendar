@@ -143,7 +143,7 @@
 - **Requisito de datos:** el sistema nuevo DEBE guardar el histórico de tipo de cada médico (`medicos.Tipo` solo guarda el actual). Para los cambios históricos no hay forma de reconstruirlo.
 
 ### BR-CAND-CG-015 — Receptor activo
-- **Regla:** solo puede recibir una guardia un médico activo en general (`medicos.Activo`).
+- **Regla:** solo puede recibir una guardia un médico activo en general (`medicos.Activo`) que pertenezca al servicio (dado de alta en `guardias_servicios_medicos`). No se exige `ActivoServicio`. Confirmado por negocio el 2026-10-24 durante `/speckit-analyze`.
 - **Evidencia:** solo en la interfaz (`_list_medicos_cambio_guardia.jsp:145`, `:150` ⚠).
 - **Negocio:** pregunta abierta 6: «General».
 - **Paridad:** mantiene (pasa al servidor). **Criticidad / confianza:** media / alta. **Estado:** validada.

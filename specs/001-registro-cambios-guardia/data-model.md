@@ -17,10 +17,11 @@ El sistema nuevo usa **el mismo esquema MySQL que el legacy** durante la convive
 - **Columnas nuevas** (nullable, ignoradas por el legacy):
   - `PasswordHashV2` `varchar(255)`: hash adaptativo (R2).
   - `PasswordHashV2Origen` `varchar(128)`: huella del `Password` legacy del que se derivó; si no coincide con el actual, se descarta el hash nuevo (R2).
+  - `LoginFallidosV2` `int`, `BloqueadoHastaV2` `datetime`: contador de intentos fallidos y fin del bloqueo del login nuevo (FR-029). El legacy no los usa.
 
 ### Pertenencia a servicio
 - **Tabla**: `guardias_servicios_medicos` (lectura).
-- **Campos**: `IdServicio`, `IdMedico` (= `medicos.ID`), `IsAdministrator` (rol de administrador del servicio, FR-001), `ActivoServicio` (pertenencia activa, FR-014).
+- **Campos**: `IdServicio`, `IdMedico` (= `medicos.ID`), `IsAdministrator` (rol de administrador del servicio, FR-001), `ActivoServicio` (no se usa en esta funcionalidad: CG-015 exige actividad en general, no en el servicio). Pertenecer al servicio (FR-014) = que exista la fila.
 
 ### Tipo de médico (histórico) — nueva
 - **Tabla nueva**: `medicos_tipo_historico`.
@@ -110,7 +111,7 @@ Se evalúan en una transacción, después de bloquear las guardias afectadas (R9
 | `CG-012` | Ningún receptor de vacaciones en el día que recibe | FR-011 | `vacaciones_medicos` |
 | `CG-013` | Sin presencias en días consecutivos (excepto el día adyacente que es la otra fecha del cambio; sin exención de simulados) | FR-012 | `guardias_medicos` con `Tipo = 'presencia'` |
 | `CG-014` | Mismo tipo de médico en la fecha de cada guardia | FR-013 | `medicos_tipo_historico` |
-| `CG-015` | Receptor activo y miembro activo del servicio | FR-014 | `medicos.Activo`, `guardias_servicios_medicos.ActivoServicio` |
+| `CG-015` | Receptor activo en general y perteneciente al servicio | FR-014 | `medicos.Activo = 1` y existencia de fila en `guardias_servicios_medicos` (sin `ActivoServicio`) |
 | `MISMO_MEDICO` | Cedente ≠ receptor | FR-015 | — |
 
 ## Efectos en el calendario (misma transacción)

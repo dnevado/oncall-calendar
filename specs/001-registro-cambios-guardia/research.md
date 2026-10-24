@@ -49,6 +49,7 @@ Decisiones de fase 0. Las marcadas **(usuario)** las tomó el responsable del pr
 - **Decision**: Liquibase, con changesets solo aditivos y compatibles con el legacy (columnas nullable, tablas nuevas, índices, trigger). El primer despliegue sobre la base existente se hace sin recrear nada.
 - **Rationale**: la base es MySQL 5.7, que Liquibase sigue soportando; Flyway Community ha ido retirando el soporte de versiones de MySQL fuera de mantenimiento. Debe verificarse la versión concreta al implementar.
 - **Alternatives considered**: Flyway (riesgo de compatibilidad con 5.7); SQL manual (sin trazabilidad).
+- **Ejecución**: Liquibase **no se ejecuta al arrancar en producción** (perfil `prod`: `spring.liquibase.enabled=false`). En producción se lanza explícitamente desde el runbook (T065), después de la copia de seguridad y la limpieza confirmada. En local y en pruebas sí se ejecuta al arrancar.
 - **Riesgo**: MySQL 5.7 está fuera de soporte desde octubre de 2023. Su actualización queda fuera de alcance, pero debe planificarse.
 
 ## R7. Identificador de `guardias_cambios`
@@ -100,3 +101,14 @@ Decisiones de fase 0. Las marcadas **(usuario)** las tomó el responsable del pr
 
 - **Decision**: `ACTIVAR_CAMBIO_GUARDIAS = 'N'` para el servicio, en el momento de la puesta en marcha (ver R3). El backend nuevo ignora esa clave (CG-001 descartada).
 - **Limitación conocida**: `add_cambio_guardia.jsp` no vuelve a comprobar la clave (V2). Quien llame directamente a ese endpoint podría registrar un cambio en el legacy. Se acepta durante la convivencia porque solo es alcanzable por un usuario autenticado del legacy; desaparece al retirar el legacy.
+
+## R14. Gestión de secretos (usuario)
+
+- **Decision**: secretos de Docker. Las credenciales de la base (y cualquier secreto futuro) se montan como ficheros en `/run/secrets/` del contenedor del backend, con permisos restringidos, y Spring Boot los lee con `spring.config.import=optional:configtree:/run/secrets/`. Los ficheros de origen viven en el servidor, fuera del repositorio (`deploy/secrets/`, ignorado por git); el repositorio solo documenta sus nombres.
+- **Rationale**: cumple el principio VI (gestor de secretos, sin secretos en variables de entorno planas ni en el repositorio) sin añadir infraestructura al piloto.
+- **Alternatives considered**: un gestor externo tipo Vault (pieza de infraestructura nueva); un `.env` como excepción temporal (incumple el principio VI).
+
+## R15. Limitación de intentos de login (usuario)
+
+- **Decision**: 5 intentos fallidos consecutivos por cuenta → 15 minutos de bloqueo en la aplicación nueva (FR-029). El contador y el fin del bloqueo se guardan en columnas nuevas de `medicos` (`LoginFallidosV2`, `BloqueadoHastaV2`), que persisten entre reinicios. La respuesta es la misma 401 tanto si la cuenta existe como si no.
+- **Rationale**: protección básica contra fuerza bruta, sin afectar al login del legacy.

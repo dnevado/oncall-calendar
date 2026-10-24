@@ -47,7 +47,7 @@ La pantalla de cambios del legacy se desactiva por configuración, sin tocar su 
 | III. Migración incremental | Incremento acotado a cambios y cesiones; legacy en solo lectura. **Excepción**: enlace en `navigation.jsp` (ver Complexity Tracking). | ✅ excepción justificada y aprobada (2026-10-24) |
 | IV. Contrato primero | Borrador en [contracts/](./contracts/guardias-cambios.openapi.yaml); se publica en `contracts/guardias-cambios.openapi.yaml` antes de implementar los endpoints. Errores con Problem Details. | ✅ |
 | V. Evidencia y pruebas | Las decisiones citan evidencia legacy; [quickstart.md](./quickstart.md) define pruebas por escenario y la regresión legacy. | ✅ |
-| VI. Datos y secretos | Pruebas con DDL y datos ficticios; hash adaptativo en el login nuevo; secretos de la base por variables de entorno o secretos de Docker, nunca en el repositorio. **Riesgo aceptado**: el SHA-512 legacy sigue existiendo mientras conviva el legacy (R2). | ✅ con riesgo documentado |
+| VI. Datos y secretos | Pruebas con DDL y datos ficticios; hash adaptativo en el login nuevo; secretos (credenciales de la base) como **secretos de Docker** montados en `/run/secrets`, leídos por Spring con `configtree`, nunca en el repositorio ni en variables de entorno planas (R14); bloqueo de login por intentos fallidos (FR-029). El SHA-512 legacy queda registrado como excepción en Complexity Tracking. | ✅ con excepción registrada |
 | VII. Integridad de datos | Transacción y `FOR UPDATE` (R9); PK y AUTO_INCREMENT en `guardias_cambios` (R7); SQL parametrizada (MyBatis `#{}`); índice único de guardias (R8); `Idempotency-Key`. Limpieza de datos previa a R7 y R8 aprobada en el plan (2026-10-24); su ejecución se confirma en el momento. | ✅ aprobado |
 | Restricciones técnicas | Spring Boot 3.x y Java 21; React y TypeScript; contratos en `contracts/`; infraestructura como código en `deploy/` (decidida aquí); esquema legacy como fuente de verdad. | ✅ |
 | Flujo (punto 2) | La spec no tiene preguntas abiertas sobre reglas críticas (CG-016 no es crítica y queda fuera). | ✅ |
@@ -120,11 +120,14 @@ src/, web/, resources/, build/            # Legacy: sin cambios salvo la excepci
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| Modificar el legacy: un enlace a `/app/` en `web/common/navigation.jsp` (principio III) | Que el administrador encuentre la pantalla nueva desde el legacy durante la convivencia | Sin enlace (URL o marcador): factible y sin tocar el legacy, pero peor para el usuario. **Si no se aprueba, se aplica esta alternativa.** |
-| Limpieza de datos en producción: 3 `IdCambio` duplicados y 3 guardias duplicadas, y después `ALTER` para la PK y el índice único (flujo 6, principio VII) | Sin limpieza no se pueden crear la PK y el índice que exige el principio VII | Generar IDs con una tabla de secuencia y validar la unicidad solo en código: deja la invariante sin garantía en base de datos y dos mecanismos de ID conviviendo |
-| Trigger en la tabla legacy `medicos` (cambio de esquema aditivo) | Registrar en el histórico los cambios de tipo hechos desde el legacy sin modificar su código (FR-024) | Modificar el código del legacy (viola el principio III); no tener histórico (incumple CG-014) |
+Las fechas de revisión son una propuesta del plan, ajustable por el responsable del proyecto (constitución, Gobierno: toda excepción con alcance y fecha de revisión).
+
+| Violation | Why Needed | Simpler Alternative Rejected Because | Alcance y revisión |
+|-----------|------------|-------------------------------------|--------------------|
+| Modificar el legacy: un enlace a `/app/` en `web/common/navigation.jsp` (principio III) | Que el administrador encuentre la pantalla nueva desde el legacy durante la convivencia | Sin enlace (URL o marcador): factible y sin tocar el legacy, pero peor para el usuario. Aprobada la modificación (2026-10-24). | Una línea en `navigation.jsp`, solo en esta funcionalidad. Revisión: al retirar el calendario legacy o el 2027-04-30, lo que ocurra antes |
+| Limpieza de datos en producción: 3 `IdCambio` duplicados y 3 guardias duplicadas, y después `ALTER` para la PK y el índice único (flujo 6, principio VII) | Sin limpieza no se pueden crear la PK y el índice que exige el principio VII | Generar IDs con una tabla de secuencia y validar la unicidad solo en código: deja la invariante sin garantía en base de datos y dos mecanismos de ID conviviendo | Una ejecución en la puesta en marcha (T065), sobre los IDs revisados. Revisión: tras la ejecución, verificando los índices creados |
+| Trigger en la tabla legacy `medicos` (cambio de esquema aditivo) | Registrar en el histórico los cambios de tipo hechos desde el legacy sin modificar su código (FR-024) | Modificar el código del legacy (viola el principio III); no tener histórico (incumple CG-014) | Trigger sobre `medicos` mientras el legacy edite médicos. Revisión: al migrar la gestión de médicos o el 2027-04-30 |
+| Principio VI: el hash SHA-512 sin sal del legacy sigue en `medicos.Password` | El login del legacy lo necesita mientras conviva; el sistema nuevo guarda además un hash adaptativo (R2) | Forzar el cambio de contraseña o migrar el login del legacy: fuera del alcance de esta funcionalidad y rompe el acceso al legacy | Solo la columna legacy; el login nuevo nunca guarda SHA-512. Revisión: al retirar el login del legacy o el 2027-04-30 |
 
 ## Approvals
 
