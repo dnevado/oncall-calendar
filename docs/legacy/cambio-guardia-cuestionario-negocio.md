@@ -22,10 +22,12 @@ La Dra. A cede su guardia del día 10 al Dr. B, que ese día ya tiene otra guard
 - [ ] Otra: ___
 
 ## P2. Requisitos para el receptor de una cesión
-Para aprobar una cesión, el sistema exige que el Dr. B tenga guardia en la fecha a la que se arrastró la guardia. Si no la tiene, la cesión queda aprobada pero no se aplica.
+La Dra. A cede su guardia del día 10. Para elegir al receptor, arrastra la guardia a otro día del calendario (por ejemplo, el 15), y el sistema solo deja elegir entre los médicos que tienen guardia ese día 15. Al aplicarse la cesión, el receptor se queda con la guardia del día 10 y conserva la suya del día 15: ese segundo día no cambia.
+*Datos:* todas las cesiones registradas (3.582) se hicieron así, entre dos días distintos.
 
-- [ ] El receptor no necesita tener ninguna guardia
-- [ ] Debe tener guardia en otro día concreto (¿cuál?): ___
+¿Debe ser así?
+- [ ] Sí, es intencionado. Motivo: ___
+- [ ] No, el receptor puede ser cualquier médico disponible ese día 10
 - [ ] Otra: ___
 
 ## P3. Plazos
@@ -80,7 +82,8 @@ c) ¿Puede el solicitante cancelar su propia solicitud pendiente?
 
 ## P7. Revalidación al aprobar
 Entre la solicitud y la aprobación pueden cambiar las vacaciones o las guardias.
-*Hoy:* se aprueba sin volver a comprobar nada.
+*Hoy:* las vacaciones y las presencias no se vuelven a comprobar. Si el médico que recibe la guardia ya no tiene guardia en el día elegido (porque otro cambio la movió antes), el cambio queda marcado como aprobado y se avisa por correo, pero el calendario no cambia.
+*Datos:* hay 8 cambios marcados como aprobados sin que conste quién los aprobó; podrían no haberse aplicado.
 
 - [ ] Revalidar y rechazar si ya no cumple
 - [ ] Revalidar y avisar al administrador

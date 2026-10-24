@@ -127,12 +127,13 @@ El alta es `INSERT INTO vacaciones_medicos (IdMedico, FDay)` (`VacacionesDBImpl.
 - V7 usa siempre `IdServicio=1` (no se asigna en el paso A; valor por defecto en `CambiosGuardias.java:23`).
 - NPE: `GuardiaDestino.getTipo()` (`add_cambio_guardia.jsp:144`) y `GuardiaOrigen.getTipo()` (`:243`, `:269`) antes del null-check (`:292`).
 - NPE en aprobación si Google Calendar está desactivado y la guardia tiene `IdEventoGCalendar` (`cambio_estado_guardia.jsp:141`, `:237`).
-- CESION aprobada sin efecto si el destinatario no tiene guardia en la fecha destino (`cambio_estado_guardia.jsp:124-127`).
+- Aprobación silenciosa sin efecto: `cambio_estado_guardia.jsp` guarda `APROBADA` (`:83-94`) **antes** de comprobar que el destinatario sigue teniendo guardia en `FechaFinCambio` (`:124-127`). Si no la tiene, no modifica `guardias_medicos` y aun así envía el correo de confirmación (`:394-411`). En el alta no puede ocurrir, porque se rechaza (`add_cambio_guardia.jsp:63`, `:292`); solo ocurre si la guardia del destinatario cambió entre la solicitud y la aprobación. Afecta a CAMBIO y a CESION.
 - Un 500 (NPE o fallo de `MailingUtil` tras insert ya confirmado) se muestra como éxito al no-admin (`guardias.js:512-530`).
 - Solo se informa el último error (`sError` se sobrescribe).
 - Sin probar: `getCambiosGuardiasBySolicitante` recibe un único `Integer` (`lista_cambiosguardias.jsp:52`) pero usa `#{IdMedicoSolicitante}` y `#{IdServicio}` (`CambiosGuardias.xml:73-74`); MyBatis vincularía ambos al mismo valor (`IdServicio = IdMedico`).
 
 ### Validaciones dudosas
+- CESION: el receptor solo puede elegirse entre quienes tienen guardia en `FechaFinCambio` (`_list_medicos_cambio_guardia.jsp:72`, `:137-158`), y el servidor lo exige (`add_cambio_guardia.jsp:63`, `:292`). Sin embargo, al aplicar la cesión esa guardia del receptor no se modifica (`cambio_estado_guardia.jsp:306-348`): la fecha destino solo sirve de filtro. No consta si es intencionado o un efecto de reutilizar la interfaz del CAMBIO (cuestionario P2).
 - CESION: `lGuardiasDestinatarioEnOrigen` calculado y no evaluado (`add_cambio_guardia.jsp:204`).
 - V13: la exención de residente simulado mira al solicitante, no al destinatario.
 - V6: compara con la hora actual; una guardia de hoy no puede cederse.
