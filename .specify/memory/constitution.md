@@ -1,5 +1,17 @@
 <!--
-Sync Impact Report
+Sync Impact Report (1.1.0)
+- Versión: 1.0.0 → 1.1.0 (MINOR: se fija la línea base tecnológica y la ubicación de los
+  contratos; los principios no cambian)
+- Secciones modificadas: Restricciones técnicas (stack fijado; sin referencias a código
+  previo); Principio IV (ubicación de contratos)
+- TODO resueltos: FRONTEND_TYPESCRIPT (React + TypeScript según CLAUDE.md),
+  BACKEND_BASELINE (Spring Boot 3.x + Java 21), OPENAPI_LOCATION (contracts/)
+- Contexto: frontend-react/, backend-spring-lambda/ e infra/ eran un intento previo no
+  publicado y quedan fuera de la línea base (origin/master solo contiene el legacy).
+- Ratificada el 2026-10-24 por el responsable del proyecto, incluido el principio VII.
+  Las carpetas del intento previo se han eliminado del disco. Sin TODO pendientes.
+
+Sync Impact Report (1.0.0)
 - Versión: plantilla sin versión → 1.0.0 (adopción inicial; propuesta pendiente de aprobación)
 - Principios definidos (nuevos):
   I. Reglas de negocio validadas, nunca inventadas
@@ -12,14 +24,8 @@ Sync Impact Report
 - Secciones añadidas: Restricciones técnicas; Flujo de trabajo y puertas de calidad; Gobierno
 - Secciones eliminadas: ninguna
 - Plantillas dependientes: no modificadas por este comando (leen la constitución en tiempo de ejecución)
-- TODO diferidos:
-  - TODO(RATIFICATION_DATE): fijar al aprobar la propuesta.
-  - TODO(FRONTEND_TYPESCRIPT): CLAUDE.md exige React + TypeScript, pero
-    frontend-react/package.json no declara TypeScript (solo react 18.2.0).
-  - TODO(BACKEND_BASELINE): backend-spring-lambda usa Spring Boot 2.7.12 y Java 1.8;
-    confirmar si es la base aprobada o hay que actualizarla.
-  - TODO(OPENAPI_LOCATION): el único contrato encontrado es infra/servicio-openapi.yaml;
-    confirmar la ubicación canónica de los contratos versionados.
+- TODO diferidos: RATIFICATION_DATE, FRONTEND_TYPESCRIPT, BACKEND_BASELINE,
+  OPENAPI_LOCATION (los tres últimos, resueltos en 1.1.0)
 -->
 
 # Constitución de Gestión de Guardias (medONCALLS)
@@ -65,7 +71,8 @@ restringido en la interfaz (`cambio_estado_guardia.jsp`, `add_cambio_guardia.jsp
 ### IV. Contrato primero
 
 - Toda API entre el frontend React y el backend Spring Boot DEBE definirse en un contrato
-  OpenAPI versionado antes de implementarse.
+  OpenAPI versionado antes de implementarse, en `contracts/<servicio>.openapi.yaml`.
+  Los contratos de `specs/<feature>/contracts/` son borradores hasta que se publican allí.
 - El código y las pruebas DEBEN ajustarse al contrato; un cambio incompatible exige nueva
   versión mayor del contrato y aprobación explícita.
 - Las respuestas de error DEBEN ser estructuradas (código y mensaje), no texto libre del tipo
@@ -118,11 +125,16 @@ aprobados sin aplicar.
 ## Restricciones técnicas
 
 - **Legacy (referencia, solo lectura):** JSP + jQuery, Java, iBATIS/MyBatis y MySQL 5.7.
-- **Backend nuevo:** Spring Boot en `backend-spring-lambda/` (línea base actual: Spring Boot
-  2.7.12, Java 1.8; ver TODO(BACKEND_BASELINE)).
-- **Frontend nuevo:** React + TypeScript en `frontend-react/` (ver TODO(FRONTEND_TYPESCRIPT)).
-- **Infraestructura:** como código en `infra/` (Terraform y plantilla SAM).
-- **Contratos:** OpenAPI versionado (ver TODO(OPENAPI_LOCATION)).
+- **Línea base:** el código de `origin/master` (solo legacy). Los trabajos previos no
+  publicados (`frontend-react/`, `backend-spring-lambda/`, `infra/`) NO son referencia.
+- **Backend nuevo:** Spring Boot 3.x sobre Java 21. Las desviaciones de versión DEBEN
+  justificarse en el plan.
+- **Frontend nuevo:** React + TypeScript; no se admite código nuevo en JavaScript.
+- **Infraestructura:** como código; la herramienta y el destino de despliegue se deciden en
+  el primer `/speckit-plan`.
+- **Contratos:** OpenAPI 3 versionado en `contracts/` (ver principio IV).
+- **Ubicación del código nuevo:** se fija en el primer plan; no se reutilizan las carpetas
+  del intento previo.
 - **Datos:** el esquema MySQL legacy es la fuente de verdad durante la convivencia; cualquier
   cambio de esquema DEBE ser compatible hacia atrás con el legacy mientras ambos estén activos.
 - Las nuevas dependencias DEBEN justificarse en el plan de la funcionalidad.
@@ -156,4 +168,4 @@ aprobados sin aplicar.
   verificar el cumplimiento; toda excepción DEBE justificarse en el plan, con su alcance y su
   fecha de revisión.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): fijar al aprobar la propuesta | **Last Amended**: 2026-10-24
+**Version**: 1.1.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24
