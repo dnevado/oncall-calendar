@@ -136,5 +136,6 @@ Aprobado por David (Administrador, responsable del proyecto) el 2026-10-24:
 1. **Enlace en `navigation.jsp`**: aprobado como única modificación del código legacy en esta funcionalidad.
 2. **Limpieza de duplicados y `ALTER` en producción**: aprobados en el plan. La **ejecución** en producción sigue requiriendo, en su momento, una copia de seguridad verificada, la revisión del script con los IDs concretos y una confirmación explícita antes de lanzarlo.
 3. **Trigger sobre `medicos`** para el histórico de tipos: aprobado.
+4. **Excepción al principio VI por el hash SHA-512 del legacy**, con el alcance y la revisión indicados en Complexity Tracking: aprobada (tras `/speckit-analyze`).
 
 Pendiente operativo: fijar `ACTIVAR_CAMBIO_GUARDIAS = 'N'` en el servicio al activar la aplicación nueva (R13), dentro de la ventana de puesta en marcha.

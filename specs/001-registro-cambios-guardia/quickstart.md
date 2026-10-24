@@ -27,7 +27,7 @@ Las pruebas de integración del backend DEBEN cubrir, como mínimo:
 8. **Regresión legacy (SC-006, SC-008)**:
    - la SQL de calendario del legacy (`GuardiasDBImpl.getGuardias`) ve el cambio inmediatamente;
    - las consultas de equilibrio del legacy (`CambiosGuardias.xml` `getTotalCambiosHechosPorTipoMedicoFecha` y `getTotalCambiosRecibidosPorTipoMedicoFecha`) dan el mismo resultado antes y después de aplicar las migraciones sobre el mismo conjunto de datos, y cuentan la cesión nueva para el cedente con su tipo y festivo (R10).
-9. **Login (R2)**: credenciales legacy válidas → sesión y hash adaptativo guardado; si después cambia `medicos.Password`, el hash nuevo se descarta.
+9. **Login (R2)**: credenciales legacy válidas → sesión y hash adaptativo guardado; si después cambia `medicos.Password`, el hash nuevo se descarta. Tras 5 intentos fallidos la cuenta queda bloqueada 15 minutos en la aplicación nueva, también con la contraseña correcta, y un correo inexistente recibe el mismo 401 (FR-029).
 
 ## 2. Prueba manual de extremo a extremo
 

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-24
 
-**Status**: Draft
+**Status**: Approved — David (Administrador, responsable del proyecto), 2026-10-24. Incluye las reglas que no proceden del catálogo: FR-015, FR-016 y FR-029.
 
 **Input**: User description: "Registro de cambios y cesiones de guardia por el administrador del servicio. Un administrador registra, en nombre de los médicos, un CAMBIO (intercambio de dos guardias entre dos médicos en dos fechas) o una CESION (un médico entrega su guardia de una fecha a otro médico); el cambio se aplica al calendario en el acto, sin estados intermedios. Fuentes de verdad: reglas validadas en docs/rules/cambio-guardia-reglas-candidatas.md (BR-CAND-CG-002, 003, 005–015, 017–021 validadas; 001, 004, 023 descartadas; 016 y 022 pendientes) y evidencias legacy en docs/legacy/cambio-guardia-discovery.md. Incluye el efecto en el equilibrio del reparto (CG-020) y los requisitos derivados: histórico de tipo de médico, tipo/festivo de la guardia cedida guardado en la cesión y unicidad médico+fecha+servicio. Fuera de alcance: solicitud por el médico, aprobación, Google Calendar. Preguntas abiertas: duplicados (CG-016), notificaciones (CG-022) y cómo corregir un cambio registrado por error."
 
