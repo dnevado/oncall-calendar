@@ -81,4 +81,12 @@ final class Escenario {
         return new ContextoValidacion(solicitud, HOY, origen, null, cedente.participante(fechas),
                 receptor.participante(fechas));
     }
+
+    ContextoValidacion intercambio(Guardia origen, Medico cedente, Guardia destino, Medico receptor) {
+        SolicitudCambio solicitud = new SolicitudCambio(TipoCambio.CAMBIO, SERVICIO, origen.id(), cedente.id,
+                receptor.id, destino.id());
+        Set<LocalDate> fechas = ContextoValidacion.fechasRelevantes(origen.fecha(), destino.fecha());
+        return new ContextoValidacion(solicitud, HOY, origen, destino, cedente.participante(fechas),
+                receptor.participante(fechas));
+    }
 }

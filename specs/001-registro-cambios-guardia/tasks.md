@@ -125,7 +125,7 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 - [X] T042 [P] [US1] Frontend test `frontend/src/features/cambios/CesionForm.test.tsx` (MSW): candidates shown, success refreshes the calendar, 422 lists every infraction with médico and fecha
 - [X] T043 [US1] Implement `frontend/src/features/cambios/CesionForm.tsx` and connect it from «Ceder» in `frontend/src/features/cambios/CalendarioPage.tsx` (Idempotency-Key per form submission; disable button while sending)
 
-**Checkpoint**: la cesión funciona de extremo a extremo y se puede integrar. No desplegar en producción hasta completar US3: una cesión entre residentes de distinto subtipo puede añadir o quitar un R3–R5 del día y, sin FR-020, las guardias de adjunto quedarían sin ajustar (revisión de migración del MVP).
+**Checkpoint**: la cesión funciona de extremo a extremo y se puede integrar. No desplegar en producción sin US3: una cesión entre residentes de distinto subtipo puede añadir o quitar un R3–R5 del día y, sin FR-020, las guardias de adjunto quedarían sin ajustar (revisión de migración del MVP; US3 ya implementada).
 
 ---
 
@@ -137,17 +137,17 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T044 [P] [US2] Unit tests in `backend/src/test/java/es/medoncalls/guardias/cambios/domain/ReglasIntercambioTest.java`: CG-006, CG-009 (destino hoy/pasado), CG-011 and CG-012 for both médicos, CG-013 for both including the adjacent-day exception (escenario 5), CG-014 at both dates
-- [ ] T045 [P] [US2] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/RegistrarIntercambioIT.java`: escenarios 1–5 of story 2 (tipo y festivo permanecen con el día); concurrent intercambio and cesión over the same guardia → only one succeeds
-- [ ] T046 [P] [US2] Extend `backend/src/test/java/es/medoncalls/guardias/contract/CambiosContractTest.java`: CAMBIO 201, 400 without `guardiaDestinoId`, `receptores-candidatos?tipo=CAMBIO&fechaDestino=` returns `guardiaDestinoId`
+- [X] T044 [P] [US2] Unit tests in `backend/src/test/java/es/medoncalls/guardias/cambios/domain/ReglasIntercambioTest.java`: CG-006, CG-009 (destino hoy/pasado), CG-011 and CG-012 for both médicos, CG-013 for both including the adjacent-day exception (escenario 5), CG-014 at both dates
+- [X] T045 [P] [US2] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/RegistrarIntercambioIT.java`: escenarios 1–5 of story 2 (tipo y festivo permanecen con el día); concurrent intercambio and cesión over the same guardia → only one succeeds
+- [X] T046 [P] [US2] Extend `backend/src/test/java/es/medoncalls/guardias/contract/CambiosContractTest.java`: CAMBIO 201, 400 without `guardiaDestinoId`, `receptores-candidatos?tipo=CAMBIO&fechaDestino=` returns `guardiaDestinoId`
 
 ### Implementation for User Story 2
 
-- [ ] T047 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/domain/ReglasCambio.java` with the CAMBIO rules evaluated for both médicos (CG-006, CG-009, CG-011, CG-012, CG-013, CG-014)
-- [ ] T048 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/application/RegistrarCambioService.java` and `backend/src/main/resources/mappers/CambioMapper.xml` for CAMBIO: lock both guardias, swap `IdMedico` (FR-018), store `FechaFinCambio` = fecha destino and `TipoGuardiaDestino/FestivoDestino` from the snapshot
-- [ ] T049 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/application/CandidatosService.java` for CAMBIO with `fechaDestino` (médicos with guardia that day, same tipo, returning `guardiaDestinoId`)
-- [ ] T050 [P] [US2] Frontend test `frontend/src/features/cambios/IntercambioForm.test.tsx` (MSW)
-- [ ] T051 [US2] Implement `frontend/src/features/cambios/IntercambioForm.tsx` (choose fecha destino and the candidate's guardia) and connect it from «Intercambiar» in `frontend/src/features/cambios/CalendarioPage.tsx`
+- [X] T047 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/domain/ReglasCambio.java` with the CAMBIO rules evaluated for both médicos (CG-006, CG-009, CG-011, CG-012, CG-013, CG-014)
+- [X] T048 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/application/RegistrarCambioService.java` and `backend/src/main/resources/mappers/CambioMapper.xml` for CAMBIO: lock both guardias, swap `IdMedico` (FR-018), store `FechaFinCambio` = fecha destino and `TipoGuardiaDestino/FestivoDestino` from the snapshot
+- [X] T049 [US2] Extend `backend/src/main/java/es/medoncalls/guardias/cambios/application/CandidatosService.java` for CAMBIO with `fechaDestino` (médicos with guardia that day, same tipo, returning `guardiaDestinoId`)
+- [X] T050 [P] [US2] Frontend test `frontend/src/features/cambios/IntercambioForm.test.tsx` (MSW)
+- [X] T051 [US2] Implement `frontend/src/features/cambios/IntercambioForm.tsx` (choose fecha destino and the candidate's guardia) and connect it from «Intercambiar» in `frontend/src/features/cambios/CalendarioPage.tsx`
 
 **Checkpoint**: cesión e intercambio funcionan de forma independiente.
 
@@ -161,13 +161,13 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T052 [P] [US3] Unit tests `backend/src/test/java/es/medoncalls/guardias/cambios/domain/AjusteResidentesTest.java`: entra R3–R5 → refuerzo→localizada; sale → localizada→refuerzo; ambos R3–R5 o ninguno → sin cambios; residente receptor (no solicitante) también ajusta; recuento por día
-- [ ] T053 [P] [US3] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/AjusteResidentesIT.java`: escenarios 1–4 for both CESION and CAMBIO (two affected dates), all within the same transaction (rollback test)
+- [X] T052 [P] [US3] Unit tests `backend/src/test/java/es/medoncalls/guardias/cambios/domain/AjusteResidentesTest.java`: entra R3–R5 → refuerzo→localizada; sale → localizada→refuerzo; ambos R3–R5 o ninguno → sin cambios; residente receptor (no solicitante) también ajusta; recuento por día
+- [X] T053 [P] [US3] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/AjusteResidentesIT.java`: escenarios 1–4 for both CESION and CAMBIO (two affected dates), all within the same transaction (rollback test)
 
 ### Implementation for User Story 3
 
-- [ ] T054 [US3] Implement `backend/src/main/java/es/medoncalls/guardias/cambios/domain/AjusteResidentes.java`: for each affected date compare the number of residents with subtipo R3–R5 (tipo at that date) before and after the change and return the adjustment (FR-020; data-model «Efectos» §3)
-- [ ] T055 [US3] Add `updateTipoPorDia(servicioId, fecha, tipoDesde, tipoHasta)` to `backend/src/main/java/es/medoncalls/guardias/cambios/infrastructure/GuardiaMapper.java` / `backend/src/main/resources/mappers/GuardiaMapper.xml` and apply `AjusteResidentes` inside `backend/src/main/java/es/medoncalls/guardias/cambios/application/RegistrarCambioService.java` (lock those guardias too)
+- [X] T054 [US3] Implement `backend/src/main/java/es/medoncalls/guardias/cambios/domain/AjusteResidentes.java`: for each affected date compare the number of residents with subtipo R3–R5 (tipo at that date) before and after the change and return the adjustment (FR-020; data-model «Efectos» §3)
+- [X] T055 [US3] Add `updateTipoPorDia(servicioId, fecha, tipoDesde, tipoHasta)` to `backend/src/main/java/es/medoncalls/guardias/cambios/infrastructure/GuardiaMapper.java` / `backend/src/main/resources/mappers/GuardiaMapper.xml` and apply `AjusteResidentes` inside `backend/src/main/java/es/medoncalls/guardias/cambios/application/RegistrarCambioService.java` (lock those guardias too)
 
 **Checkpoint**: el calendario resultante es coherente con el nivel de los residentes.
 

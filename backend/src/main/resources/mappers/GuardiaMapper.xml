@@ -40,6 +40,10 @@
      ORDER BY g.Id
   </select>
 
+  <select id="lockServicio" resultType="long">
+    SELECT s.IdServicio FROM guardias_servicios s WHERE s.IdServicio = #{servicioId} FOR UPDATE
+  </select>
+
   <!-- Sin JOIN para no bloquear filas de medicos. -->
   <select id="lockByIds" resultType="es.medoncalls.guardias.cambios.infrastructure.GuardiaFila">
     SELECT <include refid="columnasGuardia"/>, NULL AS medicoNombre, NULL AS medicoApellidos

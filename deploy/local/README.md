@@ -42,11 +42,16 @@ Para ver la aplicación nueva en `http://localhost:5173/app/` con datos ficticio
 
 Las fechas son relativas al día en que se creó el contenedor (D).
 
-- **D+5, guardia de presencia de Ana**: «Ceder». Solo aparecen como candidatos Bruno y Admin:
+- **D+5, guardia de presencia de Ana**: «Ceder». Solo aparece como candidato Bruno:
   - Carla está de vacaciones ese día (CG-012).
   - David tiene presencia el D+6 (CG-013).
   - Elena está inactiva (CG-015).
   - Rita y Raúl son residentes (CG-014).
+  - Admin ya tiene guardia ese día (CG-011).
+- **Intercambio**: guardia de Ana del D+5 → «Intercambiar» → fecha D+8 → Bruno. Cada uno queda en el día del otro y el tipo se queda con el día.
+- **Ajuste R3–R5**:
+  - Si Rita (R2) cede su guardia del D+5 a Raúl (R4), el refuerzo de Admin ese día pasa a localizada.
+  - Si Raúl cede su guardia del D+10 a Rita, la localizada de Ana pasa a refuerzo.
 - **D−2**: guardia pasada, no se puede seleccionar.
 - **Rechazos**: llamando a la API sin pasar por la pantalla, por ejemplo cediendo a Carla, se ven las infracciones (422).
 

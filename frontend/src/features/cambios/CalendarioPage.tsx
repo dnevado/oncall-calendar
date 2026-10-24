@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type Cambio, type Guardia } from '../../api/client';
 import { CesionForm } from './CesionForm';
-import { desplazarMes, etiquetaTipo, fechaLarga, hoyEnServicio, mesDe, nombreMes, rangoDelMes, type Mes } from './fechas';
+import { IntercambioForm } from './IntercambioForm';
+import {
+  desplazarMes,
+  etiquetaTipo,
+  fechaLarga,
+  hoyEnServicio,
+  mesDe,
+  nombreMes,
+  rangoDelMes,
+  type Mes,
+} from './fechas';
 
 interface Props {
   servicioId: number;
@@ -18,7 +28,7 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   const [guardias, setGuardias] = useState<Guardia[]>();
   const [error, setError] = useState<string>();
   const [seleccionada, setSeleccionada] = useState<Guardia>();
-  const [cediendo, setCediendo] = useState(false);
+  const [accion, setAccion] = useState<'ceder' | 'intercambiar'>();
   const [confirmacion, setConfirmacion] = useState<string>();
   // Solo cuenta la respuesta de la última petición: una tardía de otro mes se descarta.
   const ultimaPeticion = useRef(0);
@@ -40,7 +50,7 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
 
   useEffect(() => {
     setSeleccionada(undefined);
-    setCediendo(false);
+    setAccion(undefined);
     void cargar();
   }, [cargar]);
 
@@ -53,14 +63,16 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
 
   function seleccionar(guardia: Guardia | undefined) {
     setSeleccionada(guardia);
-    setCediendo(false);
+    setAccion(undefined);
     setConfirmacion(undefined);
   }
 
-  function cesionRegistrada(cambio: Cambio) {
+  function cambioRegistrado(cambio: Cambio) {
     seleccionar(undefined);
     setConfirmacion(
-      `Cesión registrada: la guardia del ${fechaLarga(cambio.fechaOrigen)} pasa de ${cambio.cedente.nombre} a ${cambio.receptor.nombre}.`,
+      cambio.tipo === 'CAMBIO' && cambio.fechaDestino
+        ? `Intercambio registrado: ${cambio.receptor.nombre} hace la guardia del ${fechaLarga(cambio.fechaOrigen)} y ${cambio.cedente.nombre} la del ${fechaLarga(cambio.fechaDestino)}.`
+        : `Cesión registrada: la guardia del ${fechaLarga(cambio.fechaOrigen)} pasa de ${cambio.cedente.nombre} a ${cambio.receptor.nombre}.`,
     );
     void cargar();
   }
@@ -99,7 +111,11 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
               return (
                 <li key={g.id}>
                   {g.fecha > hoy ? (
-                    <button type="button" aria-pressed={seleccionada?.id === g.id} onClick={() => seleccionar(g)}>
+                    <button
+                      type="button"
+                      aria-pressed={seleccionada?.id === g.id}
+                      onClick={() => seleccionar(g)}
+                    >
                       {texto}
                     </button>
                   ) : (
@@ -112,17 +128,16 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
         </section>
       ))}
 
-      {seleccionada && !cediendo && (
+      {seleccionada && !accion && (
         <aside aria-label="Acciones de la guardia">
           <p>
             Guardia de {seleccionada.medico.nombre} el {fechaLarga(seleccionada.fecha)} (
             {etiquetaTipo(seleccionada.tipo, seleccionada.festivo)})
           </p>
-          <button type="button" onClick={() => setCediendo(true)}>
+          <button type="button" onClick={() => setAccion('ceder')}>
             Ceder
           </button>
-          {/* El intercambio llega con la historia 2. */}
-          <button type="button" disabled title="Disponible próximamente">
+          <button type="button" onClick={() => setAccion('intercambiar')}>
             Intercambiar
           </button>
           <button type="button" onClick={() => seleccionar(undefined)}>
@@ -131,12 +146,21 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
         </aside>
       )}
 
-      {seleccionada && cediendo && (
+      {seleccionada && accion === 'ceder' && (
         <CesionForm
           servicioId={servicioId}
           guardia={seleccionada}
-          onRegistrada={cesionRegistrada}
-          onCancelar={() => setCediendo(false)}
+          onRegistrada={cambioRegistrado}
+          onCancelar={() => setAccion(undefined)}
+        />
+      )}
+
+      {seleccionada && accion === 'intercambiar' && (
+        <IntercambioForm
+          servicioId={servicioId}
+          guardia={seleccionada}
+          onRegistrado={cambioRegistrado}
+          onCancelar={() => setAccion(undefined)}
         />
       )}
     </main>

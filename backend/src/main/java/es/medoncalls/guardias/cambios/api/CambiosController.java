@@ -71,11 +71,17 @@ public class CambiosController {
             @PathVariable long servicioId, @PathVariable long guardiaId, @RequestParam TipoCambio tipo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaDestino) {
         servicioAccess.exigirAdministrador(usuario, servicioId);
-        if (tipo != TipoCambio.CESION) {
-            throw new PeticionInvalidaException("Los candidatos para intercambios todavía no están disponibles.");
+        List<CandidatosService.Candidato> encontrados;
+        if (tipo == TipoCambio.CAMBIO) {
+            if (fechaDestino == null) {
+                throw new PeticionInvalidaException("Para un intercambio hay que indicar la fecha destino.");
+            }
+            encontrados = candidatos.paraIntercambio(servicioId, guardiaId, fechaDestino);
+        } else {
+            encontrados = candidatos.paraCesion(servicioId, guardiaId);
         }
-        return candidatos.paraCesion(servicioId, guardiaId).stream()
-                .map(m -> new CandidatoDto(new MedicoResumenDto(m.id(), m.nombreCompleto()), null))
+        return encontrados.stream()
+                .map(c -> new CandidatoDto(new MedicoResumenDto(c.medicoId(), c.nombre()), c.guardiaDestinoId()))
                 .toList();
     }
 }

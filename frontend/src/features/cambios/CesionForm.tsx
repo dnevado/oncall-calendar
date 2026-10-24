@@ -1,16 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, type Cambio, type Candidato, type Guardia, type Infraccion } from '../../api/client';
+import { api, type Cambio, type Candidato, type Guardia } from '../../api/client';
 import { etiquetaTipo, fechaLarga } from './fechas';
+import { Rechazo } from './Rechazo';
+import { useRegistrarCambio } from './useRegistrarCambio';
 
 interface Props {
   servicioId: number;
   guardia: Guardia;
   onRegistrada: (cambio: Cambio) => void;
   onCancelar: () => void;
-}
-
-function nuevaClave(): string {
-  return crypto.randomUUID();
 }
 
 /**
@@ -20,11 +18,12 @@ function nuevaClave(): string {
 export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Props) {
   const [candidatos, setCandidatos] = useState<Candidato[]>();
   const [receptorId, setReceptorId] = useState<number>();
-  const [enviando, setEnviando] = useState(false);
-  const [infracciones, setInfracciones] = useState<Infraccion[]>([]);
-  const [error, setError] = useState<string>();
-  // Una clave por envío: un reintento del mismo envío no aplica la cesión dos veces.
-  const [clave, setClave] = useState(nuevaClave);
+  const [errorCandidatos, setErrorCandidatos] = useState<string>();
+  const { registrar, enviando, infracciones, error } = useRegistrarCambio(
+    servicioId,
+    onRegistrada,
+    'No se ha podido registrar la cesión.',
+  );
 
   useEffect(() => {
     let vigente = true;
@@ -35,45 +34,36 @@ export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Pr
       .then(({ data, error: problema }) => {
         if (!vigente) return;
         if (data) setCandidatos(data);
-        else setError(problema?.detail ?? 'No se han podido cargar los candidatos.');
+        else setErrorCandidatos(problema?.detail ?? 'No se han podido cargar los candidatos.');
       });
     return () => {
       vigente = false;
     };
   }, [servicioId, guardia.id]);
 
-  async function enviar(evento: FormEvent) {
+  function enviar(evento: FormEvent) {
     evento.preventDefault();
     if (receptorId === undefined) return;
-    setEnviando(true);
-    setInfracciones([]);
-    setError(undefined);
-    const { data, error: problema, response } = await api.POST('/servicios/{servicioId}/cambios', {
-      params: { path: { servicioId }, header: { 'Idempotency-Key': clave } },
-      body: { tipo: 'CESION', guardiaOrigenId: guardia.id, cedenteId: guardia.medico.id, receptorId },
+    void registrar({
+      tipo: 'CESION',
+      guardiaOrigenId: guardia.id,
+      cedenteId: guardia.medico.id,
+      receptorId,
     });
-    setEnviando(false);
-    if (data) {
-      onRegistrada(data);
-      return;
-    }
-    setClave(nuevaClave());
-    if (response.status === 422 && problema && 'infracciones' in problema) {
-      setInfracciones(problema.infracciones);
-    } else {
-      setError(problema?.detail ?? 'No se ha podido registrar la cesión.');
-    }
   }
 
   return (
     <form aria-label="Ceder guardia" onSubmit={enviar}>
       <h3>Ceder guardia</h3>
       <p>
-        {guardia.medico.nombre} cede su guardia del {fechaLarga(guardia.fecha)} ({etiquetaTipo(guardia.tipo, guardia.festivo)}).
+        {guardia.medico.nombre} cede su guardia del {fechaLarga(guardia.fecha)} (
+        {etiquetaTipo(guardia.tipo, guardia.festivo)}).
       </p>
 
-      {!candidatos && !error && <p>Cargando candidatos…</p>}
-      {candidatos?.length === 0 && <p>Ningún médico cumple las reglas para recibir esta guardia.</p>}
+      {!candidatos && !errorCandidatos && <p>Cargando candidatos…</p>}
+      {candidatos?.length === 0 && (
+        <p>Ningún médico cumple las reglas para recibir esta guardia.</p>
+      )}
       {candidatos && candidatos.length > 0 && (
         <fieldset>
           <legend>Médico que la recibe</legend>
@@ -92,17 +82,7 @@ export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Pr
         </fieldset>
       )}
 
-      {infracciones.length > 0 && (
-        <div role="alert">
-          <p>No se ha registrado la cesión:</p>
-          <ul>
-            {infracciones.map((i, indice) => (
-              <li key={`${i.regla}-${indice}`}>{i.mensaje}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {error && <p role="alert">{error}</p>}
+      <Rechazo que="la cesión" infracciones={infracciones} error={error ?? errorCandidatos} />
 
       <button type="submit" disabled={enviando || receptorId === undefined}>
         Registrar cesión

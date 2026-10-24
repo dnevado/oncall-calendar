@@ -26,6 +26,12 @@ public interface GuardiaMapper {
     List<GuardiaFila> selectByServicioYFecha(@Param("servicioId") long servicioId,
             @Param("fecha") String fecha);
 
+    /**
+     * Bloquea la fila del servicio hasta el final de la transacción: los cambios de un mismo
+     * servicio se aplican de uno en uno (R9).
+     */
+    Long lockServicio(@Param("servicioId") long servicioId);
+
     /** Bloquea las guardias en orden de `Id` para evitar interbloqueos (R9). */
     List<GuardiaFila> lockByIds(@Param("ids") List<Long> ids);
 

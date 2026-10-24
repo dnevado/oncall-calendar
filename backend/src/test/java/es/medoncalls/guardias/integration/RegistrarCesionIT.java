@@ -275,12 +275,13 @@ class RegistrarCesionIT extends IntegracionBase {
         CountDownLatch bloqueado = new CountDownLatch(1);
         ExecutorService hilo = Executors.newSingleThreadExecutor();
         try {
-            // Otra transacción en curso hace lo mismo que el registro: bloquea al receptor y le da el día 11.
+            // Otra transacción en curso hace lo mismo que el registro: bloquea el servicio y da el día 11 al receptor.
             Future<?> otra = hilo.submit(() -> {
                 try (Connection conexion = jdbc.getDataSource().getConnection()) {
                     conexion.setAutoCommit(false);
                     try (Statement sql = conexion.createStatement()) {
-                        sql.executeQuery("SELECT ID FROM medicos WHERE ID = " + bruno + " FOR UPDATE").close();
+                        sql.executeQuery("SELECT IdServicio FROM guardias_servicios WHERE IdServicio = " + servicio
+                                + " FOR UPDATE").close();
                         sql.executeUpdate("UPDATE guardias_medicos SET IdMedico = " + bruno + " WHERE Id = " + guardiaCarla);
                     }
                     bloqueado.countDown();

@@ -17,7 +17,7 @@ import org.springframework.mock.web.MockHttpSession;
 import es.medoncalls.guardias.cambios.domain.TipoGuardia;
 import es.medoncalls.guardias.support.IntegracionBase;
 
-/** `POST /cambios` (CESION) y `GET …/receptores-candidatos?tipo=CESION` frente al contrato (T033). */
+/** `POST /cambios` y `GET …/receptores-candidatos` (CESION y CAMBIO) frente al contrato (T033, T046). */
 class CambiosContractTest extends IntegracionBase {
 
     private static final LocalDate DIA_10 = LocalDate.of(2030, 2, 10);
@@ -93,6 +93,47 @@ class CambiosContractTest extends IntegracionBase {
                 .andExpect(jsonPath("$[*].medico.nombre").value(
                         org.hamcrest.Matchers.containsInAnyOrder("Admin Prueba", "Bruno Prueba")))
                 .andExpect(jsonPath("$[0].guardiaDestinoId").doesNotExist());
+    }
+
+    @Test
+    void intercambio201() throws Exception {
+        long guardiaBruno = datos.guardia(bruno, DIA_10.plusDays(5), TipoGuardia.LOCALIZADA, false, servicio);
+        registrar("{\"tipo\":\"CAMBIO\",\"guardiaOrigenId\":" + guardiaAna + ",\"cedenteId\":" + ana
+                + ",\"receptorId\":" + bruno + ",\"guardiaDestinoId\":" + guardiaBruno + "}")
+                .andExpect(status().isCreated())
+                .andExpect(cumple())
+                .andExpect(jsonPath("$.fechaDestino").value("2030-02-15"))
+                .andExpect(jsonPath("$.guardiaDestino.tipo").value("LOCALIZADA"));
+    }
+
+    @Test
+    void intercambioSinGuardiaDestinoEs400() throws Exception {
+        registrar("{\"tipo\":\"CAMBIO\",\"guardiaOrigenId\":" + guardiaAna + ",\"cedenteId\":" + ana
+                + ",\"receptorId\":" + bruno + "}")
+                .andExpect(status().isBadRequest())
+                .andExpect(cumple());
+    }
+
+    @Test
+    void receptoresCandidatosDeUnIntercambio() throws Exception {
+        long guardiaBruno = datos.guardia(bruno, DIA_10.plusDays(5), TipoGuardia.LOCALIZADA, false, servicio);
+        long rita = datos.residente("Rita", "R2");
+        datos.miembro(servicio, rita);
+        datos.guardia(rita, DIA_10.plusDays(5), TipoGuardia.RESIDENTE, false, servicio);
+        mvc.perform(get("/api/v1/servicios/{s}/guardias/{g}/receptores-candidatos", servicio, guardiaAna)
+                        .param("tipo", "CAMBIO").param("fechaDestino", "2030-02-15").session(sesion))
+                .andExpect(status().isOk())
+                .andExpect(cumple())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].medico.id").value(bruno))
+                .andExpect(jsonPath("$[0].guardiaDestinoId").value(guardiaBruno));
+    }
+
+    @Test
+    void receptoresCandidatosDeUnIntercambioSinFechaDestinoEs400() throws Exception {
+        mvc.perform(get("/api/v1/servicios/{s}/guardias/{g}/receptores-candidatos", servicio, guardiaAna)
+                        .param("tipo", "CAMBIO").session(sesion))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

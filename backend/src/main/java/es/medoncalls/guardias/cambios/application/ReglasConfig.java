@@ -6,10 +6,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import es.medoncalls.guardias.cambios.domain.AjusteResidentes;
 import es.medoncalls.guardias.cambios.domain.Mensajes;
 import es.medoncalls.guardias.cambios.domain.ReglasCambio;
 
-/** Las reglas son dominio puro; aquí se les dan los textos de `messages_es.properties`. */
+/** Reglas y ajuste R3–R5 son dominio puro; aquí se les dan los textos de `messages_es.properties`. */
 @Configuration
 public class ReglasConfig {
 
@@ -23,5 +24,10 @@ public class ReglasConfig {
     @Bean
     ReglasCambio reglasCambio(Mensajes mensajes) {
         return new ReglasCambio(mensajes);
+    }
+
+    @Bean
+    AjusteResidentes ajusteResidentes() {
+        return new AjusteResidentes();
     }
 }

@@ -13,12 +13,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MedicoMapper {
 
-    /**
-     * Bloquea la fila del médico hasta el final de la transacción. Serializa los cambios que dan
-     * guardias a un mismo médico, para que CG-013 vea las de días adyacentes (R9).
-     */
-    Long lockById(@Param("id") long id);
-
     List<MedicoFila> selectByIds(@Param("ids") Collection<Long> ids);
 
     /** Pertenecer al servicio = existe la fila; no se mira `ActivoServicio` (CG-015). */

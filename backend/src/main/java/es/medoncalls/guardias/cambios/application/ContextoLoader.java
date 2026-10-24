@@ -71,8 +71,7 @@ public class ContextoLoader {
             return Map.of();
         }
         Set<Long> miembros = new HashSet<>(medicos.selectMiembros(servicioId, ids));
-        Map<Long, List<HistoricoTipoFila>> historicos = medicos.selectHistoricoTipo(ids).stream()
-                .collect(groupingBy(HistoricoTipoFila::medicoId));
+        Map<Long, List<HistoricoTipoFila>> historicos = historicos(ids);
         Map<Long, List<Guardia>> guardiasDe = guardias.deMedicosEnFechas(ids, fechas, servicioId).stream()
                 .collect(groupingBy(Guardia::medicoId));
         Map<Long, Set<LocalDate>> vacacionesDe = vacaciones
@@ -94,6 +93,14 @@ public class ContextoLoader {
                     miembros.contains(id), tipos, guardiasPorDia, vacacionesDe.getOrDefault(id, Set.of())));
         }
         return participantes;
+    }
+
+    /** Histórico de tipo de varios médicos, para el ajuste R3–R5 (FR-020). */
+    public Map<Long, List<HistoricoTipoFila>> historicos(Collection<Long> ids) {
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return medicos.selectHistoricoTipo(ids).stream().collect(groupingBy(HistoricoTipoFila::medicoId));
     }
 
     private static Participante existente(Map<Long, Participante> participantes, long medicoId) {

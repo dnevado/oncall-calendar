@@ -27,13 +27,17 @@ INSERT INTO guardias_servicios_medicos (IdServicio, IdMedico, IsAdministrator, A
 
 -- Día D+5: guardia de Ana para ceder. Bruno es candidato; Carla está de vacaciones (CG-012),
 -- David tiene presencia el D+6 (CG-013), Elena está inactiva (CG-015) y Rita es residente (CG-014).
+-- Ajuste R3–R5 (FR-020): si Rita (R2) cede su D+5 a Raúl (R4), el refuerzo de Admin pasa a
+-- localizada; si Raúl cede su D+10 a Rita, la localizada de Ana pasa a refuerzo.
+-- Intercambio: Ana (D+5, presencia) con Bruno (D+8, localizada).
 INSERT INTO guardias_medicos (IdMedico, FGuardia, Festivo, Tipo, IdServicio) VALUES
   (2, DATE_FORMAT(CURDATE() - INTERVAL 2 DAY, '%Y-%m-%d'),  0, 'presencia',  1),
   (2, DATE_FORMAT(CURDATE() + INTERVAL 5 DAY, '%Y-%m-%d'),  0, 'presencia',  1),
   (7, DATE_FORMAT(CURDATE() + INTERVAL 5 DAY, '%Y-%m-%d'),  0, '',           1),
+  (1, DATE_FORMAT(CURDATE() + INTERVAL 5 DAY, '%Y-%m-%d'),  0, 'refuerzo',   1),
   (5, DATE_FORMAT(CURDATE() + INTERVAL 6 DAY, '%Y-%m-%d'),  0, 'presencia',  1),
   (3, DATE_FORMAT(CURDATE() + INTERVAL 8 DAY, '%Y-%m-%d'),  0, 'localizada', 1),
-  (2, DATE_FORMAT(CURDATE() + INTERVAL 10 DAY, '%Y-%m-%d'), 0, 'refuerzo',   1),
+  (2, DATE_FORMAT(CURDATE() + INTERVAL 10 DAY, '%Y-%m-%d'), 0, 'localizada', 1),
   (8, DATE_FORMAT(CURDATE() + INTERVAL 10 DAY, '%Y-%m-%d'), 0, '',           1),
   (1, DATE_FORMAT(CURDATE() + INTERVAL 12 DAY, '%Y-%m-%d'), 1, 'presencia',  1),
   (4, DATE_FORMAT(CURDATE() + INTERVAL 20 DAY, '%Y-%m-%d'), 1, 'presencia',  1),
