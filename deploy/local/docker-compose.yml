@@ -1,0 +1,26 @@
+# Entorno de desarrollo local: MySQL 5.7 con el esquema legacy y datos ficticios.
+# No es el despliegue (../docker-compose.yml) y no usa datos reales (principio VI).
+# Credenciales de usar y tirar, solo para este contenedor local.
+# Uso: deploy/local/README.md
+
+name: guardias-local
+
+services:
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: local
+      MYSQL_DATABASE: guardias
+      MYSQL_USER: guardias
+      MYSQL_PASSWORD: local
+      TZ: Europe/Madrid
+    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+    volumes:
+      - ../../backend/src/test/resources/legacy-schema.sql:/docker-entrypoint-initdb.d/01-esquema.sql:ro
+      - ./datos-ficticios.sql:/docker-entrypoint-initdb.d/02-datos-ficticios.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-plocal"]
+      interval: 5s
+      retries: 30

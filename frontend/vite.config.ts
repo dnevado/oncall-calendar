@@ -1,14 +1,15 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
 // La aplicación se sirve bajo /app/ detrás del proxy (R1, R3).
-export default defineConfig({
+// En desarrollo, GUARDIAS_API_URL cambia el backend al que se reenvía /api (deploy/local).
+export default defineConfig(({ mode }) => ({
   base: '/app/',
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': loadEnv(mode, '.', '').GUARDIAS_API_URL || 'http://localhost:8080',
     },
   },
   test: {
@@ -16,4 +17,4 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
   },
-});
+}));
