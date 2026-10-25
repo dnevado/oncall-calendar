@@ -1,0 +1,3 @@
+# Plantilla: copia este fichero como base.properties y rellena los valores.
+# base.properties no se versiona (contiene credenciales).
+database.path=mysql://<host>:3306/<base>?user=<usuario>&password=<contrasena>

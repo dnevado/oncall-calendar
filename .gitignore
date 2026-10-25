@@ -17,3 +17,10 @@
 !/deploy/secrets/README.md
 .env
 .env.*
+
+# Configuración del legacy con credenciales: no se versiona. Plantillas en *.example.
+/resources/base.properties
+/src/base.properties
+/web/WEB-INF/classes/base.properties
+/src/com/guardias/persistence/ConfigurationIBATIS.xml
+/web/WEB-INF/classes/com/guardias/persistence/ConfigurationIBATIS.xml

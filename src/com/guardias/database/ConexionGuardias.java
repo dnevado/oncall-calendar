@@ -41,9 +41,24 @@ class ConexionGuardias
 		    	  throw new FileNotFoundException("base.properties");
 		      // 
 		      
-		      //c = DriverManager.getConnection("jdbc:sqlite:" + System.getProperty("catalina.home") + "/BBDD_sqllite/guardias.db");
-		      //c = DriverManager.getConnection("jdbc:sqlite:" + p.getProperty("database.path")); 
-		      c= DriverManager.getConnection("jdbc:" + p.getProperty("database.path"));
+							// normalize database.path and build a safe JDBC URL
+							String dbPath = p.getProperty("database.path");
+							if (dbPath == null) throw new FileNotFoundException("database.path");
+							dbPath = dbPath.trim();
+							// ensure schemes like mysql: or mariadb: have '://'
+							dbPath = dbPath.replaceFirst("^(mysql|mariadb):/+", "$1://");
+							// remove accidental leading slashes
+							dbPath = dbPath.replaceFirst("^/+", "");
+							String jdbcUrl;
+							if (dbPath.startsWith("jdbc:")) {
+								jdbcUrl = dbPath;
+							} else if (dbPath.matches("^(mysql|mariadb)://.*")) {
+								jdbcUrl = "jdbc:" + dbPath;
+							} else {
+								// fallback to mysql scheme if none provided
+								jdbcUrl = "jdbc:mysql://" + dbPath;
+							}
+							c = DriverManager.getConnection(jdbcUrl);
 		      
 		     // System.out.println("Opening jdbc:sqlite:" + p.getProperty("database.path"));
 		      

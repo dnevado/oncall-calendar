@@ -1,0 +1,45 @@
+jsp_path,scriptlet_presence,imported_classes,referenced_mapper_files,candidate_service_name
+web/search_servicios.jsp,Y,"com.guardias.*;java.util.*;java.util.ResourceBundle",,ServicioService
+web/servicio.jsp,Y,"com.guardias.*;java.util.*",Guardias_Servicios.xml,ServicioService
+web/servicio/servicio_form.jsp,Y,"guardias.security.SecurityUtil;com.guardias.mail.MailingUtil;com.guardias.database.MedicoDBImpl;com.guardias.servicios.Guardias_Servicios;com.guardias.*;com.guardias.database.*;java.util.ResourceBundle;java.text.SimpleDateFormat;java.util.*;com.guardias.Vacaciones_Medicos",Guardias_Servicios.xml,ServicioService
+web/servicio/search_results.jsp,Y,"guardias.security.SecurityUtil;com.guardias.mail.MailingUtil;com.guardias.database.MedicoDBImpl;com.guardias.servicios.Guardias_Servicios;com.guardias.*;com.guardias.database.*;java.util.ResourceBundle;java.text.SimpleDateFormat;java.util.*;java.text.*;com.guardias.Vacaciones_Medicos",Guardias_Servicios.xml,ServicioService
+web/servicio/lista_servicios.jsp,Y,"com.guardias.servicios.Guardias_Servicios;com.guardias.*;com.guardias.database.*;java.util.*;java.text.*",Guardias_Servicios.xml,ServicioService
+web/servicios.jsp,Y,"com.guardias.*;java.util.*",,ServicioService
+web/report_totalporfechas.jsp,Y,"com.guardias.*;java.util.*",,ReportingService
+web/reports/filtro_porfechas.jsp,Y,"com.guardias.Medico;com.guardias.cambios.*;com.guardias.database.*;com.guardias.Util;java.text.SimpleDateFormat;java.util.*",,ReportingService
+web/reports/resultados_porfechas.jsp,Y,"com.guardias.GuardiasReportingUtilContainer;com.guardias.Guardias;com.guardias.Medico;com.guardias.cambios.*;com.guardias.database.*;com.guardias.Util;java.util.*;java.text.*",Guardias.xml,ReportingService
+web/toExcel.jsp,Y,"com.guardias.database.MedicoDBImpl;com.guardias.ProcesarMedicos;com.guardias.*;com.guardias.Util;java.util.*",,ExportService
+web/toExcelEmail.jsp,Y,"com.guardias.database.MedicoDBImpl;com.guardias.ProcesarMedicos;com.guardias.*;com.guardias.Util;java.util.*",,ExportService
+web/common/init.jsp,Y,"com.guardias.database.MedicoDBImpl",,AuthService
+web/common/navigation.jsp,Y,,Guardias_Servicios.xml,UI
+web/common/footer.jsp,Y,, ,UI
+web/public/inicio.jsp,Y,"com.guardias.*;java.util.*",,PublicService
+web/public/suscribe_user.jsp,Y,"com.guardias.mail.MailingUtil;com.guardias.Util;com.guardias.database.SuscriptoresDBImpl",,PublicService
+web/public/mail_contact.jsp,Y,"com.guardias.mail.MailingUtil;com.guardias.Util;com.guardias.database.SuscriptoresDBImpl",,PublicService
+web/register.jsp,Y,"guardias.security.SecurityUtil;com.guardias.database.MedicoDBImpl;com.guardias.*;java.util.*;java.security.*;org.apache.commons.codec.binary.Hex",,AuthService
+web/registration_tour.jsp,Y,"com.guardias.*;java.util.*",,UI
+web/login.jsp,Y,"com.guardias.database.Guardias_ServiciosDBImpl;org.brickred.socialauth.AuthProvider;org.brickred.socialauth.AuthProviderFactory;guardias.security.SecurityUtil;com.guardias.database.MedicoDBImpl;com.guardias.*;java.util.*",,AuthService
+web/logout.jsp,Y,, ,AuthService
+web/medicos.jsp,Y,"com.guardias.*;java.util.*",,MedicoService
+web/medico/lista_medicos.jsp,Y,"java.text.SimpleDateFormat;com.guardias.*;com.guardias.database.*;java.util.*;java.text.*",,MedicoService
+web/medico/medico_orden.jsp,Y,"com.guardias.*;com.guardias.database.*;java.util.*",,MedicoService
+web/medico/grabar_guardias.jsp,Y,"java.text.SimpleDateFormat;com.guardias.calendar.CalendarEventUtil;com.guardias.calendar.CalendarService;com.guardias.*;com.guardias.database.*;com.guardias.calendar.*;java.util.*;java.text.*;com.google.gson.*",Guardias.xml;CambiosGuardias.xml,GuardiaService
+web/medico/cambio_guardia.jsp,Y,"com.guardias.cambios.*;com.guardias.*;com.guardias.Guardias;com.guardias.database.*;java.util.*;java.util.Calendar;java.text.*;java.util.Map.*;java.util.ResourceBundle;java.util.Locale",CambiosGuardias.xml;Guardias.xml,GuardiaChangeService
+web/medico/cambio_estado_guardia.jsp,Y,"com.guardias.cambios.*;com.guardias.*;com.guardias.calendar.*;com.guardias.database.*;java.util.*;com.guardias.database.GuardiasDBImpl;com.guardias.database.MedicoDBImpl;com.guardias.database.ConfigurationDBImpl;com.guardias.mail.*;java.util.Calendar;java.text.*",CambiosGuardias.xml;Guardias.xml,GuardiaChangeService
+web/medico/add_cambio_guardia.jsp,Y,"com.guardias.mail.MailingUtil;com.guardias.cambios.*;com.guardias.*;com.guardias.Guardias;com.guardias.database.*;java.util.*;com.google.gson.*;java.util.ResourceBundle;java.util.Locale",CambiosGuardias.xml;Guardias.xml,GuardiaChangeService
+web/medico/lista_cambiosguardias.jsp,Y,"com.guardias.Medico;com.guardias.cambios.*;com.guardias.database.*;com.guardias.Util;java.util.*",,GuardiaChangeService
+web/medico/detallemedico.jsp,Y,"guardias.security.SecurityUtil;com.guardias.mail.MailingUtil;com.guardias.database.MedicoDBImpl;com.guardias.persistence.*;com.guardias.*;com.guardias.servicios.*;com.guardias.database.*;java.util.ResourceBundle;java.text.SimpleDateFormat;java.util.*;com.guardias.Vacaciones_Medicos;com.guardias.servicios.Guardias_Servicios",Medico.xml;Guardias_Servicios.xml,MedicoService
+web/fill_agenda.jsp,Y,"com.guardias.database.MedicoDBImpl;com.guardias.*;java.util.*",,SchedulingService
+web/calc_agenda.jsp,Y,"com.guardias.database.CambiosGuardiasDBImpl;com.guardias.database.GuardiasDBImpl;com.guardias.database.MedicoDBImpl;com.guardias.database.ConfigurationDBImpl;com.guardias.*;java.util.*;java.text.*",CambiosGuardias.xml;Guardias.xml;ConfigurationIBATIS.xml,SchedulingService
+web/excel/exceltest.jsp,Y,, ,ExportService
+web/email_template.jsp,Y,, ,NotificationService
+web/config.jsp,Y,,ConfigurationIBATIS.xml,ConfigurationService
+web/config/config_form.jsp,Y,"com.guardias.database.ConfigurationDBImpl",ConfigurationIBATIS.xml,ConfigurationService
+web/cambios_guardias.jsp,Y,,CambiosGuardias.xml,GuardiaChangeService
+web/servicio/unirse.jsp,Y,"com.guardias.*;com.guardias.servicios.*;com.guardias.database.*;java.util.*;com.guardias.mail.*",Guardias_Servicios.xml,ServicioService
+web/get_guardias.jsp,Y,"com.guardias.database.GuardiasDBImpl;com.guardias.database.MedicoDBImpl",Guardias.xml,GuardiaService
+web/guest/confirmacion.jsp,Y,"com.guardias.database.Guardias_ServiciosDBImpl;com.guardias.database.MedicoDBImpl",Guardias_Servicios.xml,PublicService
+web/guest/olvidar_contrasena.jsp,Y,"com.guardias.database.MedicoDBImpl",,AuthService
+web/public/mail_contact.jsp,Y,"com.guardias.mail.MailingUtil;com.guardias.Util;com.guardias.database.SuscriptoresDBImpl",,PublicService
+web/tour/tour.jsp,Y,, ,UI
+web/medico/_list_medicos_cambio_guardia.jsp,Y,"com.guardias.cambios.*;com.guardias.*;com.guardias.calendar.*;com.guardias.database.*;java.util.*;java.util.Calendar;java.text.*;com.guardias.database.GuardiasDBImpl;com.guardias.database.MedicoDBImpl;com.guardias.database.ConfigurationDBImpl",,GuardiaChangeService

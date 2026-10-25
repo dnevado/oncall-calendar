@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- Plantilla: copia este fichero como ConfigurationIBATIS.xml y rellena los valores.
+     ConfigurationIBATIS.xml no se versiona (contiene credenciales). -->
+<configuration>
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+        <!-- <property name="url" value="jdbc:mysql://&lt;host&gt;:3306/&lt;base&gt;"/>-->
+        <property name="url" value="jdbc:mysql://&lt;host&gt;:3306/&lt;base&gt;"/>
+         <!--  <property name="url" value="jdbc:mysql://&lt;host&gt;:3306/&lt;base&gt;"/> -->
+         <property name="username" value="&lt;usuario&gt;"/>
+         <property name="password" value="&lt;contrasena&gt;"/>
+        
+        <!-- <property name="username" value="&lt;usuario&gt;"/>
+        <property name="password" value="&lt;contrasena&gt;"/> -->
+      </dataSource>
+    </environment>
+  </environments>
+  <mappers>
+    <mapper resource="com/guardias/persistence/CambiosGuardias.xml"/>
+    <mapper resource="com/guardias/persistence/Guardias_Servicios.xml"/>
+  </mappers>
+</configuration>
