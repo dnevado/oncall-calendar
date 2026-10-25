@@ -1,6 +1,7 @@
 package es.medoncalls.guardias.integration;
 
 import static es.medoncalls.guardias.contract.OpenApiContract.cumple;
+import static es.medoncalls.guardias.contract.OpenApiContract.respuestaCumple;
 import static org.assertj.core.api.Assertions.assertThat;
 import static es.medoncalls.guardias.support.CsrfSpa.csrfSpa;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -58,6 +59,11 @@ class AuthIT extends IntegracionBase {
                 .andExpect(jsonPath("$.id").value(admin))
                 .andExpect(jsonPath("$.nombre").value("Ana Prueba"))
                 .andExpect(jsonPath("$.serviciosAdministrados[0].id").value(servicio));
+    }
+
+    @Test
+    void loginSinEmailEs400SegunElContrato() throws Exception {
+        intentarLogin("", "algo").andExpect(status().isBadRequest()).andExpect(respuestaCumple());
     }
 
     @Test

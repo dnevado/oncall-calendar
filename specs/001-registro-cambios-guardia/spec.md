@@ -161,6 +161,7 @@ Al generar la agenda, el reparto equilibra el número de guardias de cada tipo e
 - **Decisiones aprobadas sobre capacidades** (no son pérdidas, salvo donde se dice):
   - H2: la bandeja externa del legacy, que servía para llevar una guardia a otro mes, se sustituye por dos vías: arrastrar en la vista de año, o editar la fecha de fin en el popup.
   - H4: el listado de cambios es mensual, del más reciente al más antiguo, sin búsqueda ni ordenación por columna.
+  - H4 (móvil): la verificación en pantallas de móvil se **aplaza** por decisión del responsable (2026-10-25: «Movil no me preocupa al menos ahora»). No se ha comprobado y no se da por cubierta. Se revisa antes de retirar el calendario legacy o el 2027-04-30, lo que ocurra antes.
   - H5: los médicos sin rol de administrador no ven sus cambios en la aplicación nueva. Los siguen viendo en el legacy (fuera de alcance, CG-002).
 
 ### Key Entities *(include if feature involves data)*

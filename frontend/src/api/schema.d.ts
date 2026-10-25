@@ -300,6 +300,7 @@ export interface operations {
                     "application/json": components["schemas"]["Usuario"];
                 };
             };
+            400: components["responses"]["PeticionInvalida"];
             401: components["responses"]["NoAutenticado"];
         };
     };
@@ -394,6 +395,7 @@ export interface operations {
                     "application/json": components["schemas"]["Candidato"][];
                 };
             };
+            400: components["responses"]["PeticionInvalida"];
             401: components["responses"]["NoAutenticado"];
             403: components["responses"]["Prohibido"];
             404: components["responses"]["NoEncontrado"];
@@ -422,6 +424,7 @@ export interface operations {
                     "application/json": components["schemas"]["Cambio"][];
                 };
             };
+            400: components["responses"]["PeticionInvalida"];
             401: components["responses"]["NoAutenticado"];
             403: components["responses"]["Prohibido"];
         };

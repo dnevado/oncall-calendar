@@ -23,7 +23,13 @@ export function LoginPage() {
       <form onSubmit={enviar}>
         <label>
           Correo electrónico
-          <input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
         <label>
           Contraseña

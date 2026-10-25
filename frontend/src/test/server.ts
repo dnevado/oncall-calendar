@@ -13,9 +13,27 @@ export const usuarioAdmin: Usuario = {
 };
 
 export const guardias: Guardia[] = [
-  { id: 10, fecha: '2030-01-10', tipo: 'PRESENCIA', festivo: false, medico: { id: 2, nombre: 'Bruno Prueba' } },
-  { id: 20, fecha: '2030-01-20', tipo: 'PRESENCIA', festivo: true, medico: { id: 2, nombre: 'Bruno Prueba' } },
-  { id: 21, fecha: '2030-01-20', tipo: 'RESIDENTE', festivo: false, medico: { id: 3, nombre: 'Rita Prueba' } },
+  {
+    id: 10,
+    fecha: '2030-01-10',
+    tipo: 'PRESENCIA',
+    festivo: false,
+    medico: { id: 2, nombre: 'Bruno Prueba' },
+  },
+  {
+    id: 20,
+    fecha: '2030-01-20',
+    tipo: 'PRESENCIA',
+    festivo: true,
+    medico: { id: 2, nombre: 'Bruno Prueba' },
+  },
+  {
+    id: 21,
+    fecha: '2030-01-20',
+    tipo: 'RESIDENTE',
+    festivo: false,
+    medico: { id: 3, nombre: 'Rita Prueba' },
+  },
 ];
 
 export const candidatos: Candidato[] = [
@@ -43,13 +61,18 @@ export const handlers = [
     const cuerpo = (await request.json()) as { email: string; password: string };
     return cuerpo.password === 'secreto'
       ? HttpResponse.json(usuarioAdmin)
-      : HttpResponse.json({ ...noAutenticado, detail: 'Correo o contraseña incorrectos.' }, { status: 401 });
+      : HttpResponse.json(
+          { ...noAutenticado, detail: 'Correo o contraseña incorrectos.' },
+          { status: 401 },
+        );
   }),
   http.get('*/api/v1/servicios/:servicioId/guardias', () => HttpResponse.json(guardias)),
   http.get('*/api/v1/servicios/:servicioId/guardias/:guardiaId/receptores-candidatos', () =>
     HttpResponse.json(candidatos),
   ),
-  http.post('*/api/v1/servicios/:servicioId/cambios', () => HttpResponse.json(cambioRegistrado, { status: 201 })),
+  http.post('*/api/v1/servicios/:servicioId/cambios', () =>
+    HttpResponse.json(cambioRegistrado, { status: 201 }),
+  ),
 ];
 
 export const server = setupServer(...handlers);

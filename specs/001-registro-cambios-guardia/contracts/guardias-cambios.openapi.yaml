@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Guardias — Cambios y cesiones
-  version: 1.0.0-draft
+  version: 1.1.0-draft
   description: |
     Borrador del contrato de la funcionalidad 001 (specs/001-registro-cambios-guardia).
     Se publica en contracts/guardias-cambios.openapi.yaml al implementarse (constitución, principio IV).
@@ -32,6 +32,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Usuario' }
+        '400': { $ref: '#/components/responses/PeticionInvalida' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
 
   /auth/logout:
@@ -97,6 +98,7 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/Candidato' }
+        '400': { $ref: '#/components/responses/PeticionInvalida' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/Prohibido' }
         '404': { $ref: '#/components/responses/NoEncontrado' }
@@ -118,6 +120,7 @@ paths:
               schema:
                 type: array
                 items: { $ref: '#/components/schemas/Cambio' }
+        '400': { $ref: '#/components/responses/PeticionInvalida' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/Prohibido' }
     post:

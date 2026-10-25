@@ -1,7 +1,16 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { api, type Usuario } from '../../api/client';
 
-type Estado = { fase: 'cargando' } | { fase: 'anonimo' } | { fase: 'autenticado'; usuario: Usuario };
+type Estado =
+  { fase: 'cargando' } | { fase: 'anonimo' } | { fase: 'autenticado'; usuario: Usuario };
 
 interface Auth {
   estado: Estado;

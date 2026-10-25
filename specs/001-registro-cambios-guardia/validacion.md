@@ -171,3 +171,42 @@ Ejecutarlo requiere arrancar el legacy contra una MySQL 5.7 de prueba. La conexi
 Con Tomcat conectado a las dos redes, el nombre `mysql` es ambiguo, porque también es el servicio de `deploy/local`. Por eso hay que desconectarlo de una antes de conectarlo a la otra.
 
 Las reglas y efectos de los pasos 3–7 están cubiertos por las pruebas de integración contra MySQL 5.7 (`RegistrarCesionIT`, `RegistrarIntercambioIT`, `AjusteResidentesIT`, `LegacyVisibilidadIT`). Esa cobertura no sustituye a la comprobación de la interfaz.
+
+## T068: revisión de migración (`/migration-review`)
+
+**Fecha**: 2026-10-25. **Alcance**: la rama `rearchitecture-claude-based-speckit` frente a `master`, comparada con la spec, el catálogo de reglas, el contrato, el comportamiento legacy y el inventario de capacidades de la interfaz (principio VIII).
+
+**Bloqueantes**: ninguno.
+
+| Hallazgo | Severidad | Corrección |
+|---|---|---|
+| I1. Había respuestas 400 no declaradas en el contrato: listado de cambios (rango invertido), candidatos (intercambio sin `fechaDestino`) y login (cuerpo inválido) | Importante | Aprobado por el responsable. Contrato **1.1.0**: se añade `'400': PeticionInvalida` a las tres operaciones. Tipos del frontend regenerados. Las pruebas de esos 400 validan ahora la respuesta contra el contrato: `cumple()`, o `respuestaCumple()` cuando la petición es inválida a propósito. Prueba nueva `AuthIT.loginSinEmailEs400SegunElContrato` |
+| I2. La verificación en móvil (H4) no constaba como decisión | Importante | Registrada en la spec como **aplazada** por el responsable, con revisión antes de retirar el calendario legacy o el 2027-04-30 |
+| I3. La SPA se servía sin cabeceras de seguridad | Importante | `frontend/nginx.conf` añade CSP (`'self'`; `style-src 'unsafe-inline'` por FullCalendar; `frame-ancestors 'none'`), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff` y `Referrer-Policy: same-origin`. Comprobado con `nginx:1.27-alpine` y el build real: `nginx -t` correcto, las cabeceras se envían y la fuente sale como `font/woff2`. **Pendiente**: probar la CSP en un navegador real |
+| M1. El arrastrar y soltar no tiene prueba automática (jsdom no lo puede simular) | Menor | Aceptado. Se verificó a mano (responsable, T067) |
+| M2. `react-router-dom` 6 tiene 2 avisos moderados de `npm audit`, que ya estaban | Menor | Fuera del alcance. Corregirlos exige pasar a la versión 7 (tarea aparte) |
+| M3. Varios ficheros del frontend no cumplían el formato de Prettier del proyecto | Menor | Formateados (5 ficheros, sin cambios de lógica) |
+| M4. Hay correos y apellidos reales en código legacy que ya estaba en `master` | Informativo | Ningún fichero nuevo de la rama contiene datos personales reales (comprobado contra los médicos de la copia) |
+
+**Lista de comprobación**:
+- Alcance: ✅
+- Equivalencia funcional: ✅
+- Reglas críticas no solo en el frontend: ✅
+- Contrato: ✅ tras I1
+- Persistencia: ✅
+- Pruebas: ✅
+- Seguridad: ✅ tras I3
+- Capacidades de la interfaz: ✅ (móvil aplazado, I2)
+- Calidad: ✅ tras M3
+
+**Pruebas ejecutadas tras las correcciones**: ver la tabla siguiente.
+
+| Comando | Resultado |
+|---|---|
+| `mvn -f backend/pom.xml verify` | Exit 0: 58 pruebas unitarias y de contrato y 59 de integración (MySQL 5.7), sin fallos, errores ni omitidas |
+| `npm --prefix frontend test` | 5 ficheros, 33 pruebas, todas correctas |
+| `npm --prefix frontend run lint` y `run build` | Correctos |
+| `npx prettier --check "src/**/*.{ts,tsx,css}"` | Todos los ficheros con el formato del proyecto |
+| `npm run gen:api` | Los tipos coinciden con el contrato 1.1.0 |
+
+**T068: cerrada.** La funcionalidad 001 queda lista para la PR. Pendiente fuera del código: la prueba de la CSP en un navegador (I3) y las decisiones abiertas de producción y de negocio.

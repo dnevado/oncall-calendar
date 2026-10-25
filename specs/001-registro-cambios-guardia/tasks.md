@@ -210,7 +210,7 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 - [X] T073 Tests for T072 in `frontend/src/features/cambios/CalendarioPage.test.tsx` (draggable only when future, popup, Inicio/Fin, Escape and focus return). The drop itself is checked manually in the browser (quickstart §2): jsdom cannot simulate FullCalendar's drag
 - [X] T071 Tests for T069–T070 in `frontend/src/features/cambios/CalendarioPage.test.tsx`: ranges requested per view, navigation and today, day link, legacy order, legend, keyboard selection, past guardias not selectable
 - [X] T067 Run `mvn -f backend/pom.xml verify` and `npm --prefix frontend test`, then the manual scenario of `specs/001-registro-cambios-guardia/quickstart.md` §2; record commands, results and deviations in `specs/001-registro-cambios-guardia/validacion.md` (principle V: no test is reported as passed unless executed)
-- [ ] T068 Run `/migration-review` on the increment against spec, rules catalog `docs/rules/cambio-guardia-reglas-candidatas.md`, `contracts/guardias-cambios.openapi.yaml`, legacy behaviour and the UI capabilities inventory of `plan.md` (principle VIII, including the mobile check of H4); fix findings before opening the PR
+- [X] T068 Run `/migration-review` on the increment against spec, rules catalog `docs/rules/cambio-guardia-reglas-candidatas.md`, `contracts/guardias-cambios.openapi.yaml`, legacy behaviour and the UI capabilities inventory of `plan.md` (principle VIII, including the mobile check of H4); fix findings before opening the PR
 
 ---
 

@@ -1,6 +1,7 @@
 package es.medoncalls.guardias.contract;
 
 import static es.medoncalls.guardias.contract.OpenApiContract.cumple;
+import static es.medoncalls.guardias.contract.OpenApiContract.respuestaCumple;
 import static es.medoncalls.guardias.support.CsrfSpa.csrfSpa;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -78,7 +79,8 @@ class CambiosContractTest extends IntegracionBase {
     @Test
     void cuerpoIncompletoEs400() throws Exception {
         registrar("{\"tipo\":\"CESION\",\"guardiaOrigenId\":" + guardiaAna + "}")
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(respuestaCumple());
     }
 
     @Test
@@ -133,7 +135,8 @@ class CambiosContractTest extends IntegracionBase {
     void receptoresCandidatosDeUnIntercambioSinFechaDestinoEs400() throws Exception {
         mvc.perform(get("/api/v1/servicios/{s}/guardias/{g}/receptores-candidatos", servicio, guardiaAna)
                         .param("tipo", "CAMBIO").session(sesion))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(cumple());
     }
 
     @Test
@@ -172,8 +175,8 @@ class CambiosContractTest extends IntegracionBase {
     void listadoConRangoInvertidoEs400() throws Exception {
         mvc.perform(get("/api/v1/servicios/{s}/cambios", servicio)
                         .param("desde", "2030-02-28").param("hasta", "2030-02-01").session(sesion))
-                // El contrato no declara 400 en esta operación (pendiente de decidir si se añade).
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(cumple());
     }
 
     @Test
