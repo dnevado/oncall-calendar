@@ -1,11 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, NavLink, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { LoginPage } from './features/auth/LoginPage';
 import { ServicioSelector } from './features/auth/ServicioSelector';
 import { CalendarioPage } from './features/cambios/CalendarioPage';
 import { CambiosListPage } from './features/cambios/CambiosListPage';
-import { VacacionesPage } from './features/vacaciones/VacacionesPage';
 import type { Usuario } from './api/client';
+
+// Carga diferida: el selector de fechas solo se descarga al abrir «Vacaciones».
+const VacacionesPage = lazy(() => import('./features/vacaciones/VacacionesPage'));
 
 function PaginaDelServicio({
   usuario,
@@ -30,7 +33,11 @@ function PaginaDelServicio({
       </nav>
       {pagina === 'calendario' && <CalendarioPage servicioId={servicioId} />}
       {pagina === 'cambios' && <CambiosListPage servicioId={servicioId} />}
-      {pagina === 'vacaciones' && <VacacionesPage servicioId={servicioId} />}
+      {pagina === 'vacaciones' && (
+        <Suspense fallback={<p>Cargando…</p>}>
+          <VacacionesPage servicioId={servicioId} />
+        </Suspense>
+      )}
     </>
   );
 }

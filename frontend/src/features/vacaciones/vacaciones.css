@@ -10,7 +10,7 @@
   --vacaciones-quitado-fondo: #f2dede;
   --vacaciones-quitado-borde: #a94442;
   --vacaciones-conflicto: #a94442;
-  --vacaciones-deshabilitado: #767676;
+  --vacaciones-deshabilitado: #595959;
 }
 
 .vacaciones {
@@ -44,7 +44,7 @@
 }
 
 .editor-vacaciones .rdp-day_button:focus-visible {
-  outline: 3px solid var(--foco);
+  outline: 3px solid var(--primario-oscuro);
   outline-offset: 1px;
 }
 
@@ -233,7 +233,7 @@
 }
 
 .editor-vacaciones h2:focus-visible {
-  outline: 3px solid var(--foco);
+  outline: 3px solid var(--primario-oscuro);
 }
 
 /* Visible solo para lectores de pantalla. */

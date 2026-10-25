@@ -96,6 +96,12 @@ Estados como en la [001](../001-registro-cambios-guardia/plan.md#capacidades-de-
 | A1 | Meses vacacionales del servicio | `config_form.jsp:443-460` | sigue en legacy (VAC-011, P9 c) |
 | A2 | La agenda no asigna guardias a quien está de vacaciones | `calc_agenda.jsp:525`, `fill_agenda.jsp:128` | sigue en legacy; se garantiza con la regresión del quickstart, escenario 12 (VAC-010) |
 
+**Estado tras la implementación (2026-10-25)**: todas las capacidades marcadas como cubiertas o sustituidas están implementadas y probadas:
+- V1–V3, V6, V7 y V9 en `EditorVacaciones` (incluido el periodo opcional de V1);
+- M1–M3 y los conflictos en `ResumenVacaciones`.
+
+Las descartadas por spec (V4, V8) y las que siguen en el legacy (A1, A2) no cambian. A2 queda garantizada por `LegacyVacacionesIT`. Pendiente: verificación en móvil (H4) y `/migration-review`.
+
 **Móvil**: el editor usa un mes por pantalla en anchos estrechos y dos meses en escritorio. Su verificación en móvil sigue la decisión H4 (móvil) de la 001: aplazada hasta antes de retirar el calendario legacy o el 2027-04-30.
 
 ## Project Structure

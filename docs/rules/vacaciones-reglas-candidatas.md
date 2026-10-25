@@ -43,6 +43,25 @@ Convenciones (estados, paridad, ⚠, criticidad y confianza) iguales que en el [
 | BR-CAND-VAC-011 | Meses vacacionales: prioridad por días de vacaciones | media | mantiene | validada (se garantiza, no se migra) |
 | BR-CAND-VAC-012 | Sin notificaciones de vacaciones | baja | mantiene | validada |
 
+## Implementación (especificación 002)
+
+Dónde se cumple cada regla en el sistema nuevo y qué prueba lo demuestra. Rutas de código bajo `backend/src/main/java/es/medoncalls/guardias/vacaciones/` y de pruebas bajo `backend/src/test/java/es/medoncalls/guardias/`, salvo que se indique otra.
+
+| Regla | Código | Pruebas |
+|---|---|---|
+| VAC-001 | `api/VacacionesController.java` (`ServicioAccess.exigirAdministrador` en las dos operaciones) | `integration/ServicioAccessCoverageTest.java`, `integration/ConsultarVacacionesIT.java`, `integration/ModificarVacacionesIT.java` (403 y 404) |
+| VAC-002 | `application/ModificarVacacionesService.java`: escribe en el acto, sin estados | `integration/ModificarVacacionesIT.java` |
+| VAC-003 | `domain/ReglasVacaciones.java`; guardias del servicio con `GuardiaMapper.selectByMedicosFechasServicio` tras `lockServicio` | `vacaciones/domain/ReglasVacacionesTest.java`; `ModificarVacacionesIT` (conflicto, otro servicio, concurrencia con una cesión) |
+| VAC-004 | Sin comprobación de límite futuro | `ReglasVacacionesTest`, `ModificarVacacionesIT` (escenario 4) |
+| VAC-005 | Clave `IND_VACACIONES_01` e `INSERT … ON DUPLICATE KEY UPDATE` (`resources/mappers/VacacionMapper.xml`); selector de varios días y periodo (`frontend/src/features/vacaciones/EditorVacaciones.tsx`) | `ModificarVacacionesIT` (idempotencia), `EditorVacaciones.test.tsx` |
+| VAC-006 | Sin servicio en la tabla; CG-012 de la 001 lee la misma tabla | `ModificarVacacionesIT` (escenario 11, CG-012 tras añadir) |
+| VAC-007 | `domain/ModificacionVacaciones.java` y `ModificarVacacionesService` (solo días tocados, una transacción) | `ModificarVacacionesIT` (quitar solo lo indicado, mezcla con error, fallo a mitad, dos administradores) |
+| VAC-008 | `domain/ReglasVacaciones.java` (añadir y quitar), «hoy» con `Clock` | `ReglasVacacionesTest`, `ModificarVacacionesIT`, `ConsultarVacacionesIT` (conflictos de 2017 no editables) |
+| VAC-009 | `application/ConsultarVacacionesService.java` (conflictos por `LEFT JOIN`); `frontend/src/features/vacaciones/ResumenVacaciones.tsx` | `ConsultarVacacionesIT`, `contract/VacacionesContractTest.java`, `ResumenVacaciones.test.tsx` |
+| VAC-010 | Misma tabla y formato (`yyyy-MM-dd`) | `legacy/LegacyVacacionesIT.java` (SQL original de `VacacionesDBImpl` y `NoTieneVacaciones`) |
+| VAC-011 | Misma tabla y formato; la configuración sigue en el legacy | `legacy/LegacyVacacionesIT.java` (meses y recuento) |
+| VAC-012 | Sin notificaciones | — (no hay código que avise) |
+
 ## Detalle
 
 ### BR-CAND-VAC-001 — Quién gestiona las vacaciones
