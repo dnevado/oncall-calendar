@@ -30,4 +30,17 @@
      <if test="medicoId != null">AND v.IdMedico = #{medicoId}</if>
      ORDER BY v.IdMedico, v.FDay
   </select>
+
+  <select id="diasExistentes" resultType="string">
+    SELECT v.FDay
+      FROM vacaciones_medicos v
+     WHERE v.IdMedico = #{medicoId}
+       AND v.FDay IN <foreach collection="dias" item="d" open="(" separator="," close=")">#{d}</foreach>
+  </select>
+
+  <insert id="insertarDias">
+    INSERT INTO vacaciones_medicos (IdMedico, FDay) VALUES
+    <foreach collection="dias" item="d" separator=",">(#{medicoId}, #{d})</foreach>
+    ON DUPLICATE KEY UPDATE FDay = VALUES(FDay)
+  </insert>
 </mapper>

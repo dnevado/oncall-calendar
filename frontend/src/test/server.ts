@@ -1,6 +1,14 @@
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import type { Candidato, Cambio, Guardia, Problem, Usuario, VacacionesMedico } from '../api/client';
+import type {
+  Candidato,
+  Cambio,
+  Guardia,
+  ModificarVacacionesRequest,
+  Problem,
+  Usuario,
+  VacacionesMedico,
+} from '../api/client';
 
 // Datos ficticios con la forma de los esquemas del contrato (contracts/guardias-cambios.openapi.yaml).
 export const HOY = '2030-01-15';
@@ -88,6 +96,10 @@ export const handlers = [
   http.post('*/api/v1/servicios/:servicioId/cambios', () =>
     HttpResponse.json(cambioRegistrado, { status: 201 }),
   ),
+  http.patch('*/api/v1/servicios/:servicioId/medicos/:medicoId/vacaciones', async ({ request }) => {
+    const cuerpo = (await request.json()) as ModificarVacacionesRequest;
+    return HttpResponse.json({ anadidos: cuerpo.anadir ?? [], quitados: cuerpo.quitar ?? [] });
+  }),
   http.get('*/api/v1/servicios/:servicioId/vacaciones', ({ request }) => {
     const medicoId = new URL(request.url).searchParams.get('medicoId');
     return HttpResponse.json(

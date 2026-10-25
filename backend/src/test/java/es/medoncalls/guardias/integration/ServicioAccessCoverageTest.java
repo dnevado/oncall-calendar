@@ -34,6 +34,7 @@ class ServicioAccessCoverageTest extends IntegracionBase {
     private static final Map<String, String> PARAMETROS = Map.of(
             "desde", "2030-02-01", "hasta", "2030-02-28", "tipo", "CESION", "fechaDestino", "2030-02-15");
     private static final String CUERPO = "{\"tipo\":\"CESION\",\"guardiaOrigenId\":1,\"cedenteId\":1,\"receptorId\":2}";
+    private static final String CUERPO_PATCH = "{\"anadir\":[\"2030-02-15\"],\"quitar\":[]}";
 
     @Autowired
     @Qualifier("requestMappingHandlerMapping")
@@ -59,6 +60,8 @@ class ServicioAccessCoverageTest extends IntegracionBase {
                     PARAMETROS.forEach(peticion::param);
                     if (metodo == RequestMethod.POST) {
                         peticion.contentType(MediaType.APPLICATION_JSON).content(CUERPO);
+                    } else if (metodo == RequestMethod.PATCH) {
+                        peticion.contentType(MediaType.APPLICATION_JSON).content(CUERPO_PATCH);
                     }
                     int estado = mvc.perform(peticion).andReturn().getResponse().getStatus();
                     assertThat(estado).as("%s %s", metodo, ruta).isEqualTo(403);
@@ -71,6 +74,7 @@ class ServicioAccessCoverageTest extends IntegracionBase {
                 "GET /api/v1/servicios/{servicioId}/guardias/{guardiaId}/receptores-candidatos",
                 "GET /api/v1/servicios/{servicioId}/cambios",
                 "POST /api/v1/servicios/{servicioId}/cambios",
-                "GET /api/v1/servicios/{servicioId}/vacaciones");
+                "GET /api/v1/servicios/{servicioId}/vacaciones",
+                "PATCH /api/v1/servicios/{servicioId}/medicos/{medicoId}/vacaciones");
     }
 }

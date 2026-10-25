@@ -1,13 +1,19 @@
 package es.medoncalls.guardias.contract;
 
 import static es.medoncalls.guardias.contract.OpenApiContract.cumple;
+import static es.medoncalls.guardias.contract.OpenApiContract.respuestaCumple;
+import static es.medoncalls.guardias.support.CsrfSpa.csrfSpa;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import es.medoncalls.guardias.cambios.domain.TipoGuardia;
 import es.medoncalls.guardias.support.IntegracionBase;
@@ -56,6 +62,44 @@ class VacacionesContractTest extends IntegracionBase {
                 .andExpect(cumple());
         mvc.perform(get("/api/v1/servicios/{id}/vacaciones", servicio).session(login(bruno))
                         .param("desde", "2030-01-01").param("hasta", "2030-01-31"))
+                .andExpect(status().isForbidden())
+                .andExpect(cumple());
+    }
+
+    private MockHttpServletRequestBuilder modificar(MockHttpSession sesion, long medicoId, String cuerpo) {
+        return patch("/api/v1/servicios/{s}/medicos/{m}/vacaciones", servicio, medicoId).with(csrfSpa())
+                .session(sesion).contentType(MediaType.APPLICATION_JSON).content(cuerpo);
+    }
+
+    @Test
+    void modificarVacacionesCumpleElContrato() throws Exception {
+        mvc.perform(modificar(login(admin), bruno, "{\"anadir\":[\"2030-02-10\",\"2030-02-11\"],\"quitar\":[]}"))
+                .andExpect(status().isOk())
+                .andExpect(cumple());
+    }
+
+    @Test
+    void reglasIncumplidasAlModificarCumplenElContrato() throws Exception {
+        datos.guardia(bruno, LocalDate.of(2030, 2, 10), TipoGuardia.PRESENCIA, false, servicio);
+
+        mvc.perform(modificar(login(admin), bruno, "{\"anadir\":[\"2030-01-10\",\"2030-02-10\"]}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(cumple());
+    }
+
+    @Test
+    void erroresDeModificarVacacionesCumplenElContrato() throws Exception {
+        MockHttpSession sesion = login(admin);
+        mvc.perform(modificar(sesion, bruno, "{\"anadir\":[]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(cumple());
+        mvc.perform(modificar(sesion, bruno, "{\"anadir\":[\"2030-02-10\",\"2030-02-10\"]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(respuestaCumple());
+        mvc.perform(modificar(sesion, ajeno, "{\"anadir\":[\"2030-02-10\"]}"))
+                .andExpect(status().isNotFound())
+                .andExpect(cumple());
+        mvc.perform(modificar(login(bruno), bruno, "{\"anadir\":[\"2030-02-10\"]}"))
                 .andExpect(status().isForbidden())
                 .andExpect(cumple());
     }

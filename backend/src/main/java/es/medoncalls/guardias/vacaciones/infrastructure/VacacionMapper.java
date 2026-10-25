@@ -1,5 +1,6 @@
 package es.medoncalls.guardias.vacaciones.infrastructure;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -22,4 +23,13 @@ public interface VacacionMapper {
     /** Días de vacaciones de los médicos del servicio en el rango, con su conflicto (research V5). */
     List<DiaVacacionFila> diasConConflicto(@Param("servicioId") long servicioId, @Param("desde") String desde,
             @Param("hasta") String hasta, @Param("medicoId") Long medicoId);
+
+    /** Días de la lista que ya son de vacaciones del médico, como texto `yyyy-MM-dd`. */
+    List<String> diasExistentes(@Param("medicoId") long medicoId, @Param("dias") Collection<String> dias);
+
+    /**
+     * Añade los días; si otro proceso (p. ej. el legacy) ha insertado el mismo día a la vez, no falla
+     * (`IND_VACACIONES_01`, research V3).
+     */
+    int insertarDias(@Param("medicoId") long medicoId, @Param("dias") Collection<String> dias);
 }

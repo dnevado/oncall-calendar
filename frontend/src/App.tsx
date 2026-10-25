@@ -4,6 +4,7 @@ import { LoginPage } from './features/auth/LoginPage';
 import { ServicioSelector } from './features/auth/ServicioSelector';
 import { CalendarioPage } from './features/cambios/CalendarioPage';
 import { CambiosListPage } from './features/cambios/CambiosListPage';
+import { VacacionesPage } from './features/vacaciones/VacacionesPage';
 import type { Usuario } from './api/client';
 
 function PaginaDelServicio({
@@ -11,7 +12,7 @@ function PaginaDelServicio({
   pagina,
 }: {
   usuario: Usuario;
-  pagina: 'calendario' | 'cambios';
+  pagina: 'calendario' | 'cambios' | 'vacaciones';
 }) {
   const servicioId = Number(useParams().servicioId);
   // Solo navegación: el servidor exige el rol en cada operación (FR-001).
@@ -24,13 +25,12 @@ function PaginaDelServicio({
         <NavLink to={`/servicios/${servicioId}`} end>
           Calendario
         </NavLink>{' '}
-        <NavLink to={`/servicios/${servicioId}/cambios`}>Cambios registrados</NavLink>
+        <NavLink to={`/servicios/${servicioId}/cambios`}>Cambios registrados</NavLink>{' '}
+        <NavLink to={`/servicios/${servicioId}/vacaciones`}>Vacaciones</NavLink>
       </nav>
-      {pagina === 'calendario' ? (
-        <CalendarioPage servicioId={servicioId} />
-      ) : (
-        <CambiosListPage servicioId={servicioId} />
-      )}
+      {pagina === 'calendario' && <CalendarioPage servicioId={servicioId} />}
+      {pagina === 'cambios' && <CambiosListPage servicioId={servicioId} />}
+      {pagina === 'vacaciones' && <VacacionesPage servicioId={servicioId} />}
     </>
   );
 }
@@ -65,6 +65,10 @@ export function Rutas() {
         <Route
           path="/servicios/:servicioId/cambios"
           element={<PaginaDelServicio usuario={usuario} pagina="cambios" />}
+        />
+        <Route
+          path="/servicios/:servicioId/vacaciones"
+          element={<PaginaDelServicio usuario={usuario} pagina="vacaciones" />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
