@@ -25,8 +25,7 @@ public class ProblemDetailsHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ReglasIncumplidasException.class)
     ProblemDetail reglasIncumplidas(ReglasIncumplidasException ex) {
-        ProblemDetail problema = problema(HttpStatus.UNPROCESSABLE_ENTITY, "Reglas incumplidas",
-                "El cambio no se ha registrado porque incumple las reglas indicadas.");
+        ProblemDetail problema = problema(HttpStatus.UNPROCESSABLE_ENTITY, "Reglas incumplidas", ex.getMessage());
         List<InfraccionDto> infracciones = ex.infracciones().stream().map(InfraccionDto::de).toList();
         problema.setProperty("infracciones", infracciones);
         return problema;

@@ -3,6 +3,7 @@ package es.medoncalls.guardias.support;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -89,6 +90,16 @@ public class DatosPrueba {
 
     public void vacaciones(long medicoId, LocalDate dia) {
         jdbc.update("INSERT INTO vacaciones_medicos (IdMedico, FDay) VALUES (?, ?)", medicoId, dia.toString());
+    }
+
+    public List<LocalDate> diasVacaciones(long medicoId) {
+        return jdbc.queryForList("SELECT FDay FROM vacaciones_medicos WHERE IdMedico = ? ORDER BY FDay", String.class,
+                medicoId).stream().map(LocalDate::parse).toList();
+    }
+
+    public int contarVacaciones(long medicoId) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM vacaciones_medicos WHERE IdMedico = ?", Integer.class,
+                medicoId);
     }
 
     public void configuracion(String clave, String valor, long servicioId) {

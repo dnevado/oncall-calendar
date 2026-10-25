@@ -70,6 +70,7 @@ class ServicioAccessCoverageTest extends IntegracionBase {
                 "GET /api/v1/servicios/{servicioId}/guardias",
                 "GET /api/v1/servicios/{servicioId}/guardias/{guardiaId}/receptores-candidatos",
                 "GET /api/v1/servicios/{servicioId}/cambios",
-                "POST /api/v1/servicios/{servicioId}/cambios");
+                "POST /api/v1/servicios/{servicioId}/cambios",
+                "GET /api/v1/servicios/{servicioId}/vacaciones");
     }
 }

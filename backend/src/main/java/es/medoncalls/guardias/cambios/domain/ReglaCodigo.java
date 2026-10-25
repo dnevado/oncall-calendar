@@ -11,7 +11,9 @@ public enum ReglaCodigo {
     CG_013("CG-013"),
     CG_014("CG-014"),
     CG_015("CG-015"),
-    MISMO_MEDICO("MISMO_MEDICO");
+    MISMO_MEDICO("MISMO_MEDICO"),
+    VAC_003("VAC-003"),
+    VAC_008("VAC-008");
 
     private final String codigo;
 

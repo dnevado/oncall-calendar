@@ -65,4 +65,38 @@ public final class LegacySql {
             GROUP BY
             		 GUARDIAS.Tipo, GUARDIAS.Festivo
             """;
+
+    // Vacaciones. `VacacionesDBImpl.getVacacionesMedicosFiltro` (`src/com/guardias/database/
+    // VacacionesDBImpl.java:183-207`) concatena a la consulta base `WHERE IdMedico=<id>` y, según el
+    // caso, `and  FDay='<día>'` o `and  FDay>='<desde>' and FDay<='<hasta>'`. Aquí los valores
+    // concatenados son parámetros; los espacios y comillas del texto son los del legacy.
+
+    /**
+     * Vacaciones de un médico en un día: ficha del médico y `ProcesarMedicos.NoTieneVacaciones`
+     * (`src/com/guardias/ProcesarMedicos.java:2505-2518`), que usan la generación y el relleno de la
+     * agenda (`calc_agenda.jsp:525`, `fill_agenda.jsp:128`). Fuente: `VacacionesDBImpl.java:15`
+     * (`SQLGENERAL`) y `getVacacionesMedicos`.
+     */
+    public static final String VACACIONES_DIA =
+            "SELECT * FROM vacaciones_medicos" + " WHERE IdMedico=:idMedico" + " and  FDay=:dia";
+
+    /** Vacaciones de un médico en un rango (selector de la ficha). Fuente: `VacacionesDBImpl.java:15`. */
+    public static final String VACACIONES_RANGO =
+            "SELECT * FROM vacaciones_medicos" + " WHERE IdMedico=:idMedico" + " and  FDay>=:desde and FDay<=:hasta";
+
+    /**
+     * Meses con vacaciones de un médico en un rango (columna «Vacaciones» del listado de médicos).
+     * Fuente: `VacacionesDBImpl.java:17` (`SQLGENERAL_MESES`); el mes vuelve en la columna `fday`.
+     */
+    public static final String MESES_RANGO =
+            "SELECT DISTINCT idmedico, EXTRACT(MONTH FROM date(fday)) fday  FROM vacaciones_medicos"
+            + " WHERE IdMedico=:idMedico" + " and  FDay>=:desde and FDay<=:hasta";
+
+    /**
+     * Número de días de vacaciones de un médico en un rango (reparto de la agenda). Fuente:
+     * `VacacionesDBImpl.java:19` (`SQLCOUNT`); el recuento vuelve en la columna `idmedico`.
+     */
+    public static final String RECUENTO_RANGO =
+            "SELECT count(*) idmedico FROM vacaciones_medicos"
+            + " WHERE IdMedico=:idMedico" + " and  FDay>=:desde and FDay<=:hasta";
 }

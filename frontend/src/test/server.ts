@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
-import type { Candidato, Cambio, Guardia, Problem, Usuario } from '../api/client';
+import type { Candidato, Cambio, Guardia, Problem, Usuario, VacacionesMedico } from '../api/client';
 
 // Datos ficticios con la forma de los esquemas del contrato (contracts/guardias-cambios.openapi.yaml).
 export const HOY = '2030-01-15';
@@ -52,6 +52,21 @@ export const cambioRegistrado: Cambio = {
   registradoEn: '2030-01-15T10:00:00Z',
 };
 
+/** Vacaciones del servicio: Bruno con un día en conflicto, Carla inactiva y Ana sin días. */
+export const vacaciones: VacacionesMedico[] = [
+  { medico: { id: 1, nombre: 'Ana Prueba' }, activo: true, dias: [] },
+  {
+    medico: { id: 2, nombre: 'Bruno Prueba' },
+    activo: true,
+    dias: [
+      { fecha: '2030-01-10', conflicto: guardias[0] },
+      { fecha: '2030-02-04' },
+      { fecha: '2030-02-05' },
+    ],
+  },
+  { medico: { id: 4, nombre: 'Carla Prueba' }, activo: false, dias: [{ fecha: '2030-03-02' }] },
+];
+
 export const noAutenticado: Problem = { type: 'about:blank', title: 'No autenticado', status: 401 };
 
 export const handlers = [
@@ -73,6 +88,12 @@ export const handlers = [
   http.post('*/api/v1/servicios/:servicioId/cambios', () =>
     HttpResponse.json(cambioRegistrado, { status: 201 }),
   ),
+  http.get('*/api/v1/servicios/:servicioId/vacaciones', ({ request }) => {
+    const medicoId = new URL(request.url).searchParams.get('medicoId');
+    return HttpResponse.json(
+      medicoId ? vacaciones.filter((v) => v.medico.id === Number(medicoId)) : vacaciones,
+    );
+  }),
 ];
 
 export const server = setupServer(...handlers);

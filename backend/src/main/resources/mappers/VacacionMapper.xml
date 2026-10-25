@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="es.medoncalls.guardias.vacaciones.infrastructure.VacacionMapper">
+
+  <select id="perteneceAlServicio" resultType="boolean">
+    SELECT COUNT(*) &gt; 0
+      FROM guardias_servicios_medicos sm
+     WHERE sm.IdServicio = #{servicioId}
+       AND sm.IdMedico = #{medicoId}
+  </select>
+
+  <select id="medicosDelServicio" resultType="es.medoncalls.guardias.vacaciones.infrastructure.MedicoServicioFila">
+    SELECT m.ID AS id, m.Nombre AS nombre, m.Apellidos AS apellidos, sm.ActivoServicio AS activoServicio
+      FROM guardias_servicios_medicos sm
+      JOIN medicos m ON m.ID = sm.IdMedico
+     WHERE sm.IdServicio = #{servicioId}
+     <if test="medicoId != null">AND sm.IdMedico = #{medicoId}</if>
+     ORDER BY m.Apellidos, m.Nombre, m.ID
+  </select>
+
+  <!-- Una guardia por médico, día y servicio como mucho (UX_GUARDIA_MEDICO_DIA, 001). -->
+  <select id="diasConConflicto" resultType="es.medoncalls.guardias.vacaciones.infrastructure.DiaVacacionFila">
+    SELECT v.IdMedico AS medicoId, v.FDay AS fecha, g.Id AS guardiaId, g.Festivo AS guardiaFestivo,
+           g.Tipo AS guardiaTipo, g.IdServicio AS guardiaServicioId
+      FROM vacaciones_medicos v
+      JOIN guardias_servicios_medicos sm ON sm.IdMedico = v.IdMedico AND sm.IdServicio = #{servicioId}
+      LEFT JOIN guardias_medicos g
+        ON g.IdMedico = v.IdMedico AND LEFT(g.FGuardia, 10) = v.FDay AND g.IdServicio = #{servicioId}
+     WHERE v.FDay BETWEEN #{desde} AND #{hasta}
+     <if test="medicoId != null">AND v.IdMedico = #{medicoId}</if>
+     ORDER BY v.IdMedico, v.FDay
+  </select>
+</mapper>
