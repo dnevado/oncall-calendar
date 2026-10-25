@@ -122,8 +122,29 @@ Ejecutarlo requiere arrancar el legacy contra una MySQL 5.7 de prueba. La conexi
 | 7. Cambio inverso | 201. La guardia 19478 vuelve al cedente original; el listado tiene los dos cambios (5489 y 5492) |
 | 8. Legacy (parcial) | La consulta de `GuardiasDBImpl.getGuardias` del 2026-11-03 devuelve al médico nuevo. Falta verlo en la pantalla del legacy |
 
-**Resultado**: 8 de 8 comprobaciones correctas. **Pendiente** para cerrar T067:
-- en el navegador, los puntos visuales del paso 2 y el móvil;
-- el paso 8 en la pantalla del legacy, incluido el mensaje de R13.
+**Resultado**: 8 de 8 comprobaciones correctas.
+
+**Paso 8 en el legacy (ejecutado el 2026-10-25)**
+
+- **Entorno**: el Tomcat local del responsable (`tomcat:9.0.115-jdk8`), con su `Guardias.war` modificado solo en la conexión (`base.properties` y `ConfigurationIBATIS.xml`). Apunta a `guardias-local-mysql-1:3306/guardias` con el usuario de desarrollo de esa base. Mientras dura la prueba, Tomcat está solo en la red `guardias-local_default` y el contenedor `mysql` del responsable no se usa.
+- **Usuario**: el administrador ficticio de los pasos anteriores, con login por el formulario del legacy (SHA-512, sin cambios).
+
+| Comprobación | Resultado |
+|---|---|
+| Login en el legacy | 302 a `inicio.jsp` |
+| Feed del calendario legacy (`get_guardias.jsp`, noviembre de 2026) | 30 días. Los días 03, 05 y 07 tienen exactamente los médicos de la base: se ven el intercambio del paso 5 y la cesión del paso 6 (SC-008, FR-026) |
+| Ajuste R3–R5 visto en el legacy | El 2026-11-07, la guardia del adjunto aparece con la clase `localizada` |
+| R13 | Con `ACTIVAR_CAMBIO_GUARDIAS = 'S'`, `cambio_guardia.jsp` no muestra el mensaje. Tras el paso 5 del runbook en la copia (`'N'` en el servicio 1), muestra «No es posible configurar un cambio de guardia. El sistema no lo permite» |
+
+**Visual**: el responsable ha confirmado en el navegador las vistas, el arrastrar y soltar y el aspecto («me convence»). El móvil se aplaza por decisión suya («no me preocupa al menos ahora»).
+
+**T067: cerrada**, con el móvil aplazado.
+
+**Cómo dejar el Tomcat del responsable como estaba**:
+1. Copiar `C:\volumen-for-oncall-backup-t067\Guardias.war.original` sobre `C:\volumen-for-oncall-docker-runtime\Guardias.war`. Es idéntica al original: comprobada con `cmp` antes de modificar nada.
+2. Ejecutar `docker network disconnect guardias-local_default tomcat` y después `docker network connect tomcat-mariadb_oncall-network tomcat`.
+3. Ejecutar `docker restart tomcat`.
+
+Con Tomcat conectado a las dos redes, el nombre `mysql` es ambiguo, porque también es el servicio de `deploy/local`. Por eso hay que desconectarlo de una antes de conectarlo a la otra.
 
 Las reglas y efectos de los pasos 3–7 están cubiertos por las pruebas de integración contra MySQL 5.7 (`RegistrarCesionIT`, `RegistrarIntercambioIT`, `AjusteResidentesIT`, `LegacyVisibilidadIT`). Esa cobertura no sustituye a la comprobación de la interfaz.
