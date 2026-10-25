@@ -59,7 +59,7 @@ Registro de las comprobaciones de la fase de cierre (tasks.md, Phase 7). Solo se
 
 ## T063: generador de agenda del legacy con `UX_GUARDIA_MEDICO_DIA` (R8)
 
-**Estado**: **análisis de código hecho; la ejecución está pendiente.**
+**Estado**: **ejecutada el 2026-10-25**. Resultado al final de esta sección.
 
 Ejecutarlo requiere arrancar el legacy contra una MySQL 5.7 de prueba. La conexión del legacy está en `base.properties` y `ConfigurationIBATIS.xml`: contienen credenciales y no se leen ni se modifican en esta funcionalidad. Hace falta que el responsable apunte una instancia del legacy a la base de `deploy/local` (o a otra de prueba).
 
@@ -77,6 +77,29 @@ Ejecutarlo requiere arrancar el legacy contra una MySQL 5.7 de prueba. La conexi
 1. Generar y grabar la agenda de un mes con datos ficticios. Esperado: misma agenda que sin el índice y ninguna traza `Duplicate entry … UX_GUARDIA_MEDICO_DIA` en el log de Tomcat.
 2. Repetir la grabación del mismo mes, que borra y vuelve a insertar. Esperado: igual que el punto 1.
 3. Forzar desde la interfaz de la agenda el mismo médico dos veces en un día y grabar. Esperado según el código: se graba una sola, con traza de error en el log. Confirmar con negocio si es aceptable o si el legacy debe avisar.
+
+**Ejecución (2026-10-25)**
+
+- **Entorno**:
+  - el Tomcat local del responsable con el legacy apuntando a la copia local (ver T067, paso 8);
+  - MySQL 5.7.44 con los changesets 001–005, incluido `UX_GUARDIA_MEDICO_DIA`;
+  - `PUBLICAR_CALENDARIO_GMAIL = 'N'`, así que no se llama a Google y la grabación no envía correos.
+- **Cómo se ha probado**:
+  - El cálculo de la agenda se hace en el navegador y no depende del índice. La prueba envía a `grabar_guardias.jsp` la misma petición que el navegador: `guardias` (JSON) y `MesGuardia`, con la sesión del administrador ficticio.
+  - Se usa la agenda de febrero de 2027, el primer mes que el legacy deja grabar: tiene mes anterior y no hay guardias en el año siguiente. Son 84 guardias, cada día copiado de 5 semanas antes, con festivos en sábado y domingo.
+  - Script `t063.py`, en el scratchpad de la sesión.
+
+| Prueba | Resultado |
+|---|---|
+| 1. Grabar la agenda del mes | `OK`. La base tiene exactamente las 84 guardias enviadas. Ninguna traza `Duplicate entry` |
+| 2. Volver a grabar el mismo mes | `OK`. Mismas 84 guardias con `Id` nuevos (el legacy borra cada día y vuelve a insertar). Ninguna traza `Duplicate entry` |
+| 3. El mismo médico dos veces en un día | `OK` para el usuario, **sin ningún aviso**. En la base queda solo la primera (refuerzo) y se pierde la segunda (localizada). En el log de Tomcat: `MySQLIntegrityConstraintViolationException: Duplicate entry '…' for key 'UX_GUARDIA_MEDICO_DIA'` |
+
+**Conclusión**:
+- Con el índice, el generador de agenda funciona igual que antes para agendas sin duplicados, también al regrabar un mes.
+- Una agenda con un médico repetido el mismo día pierde la repetición en silencio. Antes del índice se habría guardado el duplicado.
+- **Decisión pendiente de negocio**: si es aceptable o si el legacy debe avisar, lo que obligaría a modificarlo (principio III).
+- **Datos**: las guardias de febrero de 2027 quedan en la copia local como datos de prueba.
 
 ## T067: pruebas y escenario manual
 
