@@ -88,4 +88,18 @@ class LegacyVacacionesIT extends IntegracionBase {
                 Map.of("idMedico", bruno, "desde", "2030-08-01", "hasta", "2030-08-31")).get("idmedico");
         assertThat(recuento.intValue()).isEqualTo(2);
     }
+
+    @Test
+    void elLegacyDejaDeVerLosDiasQuitadosPorLaApiYSigueViendoLosDemas() throws Exception {
+        datos.vacaciones(bruno, AGO_03);
+        datos.vacaciones(bruno, AGO_04);
+        datos.vacaciones(bruno, SEP_01);
+
+        modificar("{\"quitar\":[\"2030-08-04\",\"2030-09-01\"]}");
+
+        assertThat(noTieneVacaciones(AGO_03)).isFalse();
+        assertThat(noTieneVacaciones(AGO_04)).isTrue();
+        assertThat(noTieneVacaciones(SEP_01)).isTrue();
+        assertThat(diasDelRango("2030-07-01", "2030-12-31")).containsExactly("2030-08-03");
+    }
 }

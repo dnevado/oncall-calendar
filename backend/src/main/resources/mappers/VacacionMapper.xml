@@ -43,4 +43,10 @@
     <foreach collection="dias" item="d" separator=",">(#{medicoId}, #{d})</foreach>
     ON DUPLICATE KEY UPDATE FDay = VALUES(FDay)
   </insert>
+
+  <delete id="borrarDias">
+    DELETE FROM vacaciones_medicos
+     WHERE IdMedico = #{medicoId}
+       AND FDay IN <foreach collection="dias" item="d" open="(" separator="," close=")">#{d}</foreach>
+  </delete>
 </mapper>

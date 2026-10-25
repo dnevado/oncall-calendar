@@ -77,6 +77,43 @@ class ReglasVacacionesTest {
     }
 
     @Test
+    void vac008_tambienAlQuitar_yHoySePuedeQuitar() {
+        List<Infraccion> infracciones = reglas.evaluar(
+                ModificacionVacaciones.de(List.of(), List.of(HOY.minusDays(1), HOY)), HOY, MEDICO, "Bruno Prueba",
+                Map.of());
+
+        assertThat(infracciones).extracting(Infraccion::regla).containsExactly(ReglaCodigo.VAC_008);
+        assertThat(infracciones).extracting(Infraccion::fecha).containsExactly(HOY.minusDays(1));
+    }
+
+    @Test
+    void quitarUnDiaConGuardiaNoEsInfraccion() {
+        LocalDate dia = HOY.plusDays(3);
+        assertThat(reglas.evaluar(ModificacionVacaciones.de(List.of(), List.of(dia)), HOY, MEDICO, "Bruno Prueba",
+                Map.of(dia, guardia(1, dia)))).isEmpty();
+    }
+
+    @Test
+    void lasInfraccionesSeOrdenanPorFechaEntreLasDosListas() {
+        LocalDate pasadoQuitar = HOY.minusDays(9);
+        LocalDate pasadoAnadir = HOY.minusDays(4);
+        List<Infraccion> infracciones = reglas.evaluar(
+                ModificacionVacaciones.de(List.of(pasadoAnadir), List.of(pasadoQuitar)), HOY, MEDICO, "Bruno Prueba",
+                Map.of());
+
+        assertThat(infracciones).extracting(Infraccion::fecha).containsExactly(pasadoQuitar, pasadoAnadir);
+    }
+
+    @Test
+    void quitadosSonLosQueExistian_quitarUnoQueNoExisteNoEsError() {
+        LocalDate d1 = HOY.plusDays(1);
+        LocalDate d2 = HOY.plusDays(2);
+        ModificacionVacaciones m = ModificacionVacaciones.de(List.of(), List.of(d2, d1));
+
+        assertThat(ReglasVacaciones.quitados(m, java.util.Set.of(d2))).containsExactly(d2);
+    }
+
+    @Test
     void anadidosSonLosQueNoExistian() {
         LocalDate d1 = HOY.plusDays(1);
         LocalDate d2 = HOY.plusDays(2);

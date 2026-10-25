@@ -196,6 +196,114 @@ class ModificarVacacionesIT extends IntegracionBase {
         assertThat(datos.contar("vacaciones_medicos")).isZero();
     }
 
+    // Quitar días (US2; quickstart 5 a 7).
+
+    private ResultActions quitar(long medicoId, LocalDate... dias) throws Exception {
+        return mvc.perform(peticion(medicoId, List.of(), List.of(dias)));
+    }
+
+    @Test
+    void escenarioUS2_1_quitarDosDiasDeUnPeriodoSoloQuitaEsos() throws Exception {
+        rango(AGO_03, LocalDate.of(2030, 8, 14)).forEach(d -> datos.vacaciones(bruno, d));
+        LocalDate navidad = LocalDate.of(2030, 12, 24);
+        datos.vacaciones(bruno, navidad);
+
+        quitar(bruno, LocalDate.of(2030, 8, 13), LocalDate.of(2030, 8, 14))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anadidos.length()").value(0))
+                .andExpect(jsonPath("$.quitados.length()").value(2))
+                .andExpect(jsonPath("$.quitados[0]").value("2030-08-13"));
+
+        assertThat(datos.diasVacaciones(bruno)).hasSize(11).contains(AGO_03, LocalDate.of(2030, 8, 12), navidad)
+                .doesNotContain(LocalDate.of(2030, 8, 13), LocalDate.of(2030, 8, 14));
+    }
+
+    @Test
+    void escenarioUS2_2_quitarUnDiaPasadoSeRechazaYElDiaSigue() throws Exception {
+        LocalDate pasado = HOY.minusDays(14);
+        datos.vacaciones(bruno, pasado);
+
+        quitar(bruno, pasado)
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.infracciones[0].regla").value("VAC-008"))
+                .andExpect(jsonPath("$.infracciones[0].fecha").value(pasado.toString()));
+
+        assertThat(datos.diasVacaciones(bruno)).containsExactly(pasado);
+    }
+
+    @Test
+    void escenarioUS2_3_mezclaConUnConflictoNoQuitaNiAnadeNada() throws Exception {
+        LocalDate guardado = LocalDate.of(2030, 7, 1);
+        datos.vacaciones(bruno, guardado);
+        datos.guardia(bruno, AGO_10, TipoGuardia.PRESENCIA, false, servicio);
+
+        mvc.perform(peticion(bruno, List.of(AGO_03, AGO_10), List.of(guardado)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.infracciones.length()").value(1))
+                .andExpect(jsonPath("$.infracciones[0].regla").value("VAC-003"));
+
+        assertThat(datos.diasVacaciones(bruno)).containsExactly(guardado);
+    }
+
+    @Test
+    void quitarUnDiaFuturoEnConflictoConUnaGuardiaSePermite() throws Exception {
+        datos.vacaciones(bruno, AGO_10);
+        datos.guardia(bruno, AGO_10, TipoGuardia.PRESENCIA, false, servicio);
+
+        quitar(bruno, AGO_10).andExpect(status().isOk()).andExpect(jsonPath("$.quitados[0]").value("2030-08-10"));
+
+        assertThat(datos.contarVacaciones(bruno)).isZero();
+    }
+
+    @Test
+    void quitarUnDiaQueNoEsDeVacacionesNoEsError() throws Exception {
+        quitar(bruno, AGO_10).andExpect(status().isOk()).andExpect(jsonPath("$.quitados.length()").value(0));
+        quitar(bruno, AGO_10).andExpect(status().isOk());
+    }
+
+    @Test
+    void anadirYQuitarALaVezSeAplicaEnUnaOperacion() throws Exception {
+        LocalDate guardado = LocalDate.of(2030, 7, 1);
+        datos.vacaciones(bruno, guardado);
+
+        mvc.perform(peticion(bruno, List.of(AGO_03), List.of(guardado)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.anadidos[0]").value("2030-08-03"))
+                .andExpect(jsonPath("$.quitados[0]").value("2030-07-01"));
+
+        assertThat(datos.diasVacaciones(bruno)).containsExactly(AGO_03);
+    }
+
+    @Test
+    void dosAdministradoresNoSePisan() throws Exception {
+        long otraAdmin = datos.adjunto("Olga");
+        datos.miembro(servicio, otraAdmin, true, true);
+        LocalDate julio = LocalDate.of(2030, 7, 1);
+        datos.vacaciones(bruno, julio);
+
+        anadir(bruno, AGO_03).andExpect(status().isOk());
+        sesion = login(otraAdmin);
+        quitar(bruno, julio).andExpect(status().isOk());
+
+        assertThat(datos.diasVacaciones(bruno)).containsExactly(AGO_03);
+    }
+
+    @Test
+    void unFalloAMitadDeOperacionNoGuardaNada() throws Exception {
+        LocalDate julio = LocalDate.of(2030, 7, 1);
+        datos.vacaciones(bruno, julio);
+        // El alta falla después del borrado: la transacción deshace también el borrado (FR-006).
+        jdbc.execute("CREATE TRIGGER prueba_falla_alta_vacaciones BEFORE INSERT ON vacaciones_medicos FOR EACH ROW"
+                + " SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'fallo de prueba'");
+        try {
+            mvc.perform(peticion(bruno, List.of(AGO_03), List.of(julio))).andExpect(status().isInternalServerError());
+        } finally {
+            jdbc.execute("DROP TRIGGER IF EXISTS prueba_falla_alta_vacaciones");
+        }
+
+        assertThat(datos.diasVacaciones(bruno)).containsExactly(julio);
+    }
+
     // Concurrencia con el registro de cambios de la 001 (research V3).
 
     private String cesion(long guardiaId, long cedenteId, long receptorId) {

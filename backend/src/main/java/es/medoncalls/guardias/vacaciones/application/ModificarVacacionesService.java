@@ -18,7 +18,6 @@ import es.medoncalls.guardias.cambios.domain.Infraccion;
 import es.medoncalls.guardias.cambios.infrastructure.FechaLegacy;
 import es.medoncalls.guardias.cambios.infrastructure.GuardiaFila;
 import es.medoncalls.guardias.cambios.infrastructure.GuardiaMapper;
-import es.medoncalls.guardias.common.PeticionInvalidaException;
 import es.medoncalls.guardias.common.RecursoNoEncontradoException;
 import es.medoncalls.guardias.vacaciones.domain.ModificacionVacaciones;
 import es.medoncalls.guardias.vacaciones.domain.ReglasVacaciones;
@@ -52,9 +51,6 @@ public class ModificarVacacionesService {
     public ResultadoModificacion modificar(long servicioId, long medicoId, List<LocalDate> anadir,
             List<LocalDate> quitar) {
         ModificacionVacaciones modificacion = ModificacionVacaciones.de(anadir, quitar);
-        if (!modificacion.quitar().isEmpty()) {
-            throw new PeticionInvalidaException("Quitar días de vacaciones aún no está disponible.");
-        }
         // Primera sentencia de la transacción: bloquear el servicio, como el registro de cambios de
         // la 001. Serializa las vacaciones con las cesiones del servicio (VAC-003 frente a CG-012), y
         // las lecturas posteriores ven lo ya confirmado (research V3).
@@ -75,11 +71,16 @@ public class ModificarVacacionesService {
 
         Set<LocalDate> existentes = vacaciones.diasExistentes(medicoId, fechas).stream()
                 .map(FechaLegacy::fecha).collect(Collectors.toSet());
+        List<LocalDate> quitados = ReglasVacaciones.quitados(modificacion, existentes);
         List<LocalDate> anadidos = ReglasVacaciones.anadidos(modificacion, existentes);
+        // En la misma transacción: si algo falla, no se quita ni se añade nada (FR-006).
+        if (!quitados.isEmpty()) {
+            vacaciones.borrarDias(medicoId, textos(quitados));
+        }
         if (!anadidos.isEmpty()) {
             vacaciones.insertarDias(medicoId, textos(anadidos));
         }
-        return new ResultadoModificacion(anadidos, List.of());
+        return new ResultadoModificacion(anadidos, quitados);
     }
 
     private static List<String> textos(Collection<LocalDate> fechas) {

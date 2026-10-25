@@ -7,6 +7,8 @@
   --vacaciones-guardado-borde: #31708f;
   --vacaciones-nuevo-fondo: #dff0d8;
   --vacaciones-nuevo-borde: #3c763d;
+  --vacaciones-quitado-fondo: #f2dede;
+  --vacaciones-quitado-borde: #a94442;
   --vacaciones-conflicto: #a94442;
   --vacaciones-deshabilitado: #767676;
 }
@@ -80,6 +82,34 @@
   color: var(--vacaciones-nuevo-borde);
 }
 
+.editor-vacaciones .dia-quitado .rdp-day_button {
+  background: var(--vacaciones-quitado-fondo);
+  border: 2px dashed var(--vacaciones-quitado-borde);
+  text-decoration: line-through;
+}
+
+.editor-vacaciones .dia-quitado .rdp-day_button::after {
+  content: '−';
+  color: var(--vacaciones-quitado-borde);
+}
+
+.editor-vacaciones .dia-inicio-periodo .rdp-day_button {
+  outline: 3px double var(--primario-oscuro);
+  outline-offset: -3px;
+}
+
+.editor-vacaciones .modo-periodo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.editor-vacaciones .ayuda {
+  margin: 0 0 0.5rem;
+}
+
 .leyenda-vacaciones {
   display: flex;
   flex-wrap: wrap;
@@ -111,6 +141,16 @@
 .leyenda-vacaciones .muestra.dia-nuevo {
   background: var(--vacaciones-nuevo-fondo);
   border: 2px dashed var(--vacaciones-nuevo-borde);
+}
+
+.leyenda-vacaciones .muestra.dia-quitado {
+  background: var(--vacaciones-quitado-fondo);
+  border: 2px dashed var(--vacaciones-quitado-borde);
+}
+
+.leyenda-vacaciones .muestra.dia-quitado::after {
+  content: '−';
+  color: var(--vacaciones-quitado-borde);
 }
 
 .leyenda-vacaciones .muestra::after {

@@ -110,18 +110,18 @@ description: "Lista de tareas de la funcionalidad 002: gestión de vacaciones de
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T034 [P] [US2] Ampliar `ReglasVacacionesTest.java`: VAC-008 también para `quitar` (día pasado → infracción; hoy permitido); `quitados` = `quitar` ∩ existentes; quitar un día que no existe no es error (FR-007)
-- [ ] T035 [P] [US2] Ampliar `ModificarVacacionesIT.java` (quickstart 5 a 7): quitar dos días de un periodo → solo esos desaparecen (FR-005, SC-002); quitar un día pasado → 422 `VAC-008` y el día sigue; quitar un día válido y añadir uno con guardia → 422 y no se quita ni se añade nada (FR-006); quitar un día futuro en conflicto con una guardia → 200 (spec, Edge Cases); dos administradores: uno añade un día y otro quita otro; ninguno pisa al otro (Edge Cases)
-- [ ] T036 [P] [US2] Ampliar `LegacyVacacionesIT.java` (quickstart 12, parte de bajas): tras quitar días por la API, la SQL del legacy y `NoTieneVacaciones` dejan de verlos y siguen viendo los demás
+- [X] T034 [P] [US2] Ampliar `ReglasVacacionesTest.java`: VAC-008 también para `quitar` (día pasado → infracción; hoy permitido); `quitados` = `quitar` ∩ existentes; quitar un día que no existe no es error (FR-007)
+- [X] T035 [P] [US2] Ampliar `ModificarVacacionesIT.java` (quickstart 5 a 7): quitar dos días de un periodo → solo esos desaparecen (FR-005, SC-002); quitar un día pasado → 422 `VAC-008` y el día sigue; quitar un día válido y añadir uno con guardia → 422 y no se quita ni se añade nada (FR-006); quitar un día futuro en conflicto con una guardia → 200 (spec, Edge Cases); dos administradores: uno añade un día y otro quita otro; ninguno pisa al otro (Edge Cases)
+- [X] T036 [P] [US2] Ampliar `LegacyVacacionesIT.java` (quickstart 12, parte de bajas): tras quitar días por la API, la SQL del legacy y `NoTieneVacaciones` dejan de verlos y siguen viendo los demás
 
 ### Implementation for User Story 2
 
-- [ ] T037 [US2] Ampliar `ReglasVacaciones.java` con VAC-008 sobre `quitar`, y `VacacionMapper` (`.java` y `.xml`) con `borrarDias(medicoId, fechas)` por clave (`IdMedico` y `FDay IN (...)`)
-- [ ] T038 [US2] Completar `ModificarVacacionesService.java`: quitar la restricción temporal sobre `quitar` de T025, evaluar las reglas de las dos listas antes de escribir, borrar `quitar` ∩ existentes en la misma transacción y devolver `quitados` (depende de T037)
-- [ ] T039 [US2] Ejecutar `mvn -f backend/pom.xml verify` y confirmar que T034 a T036 pasan junto con las de US1 y la 001
-- [ ] T040 [US2] Ampliar `EditorVacaciones.test.tsx` y `EditorVacaciones.tsx`: desmarcar días guardados (ratón y teclado) los pone como «a quitar», distinguidos sin depender del color; el resumen muestra «añadir N, quitar M»; guardar envía `quitar` y `anadir` juntos; volver a marcar un día «a quitar» lo devuelve a guardado; días pasados guardados visibles pero no editables (FR-012, FR-019)
-- [ ] T041 [US2] (MAY, FR-018) Añadir al editor la elección de un periodo de días seguidos (`mode="range"` o un conmutador «días sueltos / periodo») que se convierte en días sueltos de `anadir`; con su prueba en `EditorVacaciones.test.tsx`. Se puede posponer sin afectar al MVP; si se pospone, dejar constancia en el informe final
-- [ ] T042 [US2] Ejecutar `npm --prefix frontend test`, `lint` y `build`, y confirmar que pasan
+- [X] T037 [US2] Ampliar `ReglasVacaciones.java` con VAC-008 sobre `quitar`, y `VacacionMapper` (`.java` y `.xml`) con `borrarDias(medicoId, fechas)` por clave (`IdMedico` y `FDay IN (...)`)
+- [X] T038 [US2] Completar `ModificarVacacionesService.java`: quitar la restricción temporal sobre `quitar` de T025, evaluar las reglas de las dos listas antes de escribir, borrar `quitar` ∩ existentes en la misma transacción y devolver `quitados` (depende de T037)
+- [X] T039 [US2] Ejecutar `mvn -f backend/pom.xml verify` y confirmar que T034 a T036 pasan junto con las de US1 y la 001
+- [X] T040 [US2] Ampliar `EditorVacaciones.test.tsx` y `EditorVacaciones.tsx`: desmarcar días guardados (ratón y teclado) los pone como «a quitar», distinguidos sin depender del color; el resumen muestra «añadir N, quitar M»; guardar envía `quitar` y `anadir` juntos; volver a marcar un día «a quitar» lo devuelve a guardado; días pasados guardados visibles pero no editables (FR-012, FR-019)
+- [X] T041 [US2] (MAY, FR-018) Añadir al editor la elección de un periodo de días seguidos (`mode="range"` o un conmutador «días sueltos / periodo») que se convierte en días sueltos de `anadir`; con su prueba en `EditorVacaciones.test.tsx`. Se puede posponer sin afectar al MVP; si se pospone, dejar constancia en el informe final
+- [X] T042 [US2] Ejecutar `npm --prefix frontend test`, `lint` y `build`, y confirmar que pasan
 
 **Checkpoint**: MVP completo (US1 + US2): se añaden y quitan días de forma atómica, con las reglas en el servidor.
 

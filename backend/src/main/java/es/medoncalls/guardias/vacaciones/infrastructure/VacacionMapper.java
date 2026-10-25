@@ -32,4 +32,7 @@ public interface VacacionMapper {
      * (`IND_VACACIONES_01`, research V3).
      */
     int insertarDias(@Param("medicoId") long medicoId, @Param("dias") Collection<String> dias);
+
+    /** Quita los días por clave (`IdMedico`, `FDay`); el resto de vacaciones del médico no cambia (VAC-007). */
+    int borrarDias(@Param("medicoId") long medicoId, @Param("dias") Collection<String> dias);
 }

@@ -101,6 +101,87 @@ describe('EditorVacaciones', () => {
     expect(screen.getByRole('button', { name: 'Guardar vacaciones' })).toBeDisabled();
   });
 
+  it('desmarca días guardados para quitarlos y los envía junto con los nuevos', async () => {
+    let cuerpo: unknown;
+    server.use(
+      http.patch('*/api/v1/servicios/:s/medicos/:m/vacaciones', async ({ request }) => {
+        cuerpo = await request.json();
+        return HttpResponse.json({ anadidos: ['2030-01-20'], quitados: ['2030-02-04'] });
+      }),
+    );
+    const usuario = userEvent.setup();
+    abrirEditor();
+    const guardado = await screen.findByRole('button', {
+      name: /^lunes, 4 de febrero de 2030.*de vacaciones/,
+    });
+
+    await usuario.click(guardado);
+    expect(dia('4 de febrero de 2030')).toHaveAccessibleName(/se quitará/);
+    await usuario.click(dia('20 de enero de 2030'));
+    expect(screen.getByText('Sin guardar: añadir 1 día y quitar 1 día.')).toBeInTheDocument();
+
+    await usuario.click(screen.getByRole('button', { name: 'Guardar vacaciones' }));
+    expect(
+      await screen.findByText('Vacaciones guardadas: 1 día añadido y 1 día quitado.'),
+    ).toBeInTheDocument();
+    expect(cuerpo).toEqual({ anadir: ['2030-01-20'], quitar: ['2030-02-04'] });
+  });
+
+  it('volver a marcar un día que se iba a quitar lo deja guardado', async () => {
+    const usuario = userEvent.setup();
+    abrirEditor();
+    const guardado = await screen.findByRole('button', {
+      name: /^lunes, 4 de febrero de 2030.*de vacaciones/,
+    });
+
+    await usuario.click(guardado);
+    await usuario.click(dia('4 de febrero de 2030'));
+
+    expect(dia('4 de febrero de 2030')).toHaveAccessibleName(/de vacaciones$/);
+    expect(screen.getByRole('button', { name: 'Guardar vacaciones' })).toBeDisabled();
+  });
+
+  it('los días pasados con vacaciones se ven pero no se pueden quitar', async () => {
+    server.use(
+      http.get('*/api/v1/servicios/:servicioId/vacaciones', () =>
+        HttpResponse.json([{ medico: BRUNO, activo: true, dias: [{ fecha: '2030-01-08' }] }]),
+      ),
+    );
+    abrirEditor();
+    const pasado = await screen.findByRole('button', {
+      name: /8 de enero de 2030, de vacaciones, no editable/,
+    });
+    expect(pasado).toBeDisabled();
+  });
+
+  it('elige un periodo de días seguidos y lo guarda como días sueltos', async () => {
+    let cuerpo: unknown;
+    server.use(
+      http.patch('*/api/v1/servicios/:s/medicos/:m/vacaciones', async ({ request }) => {
+        cuerpo = await request.json();
+        return HttpResponse.json({ anadidos: [], quitados: [] });
+      }),
+    );
+    const usuario = userEvent.setup();
+    abrirEditor();
+    await screen.findByRole('button', { name: /^lunes, 4 de febrero de 2030/ });
+
+    await usuario.click(screen.getByRole('checkbox', { name: /Elegir un periodo/ }));
+    await usuario.click(dia('2 de febrero de 2030'));
+    expect(dia('2 de febrero de 2030')).toHaveAccessibleName(/inicio del periodo/);
+    expect(screen.getByText(/Elige el último día/)).toBeInTheDocument();
+    await usuario.click(dia('6 de febrero de 2030'));
+
+    // El 4 y el 5 ya eran de vacaciones: no se envían.
+    expect(screen.getByText('Sin guardar: añadir 3 días.')).toBeInTheDocument();
+    await usuario.click(screen.getByRole('button', { name: 'Guardar vacaciones' }));
+    await screen.findByText('Vacaciones guardadas: sin cambios.');
+    expect(cuerpo).toEqual({
+      anadir: ['2030-02-02', '2030-02-03', '2030-02-06'],
+      quitar: [],
+    });
+  });
+
   it('muestra cada día rechazado con su motivo', async () => {
     const rechazo: ReglasIncumplidas = {
       type: 'about:blank',

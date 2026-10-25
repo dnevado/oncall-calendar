@@ -3,6 +3,7 @@ package es.medoncalls.guardias.vacaciones.domain;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,22 +35,35 @@ public class ReglasVacaciones {
     public List<Infraccion> evaluar(ModificacionVacaciones modificacion, LocalDate hoy, long medicoId, String nombre,
             Map<LocalDate, Guardia> guardias) {
         List<Infraccion> infracciones = new ArrayList<>();
+        for (LocalDate dia : modificacion.quitar()) {
+            if (dia.isBefore(hoy)) {
+                infracciones.add(infraccion(ReglaCodigo.VAC_008, medicoId, nombre, dia, ""));
+            }
+        }
         for (LocalDate dia : modificacion.anadir()) {
             if (dia.isBefore(hoy)) {
                 infracciones.add(infraccion(ReglaCodigo.VAC_008, medicoId, nombre, dia, ""));
             }
+            // Quitar un día en conflicto sí se permite (002, Edge Cases).
             Guardia guardia = guardias.get(dia);
             if (guardia != null) {
                 infracciones.add(infraccion(ReglaCodigo.VAC_003, medicoId, nombre, dia,
                         guardia.tipo().name().toLowerCase(Locale.ROOT)));
             }
         }
+        // Por fecha; en un mismo día, VAC-008 antes que VAC-003 (orden de inserción, sort estable).
+        infracciones.sort(Comparator.comparing(Infraccion::fecha));
         return infracciones;
     }
 
     /** Días de `anadir` que aún no eran de vacaciones (FR-007). */
     public static List<LocalDate> anadidos(ModificacionVacaciones modificacion, Set<LocalDate> existentes) {
         return modificacion.anadir().stream().filter(d -> !existentes.contains(d)).toList();
+    }
+
+    /** Días de `quitar` que eran de vacaciones (FR-007): quitar uno que no lo era no es un error. */
+    public static List<LocalDate> quitados(ModificacionVacaciones modificacion, Set<LocalDate> existentes) {
+        return modificacion.quitar().stream().filter(existentes::contains).toList();
     }
 
     private Infraccion infraccion(ReglaCodigo regla, long medicoId, String nombre, LocalDate dia, String extra) {
