@@ -9,6 +9,10 @@ export type Cambio = Schemas['Cambio'];
 export type Problem = Schemas['Problem'];
 export type ReglasIncumplidas = Schemas['ReglasIncumplidas'];
 export type Infraccion = Schemas['Infraccion'];
+export type VacacionesMedico = Schemas['VacacionesMedico'];
+export type DiaVacaciones = Schemas['DiaVacaciones'];
+export type ModificarVacacionesRequest = Schemas['ModificarVacacionesRequest'];
+export type ResultadoVacaciones = Schemas['ResultadoVacaciones'];
 
 const METODOS_SEGUROS = new Set(['GET', 'HEAD', 'OPTIONS']);
 

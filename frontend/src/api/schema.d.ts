@@ -116,6 +116,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/servicios/{servicioId}/vacaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Vacaciones de los médicos del servicio en un rango de fechas (002 FR-012, FR-013, FR-014)
+         * @description Devuelve todos los médicos dados de alta en el servicio, activos o inactivos, con sus días
+         *     de vacaciones en el rango (también los que no tienen ninguno). Cada día indica si coincide
+         *     con una guardia del médico en el servicio (conflicto). Con `medicoId`, solo ese médico.
+         *     Las vacaciones son del médico: son las mismas en todos sus servicios (VAC-006).
+         */
+        get: operations["listarVacaciones"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/servicios/{servicioId}/medicos/{medicoId}/vacaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Añadir y quitar días de vacaciones de un médico (002 FR-003 a FR-011)
+         * @description Aplica en una única transacción los días que se añaden y los que se quitan; el resto de
+         *     vacaciones del médico no cambia (VAC-007). Si algún día incumple una regla devuelve 422 con
+         *     todas las infracciones y no modifica nada (FR-006, FR-011). Añadir un día que ya existe o
+         *     quitar uno que no existe no es un error (FR-007): repetir la petición da el mismo resultado.
+         */
+        patch: operations["modificarVacaciones"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -207,6 +253,32 @@ export interface components {
             tipo: components["schemas"]["TipoGuardia"];
             festivo: boolean;
         };
+        VacacionesMedico: {
+            medico: components["schemas"]["MedicoResumen"];
+            /** @description Activo en el servicio (los inactivos también se gestionan) */
+            activo: boolean;
+            dias: components["schemas"]["DiaVacaciones"][];
+        };
+        DiaVacaciones: {
+            /** Format: date */
+            fecha: string;
+            /** @description Guardia del médico en el servicio ese mismo día, si la hay (002 FR-014). */
+            conflicto?: components["schemas"]["Guardia"];
+        };
+        /**
+         * @description Al menos una de las dos listas con algún día. Una misma fecha no puede estar en las dos
+         *     listas. Como mucho 366 fechas en cada lista (límite técnico).
+         */
+        ModificarVacacionesRequest: {
+            anadir?: string[];
+            quitar?: string[];
+        };
+        ResultadoVacaciones: {
+            /** @description Días que no eran de vacaciones y ahora lo son. */
+            anadidos: string[];
+            /** @description Días que eran de vacaciones y ya no lo son. */
+            quitados: string[];
+        };
         Problem: {
             /** Format: uri */
             type: string;
@@ -222,7 +294,7 @@ export interface components {
              * @description Código de la regla del catálogo.
              * @enum {string}
              */
-            regla: "CG-005" | "CG-006" | "CG-008" | "CG-009" | "CG-011" | "CG-012" | "CG-013" | "CG-014" | "CG-015" | "MISMO_MEDICO";
+            regla: "CG-005" | "CG-006" | "CG-008" | "CG-009" | "CG-011" | "CG-012" | "CG-013" | "CG-014" | "CG-015" | "MISMO_MEDICO" | "VAC-003" | "VAC-008";
             /** @description Texto comprensible para el administrador (SC-003) */
             mensaje: string;
             /** Format: int64 */
@@ -259,7 +331,7 @@ export interface components {
                 "application/problem+json": components["schemas"]["Problem"];
             };
         };
-        /** @description Guardia o médico inexistente en el servicio */
+        /** @description Guardia o médico inexistente en el servicio (en vacaciones, médico que no pertenece al servicio) */
         NoEncontrado: {
             headers: {
                 [name: string]: unknown;
@@ -470,6 +542,77 @@ export interface operations {
                 };
             };
             /** @description El cambio incumple una o más reglas */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ReglasIncumplidas"];
+                };
+            };
+        };
+    };
+    listarVacaciones: {
+        parameters: {
+            query: {
+                desde: string;
+                /** @description Como mucho 731 días después de `desde` (límite técnico). */
+                hasta: string;
+                medicoId?: number;
+            };
+            header?: never;
+            path: {
+                servicioId: components["parameters"]["ServicioId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Médicos ordenados por apellidos y nombre, con sus días ordenados por fecha */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VacacionesMedico"][];
+                };
+            };
+            400: components["responses"]["PeticionInvalida"];
+            401: components["responses"]["NoAutenticado"];
+            403: components["responses"]["Prohibido"];
+            404: components["responses"]["NoEncontrado"];
+        };
+    };
+    modificarVacaciones: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                servicioId: components["parameters"]["ServicioId"];
+                medicoId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModificarVacacionesRequest"];
+            };
+        };
+        responses: {
+            /** @description Cambios aplicados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultadoVacaciones"];
+                };
+            };
+            400: components["responses"]["PeticionInvalida"];
+            401: components["responses"]["NoAutenticado"];
+            403: components["responses"]["Prohibido"];
+            404: components["responses"]["NoEncontrado"];
+            /** @description Algún día incumple una regla */
             422: {
                 headers: {
                     [name: string]: unknown;

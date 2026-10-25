@@ -1,17 +1,21 @@
 openapi: 3.0.3
 info:
-  title: Guardias — Cambios y cesiones
-  version: 1.1.0
+  title: Guardias — Cambios y cesiones, y vacaciones
+  version: 1.2.0
   description: |
-    Contrato publicado de la funcionalidad 001 (specs/001-registro-cambios-guardia).
-    Todas las operaciones salvo el login exigen sesión; las de servicio exigen rol de administrador
-    de ese servicio (FR-001). Los errores usan Problem Details (RFC 7807).
+    Contrato de las funcionalidades 001 (specs/001-registro-cambios-guardia) y 002
+    (specs/002-gestion-vacaciones). Todas las operaciones salvo el login exigen sesión; las de
+    servicio exigen rol de administrador de ese servicio (001 FR-001, 002 FR-001). Los errores usan
+    Problem Details (RFC 7807).
+    1.2.0: añade las operaciones de vacaciones y los códigos VAC-003 y VAC-008 en Infraccion
+    (cambio compatible: solo añade).
 servers:
   - url: /api/v1
 tags:
   - name: auth
   - name: guardias
   - name: cambios
+  - name: vacaciones
 
 paths:
   /auth/login:
@@ -163,6 +167,78 @@ paths:
             application/problem+json:
               schema: { $ref: '#/components/schemas/ReglasIncumplidas' }
 
+  /servicios/{servicioId}/vacaciones:
+    get:
+      tags: [vacaciones]
+      summary: Vacaciones de los médicos del servicio en un rango de fechas (002 FR-012, FR-013, FR-014)
+      description: |
+        Devuelve todos los médicos dados de alta en el servicio, activos o inactivos, con sus días
+        de vacaciones en el rango (también los que no tienen ninguno). Cada día indica si coincide
+        con una guardia del médico en el servicio (conflicto). Con `medicoId`, solo ese médico.
+        Las vacaciones son del médico: son las mismas en todos sus servicios (VAC-006).
+      operationId: listarVacaciones
+      parameters:
+        - $ref: '#/components/parameters/ServicioId'
+        - { name: desde, in: query, required: true, schema: { type: string, format: date } }
+        - name: hasta
+          in: query
+          required: true
+          description: Como mucho 731 días después de `desde` (límite técnico).
+          schema: { type: string, format: date }
+        - name: medicoId
+          in: query
+          required: false
+          schema: { type: integer, format: int64 }
+      responses:
+        '200':
+          description: Médicos ordenados por apellidos y nombre, con sus días ordenados por fecha
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/VacacionesMedico' }
+        '400': { $ref: '#/components/responses/PeticionInvalida' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+
+  /servicios/{servicioId}/medicos/{medicoId}/vacaciones:
+    patch:
+      tags: [vacaciones]
+      summary: Añadir y quitar días de vacaciones de un médico (002 FR-003 a FR-011)
+      description: |
+        Aplica en una única transacción los días que se añaden y los que se quitan; el resto de
+        vacaciones del médico no cambia (VAC-007). Si algún día incumple una regla devuelve 422 con
+        todas las infracciones y no modifica nada (FR-006, FR-011). Añadir un día que ya existe o
+        quitar uno que no existe no es un error (FR-007): repetir la petición da el mismo resultado.
+      operationId: modificarVacaciones
+      parameters:
+        - $ref: '#/components/parameters/ServicioId'
+        - name: medicoId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ModificarVacacionesRequest' }
+      responses:
+        '200':
+          description: Cambios aplicados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResultadoVacaciones' }
+        '400': { $ref: '#/components/responses/PeticionInvalida' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '422':
+          description: Algún día incumple una regla
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ReglasIncumplidas' }
+
 components:
   parameters:
     ServicioId:
@@ -188,7 +264,7 @@ components:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
     NoEncontrado:
-      description: Guardia o médico inexistente en el servicio
+      description: Guardia o médico inexistente en el servicio (en vacaciones, médico que no pertenece al servicio)
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
@@ -296,6 +372,55 @@ components:
         tipo: { $ref: '#/components/schemas/TipoGuardia' }
         festivo: { type: boolean }
 
+    VacacionesMedico:
+      type: object
+      required: [medico, activo, dias]
+      properties:
+        medico: { $ref: '#/components/schemas/MedicoResumen' }
+        activo: { type: boolean, description: Activo en el servicio (los inactivos también se gestionan) }
+        dias:
+          type: array
+          items: { $ref: '#/components/schemas/DiaVacaciones' }
+
+    DiaVacaciones:
+      type: object
+      required: [fecha]
+      properties:
+        fecha: { type: string, format: date }
+        conflicto:
+          $ref: '#/components/schemas/Guardia'
+          description: Guardia del médico en el servicio ese mismo día, si la hay (002 FR-014).
+
+    ModificarVacacionesRequest:
+      type: object
+      description: |
+        Al menos una de las dos listas con algún día. Una misma fecha no puede estar en las dos
+        listas. Como mucho 366 fechas en cada lista (límite técnico).
+      properties:
+        anadir:
+          type: array
+          maxItems: 366
+          uniqueItems: true
+          items: { type: string, format: date }
+        quitar:
+          type: array
+          maxItems: 366
+          uniqueItems: true
+          items: { type: string, format: date }
+
+    ResultadoVacaciones:
+      type: object
+      required: [anadidos, quitados]
+      properties:
+        anadidos:
+          type: array
+          description: Días que no eran de vacaciones y ahora lo son.
+          items: { type: string, format: date }
+        quitados:
+          type: array
+          description: Días que eran de vacaciones y ya no lo son.
+          items: { type: string, format: date }
+
     Problem:
       type: object
       required: [type, title, status]
@@ -323,7 +448,7 @@ components:
         regla:
           type: string
           description: Código de la regla del catálogo.
-          enum: [CG-005, CG-006, CG-008, CG-009, CG-011, CG-012, CG-013, CG-014, CG-015, MISMO_MEDICO]
+          enum: [CG-005, CG-006, CG-008, CG-009, CG-011, CG-012, CG-013, CG-014, CG-015, MISMO_MEDICO, VAC-003, VAC-008]
         mensaje: { type: string, description: Texto comprensible para el administrador (SC-003) }
         medicoId: { type: integer, format: int64 }
         fecha: { type: string, format: date }
