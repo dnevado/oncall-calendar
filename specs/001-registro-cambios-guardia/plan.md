@@ -20,7 +20,7 @@ La pantalla de cambios del legacy se desactiva por configuración, sin tocar su 
 
 **Language/Version**: Java 21 (backend), TypeScript 5 en modo estricto (frontend).
 
-**Primary Dependencies**: Spring Boot 3.x (Web, Security, Validation), MyBatis Spring Boot Starter 3.x, Liquibase, driver JDBC de MySQL; React 18, Vite, React Router y un cliente HTTP tipado generado a partir del contrato OpenAPI.
+**Primary Dependencies**: Spring Boot 3.x (Web, Security, Validation), MyBatis Spring Boot Starter 3.x, Liquibase, driver JDBC de MySQL; React 18, Vite, React Router y un cliente HTTP tipado generado a partir del contrato OpenAPI. FullCalendar 6.1.21 (`@fullcalendar/react`, `core`, `daygrid`, `multimonth`; MIT, versión exacta) para las vistas de año, mes, semana y día del calendario (FR-030): es la evolución del FullCalendar 3 del legacy y lo recomienda CLAUDE.md frente a construir las vistas a mano. No se añade `@fullcalendar/interaction`, porque no hay arrastrar y soltar (H2).
 
 **Storage**: la MySQL 5.7 existente del legacy (esquema compartido, cambios solo aditivos; [data-model.md](./data-model.md)).
 
@@ -52,10 +52,69 @@ La pantalla de cambios del legacy se desactiva por configuración, sin tocar su 
 | Restricciones técnicas | Spring Boot 3.x y Java 21; React y TypeScript; contratos en `contracts/`; infraestructura como código en `deploy/` (decidida aquí); esquema legacy como fuente de verdad. | ✅ |
 | Flujo (punto 2) | La spec no tiene preguntas abiertas sobre reglas críticas (CG-016 no es crítica y queda fuera). | ✅ |
 | Flujo (punto 6) | Sin operaciones destructivas sin autorización: la limpieza de duplicados y los `ALTER` de producción son tareas con aprobación explícita. | ✅ |
+| VIII. Capacidades de la interfaz | Inventario de las pantallas legacy afectadas y su cobertura en [Capacidades de la interfaz legacy](#capacidades-de-la-interfaz-legacy-principio-viii). Huecos decididos el 2026-10-25: H1 y H3 se migran (FR-030, FR-031); H2, H4 y H5 se aceptan y constan en la spec. | ✅ decidido (2026-10-25) |
 
 **Resultado de la puerta (antes de la fase 0)**: superada; las excepciones de Complexity Tracking están aprobadas (ver Approvals).
 
 **Re-check tras la fase 1**: el diseño (data-model, contrato, quickstart) no introduce nuevas desviaciones.
+
+**Re-check con la constitución 1.2.0** (2026-10-25): el principio VIII se añadió con la implementación ya hecha. Se hizo el inventario de abajo y el responsable decidió los huecos H1–H5 el mismo día.
+
+## Capacidades de la interfaz legacy (principio VIII)
+
+**Alcance de la migración de interfaz.** Esta funcionalidad no migra el calendario legacy (`web/inicio.jsp`): sigue en uso para consultar guardias, generar la agenda, exportar y sincronizar con Google Calendar. Lo que pasa a la aplicación nueva es **solo el registro de cambios**. Al desactivar `ACTIVAR_CAMBIO_GUARDIAS` (R13, runbook paso 5), el legacy deja de permitir cambios y las capacidades de cambio de las tres pantallas de abajo pasan a cubrirse en `/app/`.
+
+Estados: **cubierta** (misma capacidad), **sustituida** (equivalente con otro widget, permitido por el principio VIII), **descartada por spec** (decisión ya aprobada), **sigue en legacy** (fuera del alcance, sin pérdida), **hueco** (se pierde sin decisión aprobada; ver H1–H5).
+
+### Calendario legacy: cambio desde el calendario (`web/inicio.jsp`)
+
+| # | Capacidad legacy | Evidencia | En la aplicación nueva | Estado |
+|---|---|---|---|---|
+| C1 | Vistas año, mes, semana y día; navegación anterior/siguiente/hoy | `web/inicio.jsp:294-297` | Las mismas vistas con FullCalendar 6 (`multiMonthYear`, `dayGridMonth`, `dayGridWeek`, `dayGridDay`), «Hoy» y anterior/siguiente (`CalendarioPage.tsx`, FR-030) | cubierta (H1) |
+| C2 | Saltar a la vista de un día o semana pulsando su nombre (`navLinks`) | `web/inicio.jsp:302` | `navLinks` de FullCalendar: el número de cada día lleva a su vista de día (FR-030) | cubierta (H1) |
+| C3 | Enlace «más» cuando un día tiene muchas guardias (`eventLimit`) | `web/inicio.jsp:307` | `dayMaxEvents`: enlace «+N más» con todas las guardias del día; la vista de día las muestra todas (FR-030) | cubierta |
+| C4 | Mover una guardia a otra fecha arrastrándola dentro del calendario, con confirmación «¿Estás seguro…?» | `web/inicio.jsp:306`, `394-396`, `105`, `640` | Se elige la guardia y luego «Ceder» o «Intercambiar» con formulario y botón de confirmar (`CalendarioPage.tsx:132-141`) | sustituida (decisión de UX a confirmar en **H2**) |
+| C5 | Bandeja externa: arrastrar una guardia fuera del calendario, cambiar de mes y soltarla en otra fecha | `web/inicio.jsp:304`, `348-355`, `575-576` | El intercambio pide la fecha de destino en un campo de fecha, de cualquier mes (`IntercambioForm.tsx`) | sustituida (**H2**) |
+| C6 | Prevalidación al soltar, en el servidor (`cambio_guardia.jsp`) | `web/inicio.jsp:163` | Candidatos ya filtrados (FR-017) y validación completa en el servidor con todas las reglas incumplidas (FR-016) | cubierta (mejorada) |
+| C7 | Leyenda de colores por tipo: Presencia, Localizada, Refuerzo, Residente; festivos marcados (`festivoc`) | `web/inicio.jsp:450-453`, `web/get_guardias.jsp:111`, `web/css/custom.css:55-68,137` | Colores por tipo con tokens CSS y contraste AA, trama para festivos y leyenda (`calendario.css`). El título incluye tipo y «(festivo)», así que el color no es la única pista (FR-031) | cubierta (H3) |
+| C8 | Guardias ordenadas dentro de cada día: presencia, residente, y después localizada y refuerzo | `src/com/guardias/database/GuardiasDBImpl.java:565,592` (`ORDER BY Sorted DESC`); `web/js/guardias.js:68-80` y `web/get_guardias.jsp:129` conservan ese orden | Mismo orden con `eventOrder` y, a igual tipo, por `Id` de guardia (`fechas.ts`, `ordenTipo`; FR-031) | cubierta (H3) |
+| C9 | Un médico no administrador solo puede arrastrar sus propias guardias | `web/inicio.jsp:387` (`_IsMedicoONCall`, solo en el cliente) | Solo el administrador del servicio registra cambios, comprobado en el servidor (FR-001) | descartada por spec (solicitud del médico fuera de alcance; FR-001/CG-002) |
+| C10 | Generar agenda, exportar a Excel, Google Calendar | `web/inicio.jsp` (otras secciones) | No forman parte de esta funcionalidad | sigue en legacy |
+
+### Formulario de cambio legacy (`web/medico/_list_medicos_cambio_guardia.jsp`)
+
+| # | Capacidad legacy | Evidencia | En la aplicación nueva | Estado |
+|---|---|---|---|---|
+| F1 | Fechas de origen y destino visibles y no editables | `_list_medicos_cambio_guardia.jsp:93-95` | Cesión: fecha y tipo de la guardia en el formulario. Intercambio: fecha de origen fija y fecha de destino elegible (`IntercambioForm.tsx:86`) | cubierta |
+| F2 | El administrador elige el médico solicitante entre los que tienen guardia ese día | `_list_medicos_cambio_guardia.jsp:103` | Se elige directamente la guardia (con su médico) en el calendario | sustituida |
+| F3 | Elegir el tipo: CAMBIO o CESION | `_list_medicos_cambio_guardia.jsp:129-132` | Dos acciones, «Ceder» e «Intercambiar» | sustituida |
+| F4 | Elegir quién recibe, con la lista limitada a médicos del mismo tipo | `_list_medicos_cambio_guardia.jsp:135-140`, `186-194` (filtro solo en el cliente) | Lista de candidatos calculada en el servidor con todas las reglas (FR-013, FR-017) | cubierta (mejorada) |
+| F5 | Guardar | `_list_medicos_cambio_guardia.jsp:165` | «Registrar» con `Idempotency-Key` (`useRegistrarCambio.ts`) | cubierta |
+| F6 | El cambio queda pendiente de aprobación | flujo de estados del legacy | Se aplica en el acto | descartada por spec (FR-002/CG-003) |
+| F7 | Correo al registrar | flujo legacy | Sin notificaciones | descartada por spec (FR-027/CG-022) |
+
+### Listado de cambios legacy (`web/medico/lista_cambiosguardias.jsp`, en `web/cambios_guardias.jsp`)
+
+| # | Capacidad legacy | Evidencia | En la aplicación nueva | Estado |
+|---|---|---|---|---|
+| L1 | Tabla con columnas De, A, Tipo, Destinatario, Solicitud, Aprobación y Estado | `lista_cambiosguardias.jsp:27-38` | Lista (no tabla) de los cambios del mes: descripción con fechas, tipo y médicos, más quién lo registró y cuándo (`CambiosListPage.tsx:128-150`). Sin Aprobación ni Estado, que no existen (FR-002) | cubierta (columnas de aprobación descartadas por FR-002) |
+| L2 | Búsqueda, ordenación por columna y paginación (DataTables) | `lista_cambiosguardias.jsp:16` | Lista por mes, ordenada del más reciente al más antiguo, con navegación entre meses; sin búsqueda ni ordenación por columna | **hueco H4** |
+| L3 | Tabla adaptable al móvil (`responsive`) | `lista_cambiosguardias.jsp:16`, `web/cambios_guardias.jsp:23,38` | Sin comprobar en pantallas estrechas | a verificar en T068 (**H4**) |
+| L4 | El administrador ve todos los cambios del servicio; un médico ve los suyos | `lista_cambiosguardias.jsp:44-54` | El administrador ve los de su servicio. Los médicos no tienen acceso a la aplicación nueva | administrador: cubierta. Médico: **hueco H5** |
+| L5 | Aprobar o cancelar un cambio pendiente | `lista_cambiosguardias.jsp:94-99` | No hay estados. Un error se corrige registrando el cambio inverso («Registrar cambio inverso», `CambiosListPage.tsx:143`) | descartada por spec (FR-002) y sustituida por el cambio inverso |
+| L6 | Listado completo de cambios, sin filtrar por canal | `CambiosGuardiasDBImpl.getCambiosGuardia` | Solo los registrados en la aplicación nueva (`Canal = 'APP'`). Los anteriores siguen en el listado del legacy, que no se retira | sigue en legacy |
+
+### Huecos y decisiones
+
+| ID | Hueco | Opciones | Decisión (2026-10-25) |
+|---|---|---|---|
+| H1 | Para registrar un cambio solo hay vista mensual: sin año, semana, día ni «hoy» (C1, C2) | (a) Aceptarlo en el piloto y registrarlo en la spec: el legacy sigue ofreciendo esas vistas para consultar. (b) Añadir vistas semana/día y «hoy» como tarea nueva | **Migrar** (b): FR-030 |
+| H2 | Mover arrastrando y la bandeja entre meses se sustituyen por «elegir guardia → acción → formulario» (C4, C5) | (a) Aceptar la sustitución: mismo resultado y validación previa. (b) Añadir arrastrar y soltar en la vista mensual como alternativa | **Aceptar** (a): registrada en la spec |
+| H3 | Sin colores ni leyenda por tipo de guardia; dentro del día, orden distinto al del legacy (C7, C8) | (a) Añadir colores y leyenda equivalentes, y el mismo orden que `_OrdenarGuardias` (cambio solo de interfaz, pequeño). (b) Aceptar el texto | **Migrar** (a): FR-031 |
+| H4 | Listado sin búsqueda ni ordenación por columna; adaptación al móvil sin comprobar (L2, L3) | (a) Aceptar la lista mensual. (b) Añadir búsqueda por médico y ordenación | **Aceptar** (a): registrada en la spec; móvil, en T068 |
+| H5 | Un médico no administrador no ve sus cambios en la aplicación nueva (L4) | (a) Fuera de alcance: los médicos no usan `/app/` en esta funcionalidad; ven sus guardias en el calendario legacy y los cambios antiguos en su listado. (b) Nueva funcionalidad | **Fuera de alcance** (a): registrada en la spec |
+
+Decidido por David (responsable del proyecto) el 2026-10-25: H1 se migra («hay que migrarlo»); el resto, según la propuesta. H1 y H3 se implementan en T069–T071 (tasks.md).
 
 ## Project Structure
 

@@ -1,0 +1,87 @@
+/*
+ * Colores por tipo de guardia, como la leyenda del legacy (web/inicio.jsp: Presencia amarillo,
+ * Localizada verde, Refuerzo azul, Residente rojo). El texto va oscuro sobre fondo claro para
+ * cumplir el contraste AA; el color no es la única pista: el título incluye el tipo.
+ */
+:root {
+  --guardia-texto: #1f2937;
+  --guardia-presencia-fondo: #fef3c7;
+  --guardia-presencia-borde: #b45309;
+  --guardia-localizada-fondo: #dcfce7;
+  --guardia-localizada-borde: #15803d;
+  --guardia-refuerzo-fondo: #dbeafe;
+  --guardia-refuerzo-borde: #1d4ed8;
+  --guardia-residente-fondo: #fee2e2;
+  --guardia-residente-borde: #b91c1c;
+  --guardia-festivo-trama: rgb(0 0 0 / 0.08);
+  --guardia-foco: #111827;
+}
+
+.calendario .guardia {
+  color: var(--guardia-texto);
+  border: 0;
+  border-left: 4px solid transparent;
+  border-radius: 3px;
+  padding: 1px 4px;
+  white-space: normal;
+}
+
+.calendario .fc-event.guardia .fc-event-title,
+.calendario .fc-event.guardia .fc-event-time {
+  color: var(--guardia-texto);
+}
+
+.calendario .guardia--presencia {
+  background-color: var(--guardia-presencia-fondo);
+  border-left-color: var(--guardia-presencia-borde);
+}
+
+.calendario .guardia--localizada {
+  background-color: var(--guardia-localizada-fondo);
+  border-left-color: var(--guardia-localizada-borde);
+}
+
+.calendario .guardia--refuerzo {
+  background-color: var(--guardia-refuerzo-fondo);
+  border-left-color: var(--guardia-refuerzo-borde);
+}
+
+.calendario .guardia--residente {
+  background-color: var(--guardia-residente-fondo);
+  border-left-color: var(--guardia-residente-borde);
+}
+
+.calendario .guardia--festivo {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--guardia-festivo-trama) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.calendario .guardia--pasada {
+  cursor: default;
+}
+
+.calendario .fc-event.guardia:not(.guardia--pasada) {
+  cursor: pointer;
+}
+
+.calendario .guardia--seleccionada,
+.calendario .fc-event.guardia:focus-visible {
+  outline: 2px solid var(--guardia-foco);
+  outline-offset: 1px;
+}
+
+.calendario .leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+
+.calendario .leyenda .guardia--festivo {
+  border-left-color: var(--guardia-texto);
+}

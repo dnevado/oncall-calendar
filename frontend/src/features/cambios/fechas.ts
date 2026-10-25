@@ -29,28 +29,58 @@ function dosDigitos(n: number): string {
 
 export function rangoDelMes({ anio, mes }: Mes): { desde: string; hasta: string } {
   const ultimo = new Date(Date.UTC(anio, mes, 0)).getUTCDate();
-  return { desde: `${anio}-${dosDigitos(mes)}-01`, hasta: `${anio}-${dosDigitos(mes)}-${dosDigitos(ultimo)}` };
+  return {
+    desde: `${anio}-${dosDigitos(mes)}-01`,
+    hasta: `${anio}-${dosDigitos(mes)}-${dosDigitos(ultimo)}`,
+  };
 }
 
 export function nombreMes({ anio, mes }: Mes): string {
-  return new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
-    new Date(Date.UTC(anio, mes - 1, 1)),
-  );
+  return new Intl.DateTimeFormat('es-ES', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(anio, mes - 1, 1)));
 }
 
 export function fechaLarga(fecha: string): string {
   const [anio, mes, dia] = fecha.split('-').map(Number);
-  return new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(
-    new Date(Date.UTC(anio ?? 1970, (mes ?? 1) - 1, dia ?? 1)),
-  );
+  return new Intl.DateTimeFormat('es-ES', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(anio ?? 1970, (mes ?? 1) - 1, dia ?? 1)));
 }
 
-const TIPOS: Record<Schemas['TipoGuardia'], string> = {
+export function sumarDias(fecha: string, dias: number): string {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  return new Date(Date.UTC(anio ?? 1970, (mes ?? 1) - 1, (dia ?? 1) + dias))
+    .toISOString()
+    .slice(0, 10);
+}
+
+export const TIPOS: Record<Schemas['TipoGuardia'], string> = {
   PRESENCIA: 'Presencia',
   LOCALIZADA: 'Localizada',
   REFUERZO: 'Refuerzo',
   RESIDENTE: 'Residente',
 };
+
+/**
+ * Orden dentro del día, como el legacy: presencia, residente y después localizada y refuerzo
+ * (`GuardiasDBImpl.java`, `ORDER BY Sorted DESC`).
+ */
+const ORDEN_TIPO: Record<Schemas['TipoGuardia'], number> = {
+  PRESENCIA: 0,
+  RESIDENTE: 1,
+  LOCALIZADA: 2,
+  REFUERZO: 2,
+};
+
+export function ordenTipo(tipo: Schemas['TipoGuardia']): number {
+  return ORDEN_TIPO[tipo];
+}
 
 export function etiquetaTipo(tipo: Schemas['TipoGuardia'], festivo: boolean): string {
   return festivo ? `${TIPOS[tipo]} (festivo)` : TIPOS[tipo];

@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import FullCalendar from '@fullcalendar/react';
+import type { DatesSetArg, EventClickArg, EventInput, EventMountArg } from '@fullcalendar/core';
+import esLocale from '@fullcalendar/core/locales/es';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import multiMonthPlugin from '@fullcalendar/multimonth';
 import { api, type Cambio, type Guardia } from '../../api/client';
 import { CesionForm } from './CesionForm';
 import { IntercambioForm } from './IntercambioForm';
-import {
-  desplazarMes,
-  etiquetaTipo,
-  fechaLarga,
-  hoyEnServicio,
-  mesDe,
-  nombreMes,
-  rangoDelMes,
-  type Mes,
-} from './fechas';
+import { etiquetaTipo, fechaLarga, hoyEnServicio, ordenTipo, sumarDias, TIPOS } from './fechas';
+import './calendario.css';
 
 interface Props {
   servicioId: number;
@@ -19,25 +16,32 @@ interface Props {
   hoy?: string;
 }
 
+interface Rango {
+  desde: string;
+  hasta: string;
+}
+
 /**
- * Calendario mensual del servicio. Al elegir una guardia futura se ofrecen las acciones.
- * Qué guardia es futura se calcula aquí solo para la interfaz: el servidor vuelve a validar (FR-008).
+ * Calendario del servicio con las vistas del legacy (`web/inicio.jsp`): año, mes, semana y día,
+ * con «hoy» y enlaces de cada día o semana a su vista. Al elegir una guardia futura se ofrecen
+ * las acciones. Qué guardia es futura se calcula aquí solo para la interfaz: el servidor vuelve a
+ * validar (FR-008).
  */
 export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
-  const [mes, setMes] = useState<Mes>(() => mesDe(hoy));
+  const [rango, setRango] = useState<Rango>();
   const [guardias, setGuardias] = useState<Guardia[]>();
   const [error, setError] = useState<string>();
   const [seleccionada, setSeleccionada] = useState<Guardia>();
   const [accion, setAccion] = useState<'ceder' | 'intercambiar'>();
   const [confirmacion, setConfirmacion] = useState<string>();
-  // Solo cuenta la respuesta de la última petición: una tardía de otro mes se descarta.
+  // Solo cuenta la respuesta de la última petición: una tardía de otro periodo se descarta.
   const ultimaPeticion = useRef(0);
 
   const cargar = useCallback(async () => {
+    if (!rango) return;
     const peticion = ++ultimaPeticion.current;
-    const { desde, hasta } = rangoDelMes(mes);
     const { data, error: problema } = await api.GET('/servicios/{servicioId}/guardias', {
-      params: { path: { servicioId }, query: { desde, hasta } },
+      params: { path: { servicioId }, query: rango },
     });
     if (peticion !== ultimaPeticion.current) return;
     if (data) {
@@ -46,7 +50,7 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
     } else {
       setError(problema?.detail ?? 'No se ha podido cargar el calendario.');
     }
-  }, [mes, servicioId]);
+  }, [rango, servicioId]);
 
   useEffect(() => {
     setSeleccionada(undefined);
@@ -54,12 +58,18 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
     void cargar();
   }, [cargar]);
 
-  function cambiarMes(meses: number) {
-    setMes((m) => desplazarMes(m, meses));
+  // FullCalendar avisa al cambiar de vista o de periodo. `end` es exclusivo.
+  const rangoActual = useRef<Rango>();
+  const periodoVisible = useCallback((arg: DatesSetArg) => {
+    const desde = arg.start.toISOString().slice(0, 10);
+    const hasta = sumarDias(arg.end.toISOString().slice(0, 10), -1);
+    if (rangoActual.current?.desde === desde && rangoActual.current.hasta === hasta) return;
+    rangoActual.current = { desde, hasta };
+    setRango(rangoActual.current);
     setGuardias(undefined);
     setError(undefined);
     setConfirmacion(undefined);
-  }
+  }, []);
 
   function seleccionar(guardia: Guardia | undefined) {
     setSeleccionada(guardia);
@@ -77,56 +87,86 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
     void cargar();
   }
 
-  const porDia = useMemo(() => {
-    const dias = new Map<string, Guardia[]>();
-    for (const g of guardias ?? []) {
-      dias.set(g.fecha, [...(dias.get(g.fecha) ?? []), g]);
-    }
-    return [...dias.entries()];
-  }, [guardias]);
+  const eventos = useMemo<EventInput[]>(
+    () =>
+      (guardias ?? []).map((g) => ({
+        id: String(g.id),
+        title: `${g.medico.nombre} — ${etiquetaTipo(g.tipo, g.festivo)}`,
+        start: g.fecha,
+        allDay: true,
+        interactive: g.fecha > hoy,
+        classNames: [
+          'guardia',
+          `guardia--${g.tipo.toLowerCase()}`,
+          ...(g.festivo ? ['guardia--festivo'] : []),
+          ...(g.fecha > hoy ? [] : ['guardia--pasada']),
+          ...(seleccionada?.id === g.id ? ['guardia--seleccionada'] : []),
+        ],
+        extendedProps: { guardia: g, orden: ordenTipo(g.tipo), idGuardia: g.id },
+      })),
+    [guardias, hoy, seleccionada],
+  );
+
+  const pulsarGuardia = useCallback(
+    (arg: EventClickArg) => {
+      const guardia = arg.event.extendedProps.guardia as Guardia;
+      if (guardia.fecha > hoy) seleccionar(guardia);
+    },
+    [hoy],
+  );
+
+  // Las guardias que se pueden elegir se anuncian como botones (FullCalendar ya les da foco y teclado).
+  const montarGuardia = useCallback(
+    (arg: EventMountArg) => {
+      const guardia = arg.event.extendedProps.guardia as Guardia;
+      if (guardia.fecha > hoy) {
+        arg.el.setAttribute('role', 'button');
+        arg.el.setAttribute('aria-label', arg.event.title);
+      }
+    },
+    [hoy],
+  );
 
   return (
     <main className="calendario">
-      <header>
-        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior">
-          ‹
-        </button>
-        <h2>{nombreMes(mes)}</h2>
-        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente">
-          ›
-        </button>
-      </header>
-
       {confirmacion && <p role="status">{confirmacion}</p>}
       {error && <p role="alert">{error}</p>}
-      {!guardias && !error && <p>Cargando…</p>}
-      {guardias && porDia.length === 0 && <p>No hay guardias este mes.</p>}
+      {rango && !guardias && !error && <p role="status">Cargando…</p>}
+      {guardias && guardias.length === 0 && <p>No hay guardias en este periodo.</p>}
 
-      {porDia.map(([fecha, delDia]) => (
-        <section key={fecha} aria-label={fechaLarga(fecha)}>
-          <h3>{fechaLarga(fecha)}</h3>
-          <ul>
-            {delDia.map((g) => {
-              const texto = `${g.medico.nombre} — ${etiquetaTipo(g.tipo, g.festivo)}`;
-              return (
-                <li key={g.id}>
-                  {g.fecha > hoy ? (
-                    <button
-                      type="button"
-                      aria-pressed={seleccionada?.id === g.id}
-                      onClick={() => seleccionar(g)}
-                    >
-                      {texto}
-                    </button>
-                  ) : (
-                    <span>{texto}</span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+      <FullCalendar
+        plugins={[dayGridPlugin, multiMonthPlugin]}
+        locale={esLocale}
+        buttonHints={{ prev: '$0 anterior' }}
+        timeZone="UTC"
+        now={hoy}
+        initialDate={hoy}
+        initialView="dayGridMonth"
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'multiMonthYear,dayGridMonth,dayGridWeek,dayGridDay',
+        }}
+        fixedWeekCount={false}
+        navLinks
+        dayMaxEvents
+        height="auto"
+        multiMonthMaxColumns={3}
+        eventOrder={['orden', 'idGuardia']}
+        events={eventos}
+        eventClick={pulsarGuardia}
+        eventDidMount={montarGuardia}
+        datesSet={periodoVisible}
+      />
+
+      <ul className="leyenda" aria-label="Leyenda">
+        {Object.entries(TIPOS).map(([tipo, nombre]) => (
+          <li key={tipo} className={`guardia guardia--${tipo.toLowerCase()}`}>
+            {nombre}
+          </li>
+        ))}
+        <li className="guardia guardia--festivo">Festivo</li>
+      </ul>
 
       {seleccionada && !accion && (
         <aside aria-label="Acciones de la guardia">

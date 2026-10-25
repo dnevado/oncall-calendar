@@ -32,7 +32,7 @@ Las pruebas de integración del backend DEBEN cubrir, como mínimo:
 ## 2. Prueba manual de extremo a extremo
 
 1. `docker compose -f deploy/docker-compose.yml up` con MySQL 5.7 y datos ficticios de un servicio, dos adjuntos y residentes R2 y R4.
-2. Abrir `http://localhost/app/` e iniciar sesión como administrador del servicio.
+2. Abrir `http://localhost/app/` e iniciar sesión como administrador del servicio. **Calendario (FR-030, FR-031)**: pasar por las vistas Año, Mes, Semana y Día; navegar con anterior/siguiente y volver con «Hoy»; pulsar el número de un día para ir a su vista; en un día con muchas guardias, abrir «+N más». **Esperado**: en cada vista se ven las guardias del periodo, con color y leyenda por tipo, los festivos marcados y, dentro de cada día, el orden presencia, residente, localizada y refuerzo. Repetirlo en un ancho de móvil.
 3. **Cesión válida**: elegir una guardia futura de un adjunto, «Ceder», elegir otro adjunto candidato y confirmar. **Esperado**: el calendario muestra al receptor ese día con el mismo tipo; el listado de cambios muestra la cesión. Menos de 1 minuto (SC-001).
 4. **Cesión inválida**: repetir eligiendo un receptor con vacaciones ese día. **Esperado**: mensaje con la regla, el médico y la fecha; el calendario no cambia.
 5. **Intercambio**: intercambiar dos guardias futuras de dos adjuntos. **Esperado**: cada uno aparece en el día del otro y el tipo de cada día se mantiene.

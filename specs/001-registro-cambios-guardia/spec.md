@@ -153,6 +153,15 @@ Al generar la agenda, el reparto equilibra el número de guardias de cada tipo e
 
 - **FR-029**: Tras 5 intentos de inicio de sesión fallidos consecutivos sobre una misma cuenta, el sistema MUST bloquear el acceso de esa cuenta a la aplicación nueva durante 15 minutos, sin revelar si la cuenta existe; un inicio de sesión correcto reinicia el contador. El login del legacy no se ve afectado.
 
+**Interfaz: capacidades del legacy (constitución, principio VIII; decisiones H1–H5 del plan, 2026-10-25)**
+
+- **FR-030**: El calendario en el que el administrador elige la guardia MUST ofrecer las vistas de año, mes, semana y día del calendario legacy, con navegación al periodo anterior y siguiente, vuelta a hoy, paso de un día a su vista de día y acceso a todas las guardias de los días con muchas (H1).
+- **FR-031**: El calendario MUST distinguir el tipo de cada guardia (presencia, localizada, refuerzo, residente) y si es festiva con una leyenda, sin depender solo del color, y MUST ordenar las guardias de cada día como el legacy: presencia, residente, y después localizada y refuerzo (H3).
+- **Decisiones aprobadas sobre capacidades** (no son pérdidas, salvo donde se dice):
+  - H2: mover una guardia arrastrándola, y la bandeja para llevarla a otro mes, se sustituyen por «elegir guardia → Ceder o Intercambiar → formulario». La fecha de destino del intercambio se elige en el formulario, en cualquier mes.
+  - H4: el listado de cambios es mensual, del más reciente al más antiguo, sin búsqueda ni ordenación por columna.
+  - H5: los médicos sin rol de administrador no ven sus cambios en la aplicación nueva. Los siguen viendo en el legacy (fuera de alcance, CG-002).
+
 ### Key Entities *(include if feature involves data)*
 
 - **Guardia**: asignación de un médico a un día en un servicio, con un tipo (presencia, localizada, refuerzo o guardia de residente) y la marca de festivo. Un médico tiene como máximo una guardia por día y servicio.
@@ -184,5 +193,5 @@ Al generar la agenda, el reparto equilibra el número de guardias de cada tipo e
 - **Histórico de tipo**: al ponerse en marcha, el histórico de cada médico empieza con su tipo actual; los cambios anteriores no se pueden reconstruir.
 - **Convivencia**: la pantalla de cambios del legacy se deja de usar cuando esta funcionalidad esté disponible; el resto del legacy sigue leyendo el mismo calendario.
 - **Limpieza de datos**: antes de imponer FR-025 hay que resolver los 3 casos actuales de médicos con dos guardias el mismo día (discovery, D9).
-- **Desviaciones intencionadas respecto al legacy**: FR-001/CG-002, FR-002/CG-003, FR-004/CG-001, FR-007/CG-007, FR-009/CG-009, FR-010 en cesiones/CG-011, FR-012/CG-013 (sin exención de simulados), FR-013/CG-014, FR-020 ampliada/CG-019, FR-016 (todos los errores) y FR-027 (sin notificaciones). El cálculo del equilibrio no cambia en este incremento (FR-023).
+- **Desviaciones intencionadas respecto al legacy**: FR-001/CG-002, FR-002/CG-003, FR-004/CG-001, FR-007/CG-007, FR-009/CG-009, FR-010 en cesiones/CG-011, FR-012/CG-013 (sin exención de simulados), FR-013/CG-014, FR-020 ampliada/CG-019, FR-016 (todos los errores) y FR-027 (sin notificaciones). En la interfaz, H2, H4 y H5 (ver «Interfaz: capacidades del legacy»). El cálculo del equilibrio no cambia en este incremento (FR-023).
 - **Rendimiento**: volumen bajo (unos 550–700 cambios al año en el servicio principal); se asumen tiempos de respuesta estándar de una aplicación web.
