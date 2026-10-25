@@ -33,7 +33,7 @@ async function abrirIntercambioDelDia20() {
 }
 
 function elegirFecha(formulario: HTMLElement, fecha: string) {
-  fireEvent.change(within(formulario).getByLabelText('Fecha de la guardia que recibe'), {
+  fireEvent.change(within(formulario).getByLabelText(/fecha de la guardia que recibe/), {
     target: { value: fecha },
   });
 }

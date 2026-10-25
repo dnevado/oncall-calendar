@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
-import type { DatesSetArg, EventClickArg, EventInput, EventMountArg } from '@fullcalendar/core';
+import type {
+  DateSpanApi,
+  DatesSetArg,
+  EventClickArg,
+  EventDropArg,
+  EventInput,
+  EventMountArg,
+} from '@fullcalendar/core';
 import esLocale from '@fullcalendar/core/locales/es';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
 import multiMonthPlugin from '@fullcalendar/multimonth';
 import { api, type Cambio, type Guardia } from '../../api/client';
 import { CesionForm } from './CesionForm';
+import { Dialogo } from './Dialogo';
 import { IntercambioForm } from './IntercambioForm';
 import { etiquetaTipo, fechaLarga, hoyEnServicio, ordenTipo, sumarDias, TIPOS } from './fechas';
 import './calendario.css';
@@ -21,18 +30,26 @@ interface Rango {
   hasta: string;
 }
 
+/** Guardia elegida en el popup; al arrastrarla, ya con el intercambio y la fecha de destino. */
+interface EnCurso {
+  guardia: Guardia;
+  accion?: 'ceder' | 'intercambiar';
+  fechaDestino?: string;
+}
+
 /**
  * Calendario del servicio con las vistas del legacy (`web/inicio.jsp`): año, mes, semana y día,
- * con «hoy» y enlaces de cada día o semana a su vista. Al elegir una guardia futura se ofrecen
- * las acciones. Qué guardia es futura se calcula aquí solo para la interfaz: el servidor vuelve a
- * validar (FR-008).
+ * con «hoy» y enlaces de cada día o semana a su vista. Una guardia futura se arrastra a otro día
+ * para intercambiarla, o se pulsa para ceder o intercambiar; las dos cosas abren el popup.
+ * Arrastrar solo prepara el cambio: no se aplica nada hasta registrarlo, y el servidor valida
+ * todas las reglas (FR-008, FR-016). Qué guardia es futura se calcula aquí solo para la interfaz.
  */
 export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   const [rango, setRango] = useState<Rango>();
   const [guardias, setGuardias] = useState<Guardia[]>();
   const [error, setError] = useState<string>();
-  const [seleccionada, setSeleccionada] = useState<Guardia>();
-  const [accion, setAccion] = useState<'ceder' | 'intercambiar'>();
+  const [enCurso, setEnCurso] = useState<EnCurso>();
+  const seleccionada = enCurso?.guardia;
   const [confirmacion, setConfirmacion] = useState<string>();
   // Solo cuenta la respuesta de la última petición: una tardía de otro periodo se descarta.
   const ultimaPeticion = useRef(0);
@@ -53,8 +70,7 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   }, [rango, servicioId]);
 
   useEffect(() => {
-    setSeleccionada(undefined);
-    setAccion(undefined);
+    setEnCurso(undefined);
     void cargar();
   }, [cargar]);
 
@@ -71,14 +87,13 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
     setConfirmacion(undefined);
   }, []);
 
-  function seleccionar(guardia: Guardia | undefined) {
-    setSeleccionada(guardia);
-    setAccion(undefined);
+  function abrir(cambio: EnCurso | undefined) {
+    setEnCurso(cambio);
     setConfirmacion(undefined);
   }
 
   function cambioRegistrado(cambio: Cambio) {
-    seleccionar(undefined);
+    abrir(undefined);
     setConfirmacion(
       cambio.tipo === 'CAMBIO' && cambio.fechaDestino
         ? `Intercambio registrado: ${cambio.receptor.nombre} hace la guardia del ${fechaLarga(cambio.fechaOrigen)} y ${cambio.cedente.nombre} la del ${fechaLarga(cambio.fechaDestino)}.`
@@ -95,6 +110,8 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
         start: g.fecha,
         allDay: true,
         interactive: g.fecha > hoy,
+        startEditable: g.fecha > hoy,
+        durationEditable: false,
         classNames: [
           'guardia',
           `guardia--${g.tipo.toLowerCase()}`,
@@ -110,8 +127,24 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
   const pulsarGuardia = useCallback(
     (arg: EventClickArg) => {
       const guardia = arg.event.extendedProps.guardia as Guardia;
-      if (guardia.fecha > hoy) seleccionar(guardia);
+      if (guardia.fecha > hoy) abrir({ guardia });
     },
+    [hoy],
+  );
+
+  // Como en el legacy: soltar la guardia en otro día propone el intercambio con ese día. La
+  // guardia vuelve a su sitio en el acto; el calendario cambia solo al registrar.
+  const soltarGuardia = useCallback((arg: EventDropArg) => {
+    const guardia = arg.oldEvent.extendedProps.guardia as Guardia;
+    const fechaDestino = arg.event.startStr.slice(0, 10);
+    arg.revert();
+    if (fechaDestino !== guardia.fecha) {
+      abrir({ guardia, accion: 'intercambiar', fechaDestino });
+    }
+  }, []);
+
+  const destinoPermitido = useCallback(
+    (destino: DateSpanApi) => destino.startStr.slice(0, 10) > hoy,
     [hoy],
   );
 
@@ -135,7 +168,7 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
       {guardias && guardias.length === 0 && <p>No hay guardias en este periodo.</p>}
 
       <FullCalendar
-        plugins={[dayGridPlugin, multiMonthPlugin]}
+        plugins={[dayGridPlugin, multiMonthPlugin, interactionPlugin]}
         locale={esLocale}
         buttonHints={{ prev: '$0 anterior' }}
         timeZone="UTC"
@@ -155,6 +188,8 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
         eventOrder={['orden', 'idGuardia']}
         events={eventos}
         eventClick={pulsarGuardia}
+        eventDrop={soltarGuardia}
+        eventAllow={destinoPermitido}
         eventDidMount={montarGuardia}
         datesSet={periodoVisible}
       />
@@ -168,40 +203,48 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
         <li className="guardia guardia--festivo">Festivo</li>
       </ul>
 
-      {seleccionada && !accion && (
-        <aside aria-label="Acciones de la guardia">
-          <p>
-            Guardia de {seleccionada.medico.nombre} el {fechaLarga(seleccionada.fecha)} (
-            {etiquetaTipo(seleccionada.tipo, seleccionada.festivo)})
-          </p>
-          <button type="button" onClick={() => setAccion('ceder')}>
-            Ceder
-          </button>
-          <button type="button" onClick={() => setAccion('intercambiar')}>
-            Intercambiar
-          </button>
-          <button type="button" onClick={() => seleccionar(undefined)}>
-            Cancelar
-          </button>
-        </aside>
-      )}
+      {enCurso && (
+        <Dialogo titulo="Cambio de guardia" onCerrar={() => abrir(undefined)}>
+          {!enCurso.accion && (
+            <section aria-label="Acciones de la guardia">
+              <p>
+                Guardia de {enCurso.guardia.medico.nombre} el {fechaLarga(enCurso.guardia.fecha)} (
+                {etiquetaTipo(enCurso.guardia.tipo, enCurso.guardia.festivo)})
+              </p>
+              <button type="button" onClick={() => setEnCurso({ ...enCurso, accion: 'ceder' })}>
+                Ceder
+              </button>
+              <button
+                type="button"
+                onClick={() => setEnCurso({ ...enCurso, accion: 'intercambiar' })}
+              >
+                Intercambiar
+              </button>
+              <button type="button" onClick={() => abrir(undefined)}>
+                Cancelar
+              </button>
+            </section>
+          )}
 
-      {seleccionada && accion === 'ceder' && (
-        <CesionForm
-          servicioId={servicioId}
-          guardia={seleccionada}
-          onRegistrada={cambioRegistrado}
-          onCancelar={() => setAccion(undefined)}
-        />
-      )}
+          {enCurso.accion === 'ceder' && (
+            <CesionForm
+              servicioId={servicioId}
+              guardia={enCurso.guardia}
+              onRegistrada={cambioRegistrado}
+              onCancelar={() => abrir(undefined)}
+            />
+          )}
 
-      {seleccionada && accion === 'intercambiar' && (
-        <IntercambioForm
-          servicioId={servicioId}
-          guardia={seleccionada}
-          onRegistrado={cambioRegistrado}
-          onCancelar={() => setAccion(undefined)}
-        />
+          {enCurso.accion === 'intercambiar' && (
+            <IntercambioForm
+              servicioId={servicioId}
+              guardia={enCurso.guardia}
+              fechaDestinoInicial={enCurso.fechaDestino}
+              onRegistrado={cambioRegistrado}
+              onCancelar={() => abrir(undefined)}
+            />
+          )}
+        </Dialogo>
       )}
     </main>
   );

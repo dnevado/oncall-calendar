@@ -19,7 +19,9 @@ function registrarRangos(respuesta: Guardia[] = []): string[] {
 }
 
 function titulo() {
-  return screen.getByRole('heading', { level: 2 });
+  const elemento = document.querySelector<HTMLElement>('.fc-toolbar-title');
+  if (!elemento) throw new Error('No se encuentra el título del calendario');
+  return elemento;
 }
 
 describe('CalendarioPage', () => {
@@ -173,35 +175,64 @@ describe('CalendarioPage', () => {
     expect(screen.getByText('No hay guardias en este periodo.')).toBeInTheDocument();
   });
 
-  it('solo las guardias futuras se pueden seleccionar y ofrecen Ceder e Intercambiar', async () => {
+  it('solo las guardias futuras se pueden elegir o arrastrar; elegir una abre el popup', async () => {
     render(<CalendarioPage servicioId={SERVICIO_ID} hoy={HOY} />);
-    await screen.findByRole('button', { name: 'Bruno Prueba — Presencia (festivo)' });
+    const futura = await screen.findByRole('button', {
+      name: 'Bruno Prueba — Presencia (festivo)',
+    });
+    expect(futura).toHaveClass('fc-event-draggable');
 
     const pasada = screen.getByText('Bruno Prueba — Presencia').closest('.fc-event');
     expect(pasada).toHaveClass('guardia--pasada');
+    expect(pasada).not.toHaveClass('fc-event-draggable');
     expect(pasada).not.toHaveAttribute('role', 'button');
     await userEvent.click(pasada as HTMLElement);
-    expect(
-      screen.queryByRole('complementary', { name: 'Acciones de la guardia' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Bruno Prueba — Presencia (festivo)' }),
-    );
-    const acciones = screen.getByRole('complementary', { name: 'Acciones de la guardia' });
-    expect(within(acciones).getByRole('button', { name: 'Ceder' })).toBeInTheDocument();
-    expect(within(acciones).getByRole('button', { name: 'Intercambiar' })).toBeInTheDocument();
+    await userEvent.click(futura);
+    const popup = screen.getByRole('dialog', { name: 'Cambio de guardia' });
+    expect(within(popup).getByText(/Guardia de Bruno Prueba/)).toBeInTheDocument();
+    expect(within(popup).getByRole('button', { name: 'Ceder' })).toHaveFocus();
+    expect(within(popup).getByRole('button', { name: 'Intercambiar' })).toBeInTheDocument();
   });
 
-  it('una guardia futura se elige también con el teclado', async () => {
+  it('el intercambio del popup muestra inicio y fin', async () => {
+    render(<CalendarioPage servicioId={SERVICIO_ID} hoy={HOY} />);
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Bruno Prueba — Presencia (festivo)' }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Intercambiar' }));
+
+    const formulario = screen.getByRole('form', { name: 'Intercambiar guardia' });
+    expect(within(formulario).getByText(/Inicio:/).parentElement).toHaveTextContent(
+      'Inicio: domingo, 20 de enero (Presencia (festivo))',
+    );
+    expect(within(formulario).getByLabelText(/Fin: fecha de la guardia que recibe/)).toHaveValue(
+      '',
+    );
+  });
+
+  it('el popup se cierra con Escape o Cancelar y devuelve el foco a la guardia', async () => {
     render(<CalendarioPage servicioId={SERVICIO_ID} hoy={HOY} />);
     const guardia = await screen.findByRole('button', { name: 'Rita Prueba — Residente' });
 
     guardia.focus();
     await userEvent.keyboard('{Enter}');
-    expect(screen.getByRole('complementary', { name: 'Acciones de la guardia' })).toHaveTextContent(
+    expect(screen.getByRole('dialog', { name: 'Cambio de guardia' })).toHaveTextContent(
       'Guardia de Rita Prueba',
     );
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(guardia).toHaveFocus();
+
+    await userEvent.click(guardia);
+    await userEvent.click(screen.getByRole('button', { name: 'Ceder' }));
+    await userEvent.click(
+      within(await screen.findByRole('form', { name: 'Ceder guardia' })).getByRole('button', {
+        name: 'Cancelar',
+      }),
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('muestra el error del servidor', async () => {

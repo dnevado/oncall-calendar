@@ -81,13 +81,14 @@ export function IntercambioForm({
   return (
     <form aria-label="Intercambiar guardia" onSubmit={enviar}>
       <h3>Intercambiar guardia</h3>
+      <p>{guardia.medico.nombre} entrega su guardia y recibe a cambio la de otro médico.</p>
       <p>
-        {guardia.medico.nombre} entrega su guardia del {fechaLarga(guardia.fecha)} (
-        {etiquetaTipo(guardia.tipo, guardia.festivo)}) y recibe a cambio la de otro médico.
+        <strong>Inicio:</strong> {fechaLarga(guardia.fecha)} (
+        {etiquetaTipo(guardia.tipo, guardia.festivo)})
       </p>
 
       <label>
-        Fecha de la guardia que recibe
+        <strong>Fin:</strong> fecha de la guardia que recibe
         <input type="date" value={fechaDestino} onChange={(e) => setFechaDestino(e.target.value)} />
       </label>
 

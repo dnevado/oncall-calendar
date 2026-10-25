@@ -113,7 +113,7 @@ describe('CambiosListPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: /Registrar cambio inverso/ }));
     const formulario = await screen.findByRole('form', { name: 'Intercambiar guardia' });
-    expect(within(formulario).getByLabelText('Fecha de la guardia que recibe')).toHaveValue(
+    expect(within(formulario).getByLabelText(/fecha de la guardia que recibe/)).toHaveValue(
       '2030-01-25',
     );
     expect(await within(formulario).findByRole('radio', { name: 'Ana Prueba' })).toBeChecked();
