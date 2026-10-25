@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DiaVacaciones, Schemas, VacacionesMedico } from '../../api/client';
 import { mesDe, nombreMes, TIPOS } from '../cambios/fechas';
 import { useVacaciones } from './useVacaciones';
@@ -100,8 +100,12 @@ export function ResumenVacaciones({ servicioId, hoy, version, onElegir }: Props)
   const hasta = desplazarMeses(desde, MESES_PERIODO);
   const { datos, error, recargar } = useVacaciones(servicioId, desde, hasta);
 
+  // Solo cuando cambia la versión: al cambiar de periodo, `useVacaciones` ya vuelve a pedir.
+  const versionVista = useRef(version);
   useEffect(() => {
-    if (version > 0) void recargar();
+    if (version === versionVista.current) return;
+    versionVista.current = version;
+    void recargar();
   }, [version, recargar]);
 
   const titulo = `Vacaciones del servicio del ${fechaConAnio(aDate(desde))} al ${fechaConAnio(aDate(hasta))}`;

@@ -182,6 +182,45 @@ describe('EditorVacaciones', () => {
     });
   });
 
+  it('recuerda los días guardados de meses ya vistos al elegir un periodo', async () => {
+    const usuario = userEvent.setup();
+    abrirEditor();
+    await screen.findByRole('button', { name: /^lunes, 4 de febrero de 2030.*de vacaciones/ });
+
+    await usuario.click(screen.getByRole('checkbox', { name: /Elegir un periodo/ }));
+    await usuario.click(dia('30 de enero de 2030'));
+    await usuario.click(screen.getByRole('button', { name: 'Ir al mes siguiente' }));
+    await usuario.click(screen.getByRole('button', { name: 'Ir al mes siguiente' }));
+    await screen.findByRole('button', { name: /^sábado, 2 de marzo de 2030/ });
+    await usuario.click(dia('2 de marzo de 2030'));
+
+    // Del 30 de enero al 2 de marzo son 32 días; el 4 y el 5 de febrero ya eran de vacaciones.
+    expect(screen.getByText('Sin guardar: añadir 30 días.')).toBeInTheDocument();
+  });
+
+  it('no deja marcar días mientras se cargan sus vacaciones', async () => {
+    let responder: () => void = () => undefined;
+    server.use(
+      http.get(
+        '*/api/v1/servicios/:servicioId/vacaciones',
+        () =>
+          new Promise<Response>((resolver) => {
+            responder = () =>
+              resolver(HttpResponse.json(vacaciones.filter((v) => v.medico.id === 2)));
+          }),
+      ),
+    );
+    abrirEditor();
+
+    expect(
+      await screen.findByRole('button', { name: /^lunes, 4 de febrero de 2030/ }),
+    ).toBeDisabled();
+    responder();
+    expect(
+      await screen.findByRole('button', { name: /^lunes, 4 de febrero de 2030.*de vacaciones/ }),
+    ).toBeEnabled();
+  });
+
   it('muestra cada día rechazado con su motivo', async () => {
     const rechazo: ReglasIncumplidas = {
       type: 'about:blank',

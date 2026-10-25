@@ -60,3 +60,28 @@ Contrastes calculados (WCAG 2.1 AA):
 ## T052: comprobación manual en el entorno local
 
 **Pendiente.** Necesita el backend en 8081 y Vite sobre la copia local, que solo se arrancan con permiso del responsable.
+
+## T053: revisión de migración
+
+**Fecha**: 2026-10-25. **Alcance**: commits `cc867eb`..`90a1ae8` y las correcciones de esta revisión.
+
+| Punto | Resultado |
+|---|---|
+| Alcance | Solo `backend/`, `frontend/`, `contracts/`, `docs/rules/` y `specs/002`. Ningún cambio en el legacy (`src/`, `web/`, `resources/`, `build/`, `bbdd/`) ni en el esquema. Única dependencia nueva: `react-day-picker` 9.14.0, aprobada |
+| Reglas en el servidor | VAC-001, VAC-003 y VAC-008 se comprueban en el backend; la pantalla solo prepara la operación (FR-020) |
+| Contrato | 1.2.0 solo añade; las respuestas se validan con `VacacionesContractTest` |
+| Persistencia | MyBatis con SQL parametrizada; misma tabla y formato que el legacy; regresión con la SQL original |
+| Despliegue | nginx y Spring no restringen métodos HTTP: el `PATCH` llega al backend. La CSP ya admite los estilos del selector |
+| Seguridad | Sin secretos ni datos reales; pruebas con datos ficticios |
+| Capacidades (principio VIII) | V1–V3, V5–V7, V9, M1–M3 cubiertas o sustituidas; V4 y V8 descartadas por spec; A1 y A2 siguen en el legacy |
+
+**Hallazgos y correcciones:**
+- **Importante (corregido).** El editor solo conocía los días guardados de los meses visibles y, mientras cargaban, los trataba como vacíos.
+  - Efecto: un periodo que empezaba en un mes ya no visible contaba como nuevos días ya guardados.
+  - Efecto: un día guardado pulsado durante la carga se apuntaba como «añadir».
+  - Corrección: el editor recuerda los días de todos los meses cargados y bloquea la selección mientras carga.
+  - Pruebas nuevas: `recuerda los días guardados de meses ya vistos…` y `no deja marcar días mientras se cargan…`. Ambas fallaban antes de la corrección.
+- **Menor (corregido).** Después de guardar, el resumen pedía los datos dos veces en cada cambio de periodo.
+- **Menor (fuera de alcance).** El token `--foco` de la 001 (`#66afe9`) tiene un contraste de 2,37:1 sobre blanco, por debajo del 3:1 de WCAG 1.4.11. Vacaciones usa `--primario-oscuro`. Queda como riesgo de la 001.
+
+**Pruebas tras las correcciones:** `npm --prefix frontend test` 51/51, `lint` sin errores, `build` correcto. El backend no cambió: sigue siendo el resultado de T051.

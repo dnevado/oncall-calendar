@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DayPicker, type Modifiers } from 'react-day-picker';
 import { es } from 'react-day-picker/locale';
 import 'react-day-picker/style.css';
-import type { Infraccion, Schemas } from '../../api/client';
+import type { DiaVacaciones, Infraccion, Schemas } from '../../api/client';
 import { TIPOS } from '../cambios/fechas';
 import { modificarVacaciones, useVacaciones } from './useVacaciones';
 import { aDate, aTexto, dias, fechaLargaConAnio, finDeMes, inicioDeMes } from './dias';
@@ -75,11 +75,22 @@ function diasEntre(a: string, b: string): string[] {
 export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props) {
   const mesesVisibles = useMesesVisibles();
   const [mes, setMes] = useState(() => aDate(hoy));
-  const {
-    datos,
-    error: errorCarga,
-    recargar,
-  } = useVacaciones(servicioId, inicioDeMes(mes), finDeMes(mes, mesesVisibles - 1), medico.id);
+  const desde = inicioDeMes(mes);
+  const hasta = finDeMes(mes, mesesVisibles - 1);
+  const { datos, error: errorCarga, recargar } = useVacaciones(servicioId, desde, hasta, medico.id);
+  // Días de vacaciones de todos los meses ya cargados: un periodo o un día de un mes que ya no se
+  // ve se compara con lo guardado, no con un mes vacío.
+  const [conocidos, setConocidos] = useState<Map<string, DiaVacaciones>>(new Map());
+  const cargando = !datos;
+
+  useEffect(() => {
+    if (!datos) return;
+    setConocidos((actual) => {
+      const siguiente = new Map([...actual].filter(([fecha]) => fecha < desde || fecha > hasta));
+      for (const d of datos[0]?.dias ?? []) siguiente.set(d.fecha, d);
+      return siguiente;
+    });
+  }, [datos, desde, hasta]);
   const [anadir, setAnadir] = useState<Set<string>>(new Set());
   const [quitar, setQuitar] = useState<Set<string>>(new Set());
   const [porPeriodo, setPorPeriodo] = useState(false);
@@ -89,15 +100,15 @@ export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props)
   const [error, setError] = useState<string>();
   const [confirmacion, setConfirmacion] = useState<string>();
 
-  const guardados = useMemo(() => new Set((datos?.[0]?.dias ?? []).map((d) => d.fecha)), [datos]);
+  const guardados = useMemo(() => new Set(conocidos.keys()), [conocidos]);
   const conflictos = useMemo(
     () =>
       new Map(
-        (datos?.[0]?.dias ?? []).flatMap((d) =>
+        [...conocidos.values()].flatMap((d) =>
           d.conflicto ? [[d.fecha, TIPOS[d.conflicto.tipo].toLowerCase()] as const] : [],
         ),
       ),
-    [datos],
+    [conocidos],
   );
   const titulo = useRef<HTMLHeadingElement>(null);
 
@@ -157,6 +168,13 @@ export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props)
     setEnviando(false);
     if (respuesta.ok) {
       const { anadidos, quitados } = respuesta.resultado;
+      // También fuera de los meses visibles, que no se vuelven a pedir.
+      setConocidos((actual) => {
+        const siguiente = new Map(actual);
+        quitados.forEach((f) => siguiente.delete(f));
+        anadidos.forEach((f) => siguiente.set(f, { fecha: f }));
+        return siguiente;
+      });
       setAnadir(new Set());
       setQuitar(new Set());
       setConfirmacion(
@@ -174,7 +192,11 @@ export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props)
   const hayCambios = anadir.size + quitar.size > 0;
 
   return (
-    <section className="editor-vacaciones" aria-labelledby="editor-vacaciones-titulo">
+    <section
+      className="editor-vacaciones"
+      aria-labelledby="editor-vacaciones-titulo"
+      aria-busy={cargando}
+    >
       <h2 id="editor-vacaciones-titulo" ref={titulo} tabIndex={-1}>
         Vacaciones de {medico.nombre}
       </h2>
@@ -206,7 +228,7 @@ export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props)
         onMonthChange={setMes}
         selected={seleccionados}
         onSelect={(_, fecha) => elegir(fecha)}
-        disabled={{ before: aDate(hoy) }}
+        disabled={cargando ? true : { before: aDate(hoy) }}
         modifiers={{
           guardado: [...guardados].filter((d) => !quitar.has(d)).map(aDate),
           nuevo: [...anadir].map(aDate),
