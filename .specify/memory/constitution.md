@@ -1,4 +1,13 @@
 <!--
+Sync Impact Report (1.2.0)
+- Versión: 1.1.0 → 1.2.0 (MINOR: nuevo principio)
+- Principios añadidos: VIII. Capacidades de la interfaz preservadas
+- Secciones modificadas: Flujo de trabajo y puertas de calidad (punto 4: la revisión incluye
+  las capacidades de la interfaz)
+- Secciones eliminadas: ninguna
+- Plantillas dependientes: no modificadas (leen la constitución en tiempo de ejecución)
+- Aprobada el 2026-10-25 por el responsable del proyecto. Sin TODO pendientes.
+
 Sync Impact Report (1.1.0)
 - Versión: 1.0.0 → 1.1.0 (MINOR: se fija la línea base tecnológica y la ubicación de los
   contratos; los principios no cambian)
@@ -122,6 +131,19 @@ claro en `configuracion` y `medicos`.
 **Razón:** el dump analizado contiene `IdCambio` duplicados, cambios repetidos y cambios
 aprobados sin aplicar.
 
+### VIII. Capacidades de la interfaz preservadas
+
+- Cada pantalla migrada DEBE conservar las capacidades de su equivalente legacy; los widgets,
+  la disposición y el aspecto PUEDEN sustituirse por equivalentes modernos en React.
+- Eliminar una capacidad legacy es una decisión explícita, registrada en la especificación y
+  aprobada.
+- Cada plan DEBE listar las capacidades de la pantalla legacy y cómo las cubre la nueva;
+  `/migration-review` DEBE verificarlo.
+
+**Razón:** los usuarios trabajan a diario con el calendario legacy (vistas año/mes/semana/día,
+mover guardias, selección de varias fechas); perder capacidades bloquea la adopción, pero el
+aspecto y los widgets deben poder modernizarse.
+
 ## Restricciones técnicas
 
 - **Legacy (referencia, solo lectura):** JSP + jQuery, Java, iBATIS/MyBatis y MySQL 5.7.
@@ -149,8 +171,9 @@ aprobados sin aplicar.
    reglas críticas.
 3. **Antes de implementar:** `/speckit-analyze` sin incoherencias críticas entre spec, plan y
    tareas, y comprobación de esta constitución en el plan.
-4. **Antes de abrir un PR:** `/migration-review` frente a spec, catálogo de reglas, contrato y
-   comportamiento legacy; pruebas ejecutadas y resultados adjuntos.
+4. **Antes de abrir un PR:** `/migration-review` frente a spec, catálogo de reglas, contrato,
+   comportamiento legacy y capacidades de la interfaz legacy; pruebas ejecutadas y resultados
+   adjuntos.
 5. **Al terminar cada tarea:** resumen de cambios, pruebas ejecutadas, resultados, desviaciones,
    riesgos y decisiones pendientes.
 6. No se ejecutan operaciones destructivas (borrados, migraciones de datos, force-push) sin
@@ -168,4 +191,4 @@ aprobados sin aplicar.
   verificar el cumplimiento; toda excepción DEBE justificarse en el plan, con su alcance y su
   fecha de revisión.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24
+**Version**: 1.2.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-25
