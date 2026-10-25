@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DayPicker, type Modifiers } from 'react-day-picker';
 import { es } from 'react-day-picker/locale';
 import 'react-day-picker/style.css';
 import type { Infraccion, Schemas } from '../../api/client';
+import { TIPOS } from '../cambios/fechas';
 import { modificarVacaciones, useVacaciones } from './useVacaciones';
 import { aDate, aTexto, dias, fechaLargaConAnio, finDeMes, inicioDeMes } from './dias';
 import './vacaciones.css';
@@ -12,6 +13,8 @@ interface Props {
   medico: Schemas['MedicoResumen'];
   /** Hoy en la zona del servicio (`yyyy-MM-dd`). */
   hoy: string;
+  /** Tras guardar con éxito, p. ej. para actualizar el resumen del servicio. */
+  onGuardado?: () => void;
 }
 
 /** Un mes en pantallas estrechas y dos en escritorio (plan, «Móvil»). */
@@ -30,15 +33,22 @@ function useMesesVisibles(): number {
   return estrecho ? 1 : 2;
 }
 
-/** Estado de un día para el lector de pantalla: el color nunca es la única pista (FR-019). */
-function etiqueta(fecha: Date, modificadores: Modifiers): string {
-  const partes = [fechaLargaConAnio(fecha)];
-  if (modificadores.nuevo) partes.push('se añadirá al guardar');
-  else if (modificadores.quitado) partes.push('se quitará al guardar');
-  else if (modificadores.guardado) partes.push('de vacaciones');
-  if (modificadores.inicioPeriodo) partes.push('inicio del periodo');
-  if (modificadores.disabled) partes.push('no editable');
-  return partes.join(', ');
+/**
+ * Estado de un día para el lector de pantalla: el color nunca es la única pista (FR-019).
+ * `conflictos`: tipo de guardia de cada día de vacaciones que coincide con una (FR-014).
+ */
+function etiquetador(conflictos: Map<string, string>) {
+  return (fecha: Date, modificadores: Modifiers): string => {
+    const partes = [fechaLargaConAnio(fecha)];
+    if (modificadores.nuevo) partes.push('se añadirá al guardar');
+    else if (modificadores.quitado) partes.push('se quitará al guardar');
+    else if (modificadores.guardado) partes.push('de vacaciones');
+    const conflicto = conflictos.get(aTexto(fecha));
+    if (conflicto) partes.push(`conflicto con guardia de ${conflicto}`);
+    if (modificadores.inicioPeriodo) partes.push('inicio del periodo');
+    if (modificadores.disabled) partes.push('no editable');
+    return partes.join(', ');
+  };
 }
 
 /** «añadir 2 días y quitar 1 día» o «2 días añadidos y 1 día quitado». */
@@ -62,7 +72,7 @@ function diasEntre(a: string, b: string): string[] {
  * Calendario de vacaciones de un médico: se marcan y desmarcan varios días con ratón o teclado y
  * se guardan de una vez. Solo prepara la operación; el servidor aplica las reglas (FR-018 a FR-020).
  */
-export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
+export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props) {
   const mesesVisibles = useMesesVisibles();
   const [mes, setMes] = useState(() => aDate(hoy));
   const {
@@ -80,6 +90,21 @@ export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
   const [confirmacion, setConfirmacion] = useState<string>();
 
   const guardados = useMemo(() => new Set((datos?.[0]?.dias ?? []).map((d) => d.fecha)), [datos]);
+  const conflictos = useMemo(
+    () =>
+      new Map(
+        (datos?.[0]?.dias ?? []).flatMap((d) =>
+          d.conflicto ? [[d.fecha, TIPOS[d.conflicto.tipo].toLowerCase()] as const] : [],
+        ),
+      ),
+    [datos],
+  );
+  const titulo = useRef<HTMLHeadingElement>(null);
+
+  // Al elegir un médico en el resumen, el foco pasa al editor.
+  useEffect(() => {
+    titulo.current?.focus();
+  }, []);
 
   function alternar(texto: string) {
     if (anadir.has(texto)) {
@@ -138,6 +163,7 @@ export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
         `Vacaciones guardadas: ${resumen(anadidos.length, quitados.length, true) || 'sin cambios'}.`,
       );
       await recargar();
+      onGuardado?.();
     } else {
       setInfracciones(respuesta.infracciones);
       setError(respuesta.error);
@@ -149,7 +175,9 @@ export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
 
   return (
     <section className="editor-vacaciones" aria-labelledby="editor-vacaciones-titulo">
-      <h2 id="editor-vacaciones-titulo">Vacaciones de {medico.nombre}</h2>
+      <h2 id="editor-vacaciones-titulo" ref={titulo} tabIndex={-1}>
+        Vacaciones de {medico.nombre}
+      </h2>
       {errorCarga && <p role="alert">{errorCarga}</p>}
       <label className="modo-periodo">
         <input
@@ -184,14 +212,16 @@ export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
           nuevo: [...anadir].map(aDate),
           quitado: [...quitar].map(aDate),
           inicioPeriodo: inicioPeriodo ? [aDate(inicioPeriodo)] : [],
+          conflicto: [...conflictos.keys()].map(aDate),
         }}
         modifiersClassNames={{
           guardado: 'dia-guardado',
           nuevo: 'dia-nuevo',
           quitado: 'dia-quitado',
           inicioPeriodo: 'dia-inicio-periodo',
+          conflicto: 'dia-conflicto',
         }}
-        labels={{ labelDayButton: etiqueta }}
+        labels={{ labelDayButton: etiquetador(conflictos) }}
       />
       <ul className="leyenda-vacaciones" aria-label="Leyenda">
         <li>
@@ -202,6 +232,9 @@ export function EditorVacaciones({ servicioId, medico, hoy }: Props) {
         </li>
         <li>
           <span className="muestra dia-quitado" aria-hidden="true" /> Se quitará al guardar
+        </li>
+        <li>
+          <span className="muestra dia-conflicto" aria-hidden="true" /> Coincide con una guardia
         </li>
       </ul>
       <p className="pendientes" aria-live="polite">

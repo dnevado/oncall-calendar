@@ -1,14 +1,21 @@
 package es.medoncalls.guardias.integration;
 
+import static es.medoncalls.guardias.support.CsrfSpa.csrfSpa;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+
+import com.jayway.jsonpath.JsonPath;
 
 import es.medoncalls.guardias.cambios.domain.TipoGuardia;
 import es.medoncalls.guardias.support.IntegracionBase;
@@ -100,6 +107,37 @@ class ConsultarVacacionesIT extends IntegracionBase {
                 .andExpect(jsonPath("$[0].dias[0].conflicto.medico.id").value(bruno))
                 .andExpect(jsonPath("$[0].dias[1].conflicto").doesNotExist())
                 .andExpect(jsonPath("$[0].dias[2].conflicto").doesNotExist());
+    }
+
+    /**
+     * Forma de los 5 conflictos de la copia local (julio y agosto de 2017, servicio principal), con
+     * datos ficticios: se muestran señalados y no se corrigen (SC-007, P7).
+     */
+    @Test
+    void conflictosHistoricosSeMuestranYNoSePuedenEditar() throws Exception {
+        List<LocalDate> conflictos = List.of(LocalDate.of(2017, 7, 3), LocalDate.of(2017, 7, 20),
+                LocalDate.of(2017, 8, 1), LocalDate.of(2017, 8, 14), LocalDate.of(2017, 8, 28));
+        for (int i = 0; i < conflictos.size(); i++) {
+            long medico = i % 2 == 0 ? bruno : carla;
+            datos.vacaciones(medico, conflictos.get(i));
+            datos.guardia(medico, conflictos.get(i), TipoGuardia.PRESENCIA, false, servicio);
+        }
+        datos.vacaciones(bruno, LocalDate.of(2017, 7, 4));
+
+        String cuerpo = mvc.perform(get(RUTA, servicio).session(login(admin)).param("desde", "2017-07-01")
+                        .param("hasta", "2017-08-31"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        List<String> fechasEnConflicto = JsonPath.read(cuerpo, "$[*].dias[?(@.conflicto)].fecha");
+        assertThat(fechasEnConflicto).containsExactlyInAnyOrderElementsOf(
+                conflictos.stream().map(LocalDate::toString).toList());
+
+        mvc.perform(patch("/api/v1/servicios/{s}/medicos/{m}/vacaciones", servicio, bruno).with(csrfSpa())
+                        .session(login(admin)).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"quitar\":[\"2017-07-03\"]}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.infracciones[0].regla").value("VAC-008"));
+        assertThat(datos.diasVacaciones(bruno)).contains(LocalDate.of(2017, 7, 3));
     }
 
     @Test

@@ -101,9 +101,14 @@ export const handlers = [
     return HttpResponse.json({ anadidos: cuerpo.anadir ?? [], quitados: cuerpo.quitar ?? [] });
   }),
   http.get('*/api/v1/servicios/:servicioId/vacaciones', ({ request }) => {
-    const medicoId = new URL(request.url).searchParams.get('medicoId');
+    const parametros = new URL(request.url).searchParams;
+    const medicoId = parametros.get('medicoId');
+    const desde = parametros.get('desde') ?? '';
+    const hasta = parametros.get('hasta') ?? '';
     return HttpResponse.json(
-      medicoId ? vacaciones.filter((v) => v.medico.id === Number(medicoId)) : vacaciones,
+      vacaciones
+        .filter((v) => !medicoId || v.medico.id === Number(medicoId))
+        .map((v) => ({ ...v, dias: v.dias.filter((d) => d.fecha >= desde && d.fecha <= hasta) })),
     );
   }),
 ];

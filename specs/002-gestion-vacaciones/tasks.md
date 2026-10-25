@@ -135,14 +135,14 @@ description: "Lista de tareas de la funcionalidad 002: gestión de vacaciones de
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T043 [P] [US3] Pruebas en `frontend/src/features/vacaciones/ResumenVacaciones.test.tsx`: por defecto pide de hoy a hoy + 6 meses; muestra todos los médicos, también el inactivo (señalado con texto «inactivo en el servicio», no solo color) y los que no tienen días; agrupa los días por mes; un día en conflicto aparece señalado con texto y la guardia; navegar a periodos anteriores y siguientes pide el nuevo rango; elegir un médico abre su editor (FR-012 a FR-014, FR-019, M1 a M3)
-- [ ] T044 [P] [US3] Añadir a `ConsultarVacacionesIT.java` el caso de los conflictos históricos: con datos ficticios que reproducen la forma de los 5 conflictos de 2017 (días pasados con guardia del mismo médico en el servicio), la consulta de julio y agosto de ese año los devuelve todos con `conflicto` y el `PATCH` sobre ellos da 422 `VAC-008` (SC-007, P7: se muestran, no se corrigen)
+- [X] T043 [P] [US3] Pruebas en `frontend/src/features/vacaciones/ResumenVacaciones.test.tsx`: por defecto pide de hoy a hoy + 6 meses; muestra todos los médicos, también el inactivo (señalado con texto «inactivo en el servicio», no solo color) y los que no tienen días; agrupa los días por mes; un día en conflicto aparece señalado con texto y la guardia; navegar a periodos anteriores y siguientes pide el nuevo rango; elegir un médico abre su editor (FR-012 a FR-014, FR-019, M1 a M3)
+- [X] T044 [P] [US3] Añadir a `ConsultarVacacionesIT.java` el caso de los conflictos históricos: con datos ficticios que reproducen la forma de los 5 conflictos de 2017 (días pasados con guardia del mismo médico en el servicio), la consulta de julio y agosto de ese año los devuelve todos con `conflicto` y el `PATCH` sobre ellos da 422 `VAC-008` (SC-007, P7: se muestran, no se corrigen)
 
 ### Implementation for User Story 3
 
-- [ ] T045 [US3] Crear `frontend/src/features/vacaciones/ResumenVacaciones.tsx`: tabla o lista accesible (encabezados, `scope`) por médico con sus días agrupados por mes, conflictos marcados con texto e icono y la guardia en un texto accesible; navegación de periodo (anterior, siguiente, volver a hoy) con rango de 6 meses
-- [ ] T046 [US3] Integrar el resumen en `VacacionesPage.tsx`: resumen arriba (o panel lateral en escritorio) y editor del médico elegido; en el editor, los días en conflicto también aparecen señalados (FR-014); estilos en `vacaciones.css` con tokens
-- [ ] T047 [US3] Ejecutar `npm --prefix frontend test`, `lint` y `build`, y `mvn -f backend/pom.xml verify`, y confirmar que pasan
+- [X] T045 [US3] Crear `frontend/src/features/vacaciones/ResumenVacaciones.tsx`: tabla o lista accesible (encabezados, `scope`) por médico con sus días agrupados por mes, conflictos marcados con texto e icono y la guardia en un texto accesible; navegación de periodo (anterior, siguiente, volver a hoy) con rango de 6 meses
+- [X] T046 [US3] Integrar el resumen en `VacacionesPage.tsx`: resumen arriba (o panel lateral en escritorio) y editor del médico elegido; en el editor, los días en conflicto también aparecen señalados (FR-014); estilos en `vacaciones.css` con tokens
+- [X] T047 [US3] Ejecutar `npm --prefix frontend test`, `lint` y `build`, y `mvn -f backend/pom.xml verify`, y confirmar que pasan
 
 **Checkpoint**: las tres historias funcionan y se pueden probar por separado.
 

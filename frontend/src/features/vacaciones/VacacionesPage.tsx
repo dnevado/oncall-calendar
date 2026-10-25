@@ -1,8 +1,8 @@
 import { useState } from 'react';
+import type { Schemas } from '../../api/client';
 import { hoyEnServicio } from '../cambios/fechas';
 import { EditorVacaciones } from './EditorVacaciones';
-import { useVacaciones } from './useVacaciones';
-import { aDate, aTexto } from './dias';
+import { ResumenVacaciones } from './ResumenVacaciones';
 import './vacaciones.css';
 
 interface Props {
@@ -11,45 +11,37 @@ interface Props {
   hoy?: string;
 }
 
-function seisMesesDespues(hoy: string): string {
-  const fecha = aDate(hoy);
-  return aTexto(new Date(fecha.getFullYear(), fecha.getMonth() + 6, fecha.getDate(), 12));
-}
-
 /**
- * Vacaciones de los médicos del servicio (002). Sustituye al selector de vacaciones de la ficha
- * legacy (`web/medico/detallemedico.jsp`); el resto de la ficha sigue en el legacy.
+ * Vacaciones de los médicos del servicio (002): resumen del servicio y editor del médico elegido.
+ * Sustituye al selector de vacaciones de la ficha legacy (`web/medico/detallemedico.jsp`) y a la
+ * columna «Vacaciones» del listado (`web/medico/lista_medicos.jsp`); el resto sigue en el legacy.
  */
-export function VacacionesPage({ servicioId, hoy = hoyEnServicio() }: Props) {
-  const { datos, error } = useVacaciones(servicioId, hoy, seisMesesDespues(hoy));
-  const [medicoId, setMedicoId] = useState<number>();
-  const medico = datos?.find((v) => v.medico.id === medicoId)?.medico;
+export default function VacacionesPage({ servicioId, hoy = hoyEnServicio() }: Props) {
+  const [medico, setMedico] = useState<Schemas['MedicoResumen']>();
+  const [version, setVersion] = useState(0);
 
   return (
     <main className="vacaciones">
       <h1>Vacaciones</h1>
-      {error && <p role="alert">{error}</p>}
-      {!datos && !error && <p>Cargando…</p>}
-      {datos && (
-        <div className="selector-medico">
-          <label htmlFor="vacaciones-medico">Médico</label>
-          <select
-            id="vacaciones-medico"
-            value={medicoId ?? ''}
-            onChange={(e) => setMedicoId(e.target.value ? Number(e.target.value) : undefined)}
-          >
-            <option value="">Elige un médico…</option>
-            {datos.map((v) => (
-              <option key={v.medico.id} value={v.medico.id}>
-                {v.activo ? v.medico.nombre : `${v.medico.nombre} (inactivo en el servicio)`}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      {medico && (
-        <EditorVacaciones key={medico.id} servicioId={servicioId} medico={medico} hoy={hoy} />
-      )}
+      <div className="vacaciones-paneles">
+        <ResumenVacaciones
+          servicioId={servicioId}
+          hoy={hoy}
+          version={version}
+          onElegir={setMedico}
+        />
+        {medico && (
+          <EditorVacaciones
+            key={medico.id}
+            servicioId={servicioId}
+            medico={medico}
+            hoy={hoy}
+            onGuardado={() => setVersion((v) => v + 1)}
+          />
+        )}
+      </div>
     </main>
   );
 }
+
+export { VacacionesPage };

@@ -36,6 +36,17 @@ export function fechaLargaConAnio(fecha: Date): string {
   return LARGA.format(fecha);
 }
 
+const SIN_DIA_SEMANA = new Intl.DateTimeFormat('es-ES', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** «15 de enero de 2030». */
+export function fechaConAnio(fecha: Date): string {
+  return SIN_DIA_SEMANA.format(fecha);
+}
+
 /** «1 día», «3 días», y con participio: «1 día añadido», «3 días añadidos». */
 export function dias(n: number, participio?: string): string {
   const texto = n === 1 ? '1 día' : `${n} días`;
