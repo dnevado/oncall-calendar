@@ -57,9 +57,34 @@ Contrastes calculados (WCAG 2.1 AA):
 | Días pasados | 5,8, tras oscurecer el gris; antes era 3,77 |
 | Foco | 6,6 con `--primario-oscuro`, que sustituye a `--foco` |
 
-## T052: comprobación manual en el entorno local
+## T052: comprobación en el entorno local
 
-**Pendiente.** Necesita el backend en 8081 y Vite sobre la copia local, que solo se arrancan con permiso del responsable.
+**Fecha**: 2026-10-25. Arranque autorizado por el responsable.
+
+**Entorno**:
+- Copia local (`guardias-local-mysql-1`) con el backend actual en el puerto **8082**. El 8081 lo ocupaba un backend anterior a la 002 que no se pudo parar.
+- Vite en el **5176**, apuntando al 8082. Del 5173 al 5175 había procesos de Vite antiguos.
+- Usuario: el administrador ficticio de la 001 (`t067@prueba.local`, médico 9067). Solo se tocaron sus vacaciones, y se quitaron al final.
+- Script: `scratchpad/t052.py`, que pasa por el proxy de Vite y no guarda en git datos personales ni la contraseña.
+
+| Paso | Resultado |
+|---|---|
+| Inicio de sesión | 200 |
+| Añadir un periodo futuro de 10 días (marzo de 2027) | 200, 10 añadidos. La consulta del legacy (`NoTieneVacaciones`, SQL literal de `VacacionesDBImpl`) ve los 10 días |
+| Consulta del médico en marzo de 2027 | Los 10 días |
+| Repetir la operación | 200, sin cambios |
+| Julio y agosto de 2017 | **5 días en conflicto** señalados, los mismos que dio el descubrimiento |
+| Quitar uno de esos días en conflicto | 422 `VAC-008`; el día sigue en la tabla |
+| Resumen por defecto (de hoy a 6 meses) | 26 médicos, todos los del servicio 1 |
+| Limpieza por la API | 10 quitados; el legacy deja de verlos |
+| Copia intacta | `vacaciones_medicos` tiene 4.105 filas antes y después |
+
+**Tiempos de respuesta** (por el proxy de Vite): las operaciones de vacaciones tardan de 16 a 159 ms (la más lenta, la consulta de todo el servicio en 2017). El inicio de sesión tarda 343 ms. Se cumple el objetivo de menos de 1 s del plan.
+
+**Pendiente, solo en navegador** (no hecho):
+- Recorrer la pantalla en `http://localhost:5176/app/servicios/1/vacaciones`.
+- Cronometrar el registro de un periodo de 2 semanas (SC-001, menos de 1 minuto).
+- Ver los días en el selector de la ficha del médico en el legacy (Tomcat). La parte de datos ya está comprobada arriba con su SQL.
 
 ## T053: revisión de migración
 
