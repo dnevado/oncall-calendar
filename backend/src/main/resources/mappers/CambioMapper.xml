@@ -38,6 +38,18 @@
      WHERE c.IdCambio = #{id}
   </select>
 
+  <!-- Solo los registrados por la aplicación nueva (Canal APP): los del legacy no tienen
+       FechaHoraRegistro ni, en todos los casos, quién los registró. Un CAMBIO entra si
+       cualquiera de sus dos fechas está en el rango. -->
+  <select id="selectByServicioYRango" resultType="es.medoncalls.guardias.cambios.infrastructure.CambioFila">
+    <include refid="selectCambio"/>
+     WHERE c.IdServicio = #{servicioId}
+       AND c.Canal = 'APP'
+       AND (c.FechaIniCambio BETWEEN #{desde} AND #{hasta}
+            OR (c.TipoCambio = 'CAMBIO' AND c.FechaFinCambio BETWEEN #{desde} AND #{hasta}))
+     ORDER BY c.FechaHoraRegistro DESC, c.IdCambio DESC
+  </select>
+
   <select id="selectByIdempotencyKey" resultType="es.medoncalls.guardias.cambios.infrastructure.CambioFila">
     <include refid="selectCambio"/>
      WHERE c.IdempotencyKey = #{clave}

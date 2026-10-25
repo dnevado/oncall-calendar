@@ -2,13 +2,14 @@
 # El proxy enruta /app/ → frontend, /api/ → backend y el resto → legacy.
 # Las credenciales de la base se entregan como secretos de Docker (R14): ficheros en
 # deploy/secrets/ (fuera de git), montados en /run/secrets/ solo en el backend.
-# Los Dockerfile del backend y del frontend se añaden en T061.
+# Cómo arrancarlo y requisitos (TLS, red del legacy, secretos): deploy/README.md.
 
 name: guardias
 
 services:
   backend:
     build: ../backend
+    image: guardias-backend:${GUARDIAS_VERSION:-local}
     environment:
       SPRING_PROFILES_ACTIVE: ${GUARDIAS_PERFIL:-prod}
     secrets:
@@ -20,6 +21,7 @@ services:
 
   frontend:
     build: ../frontend
+    image: guardias-frontend:${GUARDIAS_VERSION:-local}
     networks: [interna]
     restart: unless-stopped
 

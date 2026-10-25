@@ -26,12 +26,13 @@ import es.medoncalls.guardias.cambios.application.CandidatosService;
 import es.medoncalls.guardias.cambios.application.RegistrarCambioService;
 import es.medoncalls.guardias.cambios.domain.SolicitudCambio;
 import es.medoncalls.guardias.cambios.domain.TipoCambio;
+import es.medoncalls.guardias.cambios.infrastructure.CambioMapper;
 import es.medoncalls.guardias.common.PeticionInvalidaException;
 import es.medoncalls.guardias.common.ServicioAccess;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 
-/** Registro de cambios y ayuda para elegir receptor. Todo exige ser administrador del servicio. */
+/** Registro y listado de cambios, y ayuda para elegir receptor. Todo exige ser administrador del servicio. */
 @RestController
 @RequestMapping("/api/v1/servicios/{servicioId}")
 public class CambiosController {
@@ -39,14 +40,30 @@ public class CambiosController {
     private final ServicioAccess servicioAccess;
     private final RegistrarCambioService registrar;
     private final CandidatosService candidatos;
+    private final CambioMapper cambios;
     private final Clock clock;
 
     public CambiosController(ServicioAccess servicioAccess, RegistrarCambioService registrar,
-            CandidatosService candidatos, Clock clock) {
+            CandidatosService candidatos, CambioMapper cambios, Clock clock) {
         this.servicioAccess = servicioAccess;
         this.registrar = registrar;
         this.candidatos = candidatos;
+        this.cambios = cambios;
         this.clock = clock;
+    }
+
+    /** Cambios registrados por la aplicación, del más reciente al más antiguo (FR-028: base del inverso). */
+    @GetMapping("/cambios")
+    public List<CambioDto> listar(@AuthenticationPrincipal UsuarioSesion usuario, @PathVariable long servicioId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        servicioAccess.exigirAdministrador(usuario, servicioId);
+        if (hasta.isBefore(desde)) {
+            throw new PeticionInvalidaException("La fecha «hasta» es anterior a «desde».");
+        }
+        return cambios.delServicio(servicioId, desde, hasta).stream()
+                .map(c -> CambioDto.de(c, clock.getZone()))
+                .toList();
     }
 
     @PostMapping("/cambios")

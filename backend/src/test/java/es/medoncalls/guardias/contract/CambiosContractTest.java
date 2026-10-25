@@ -137,6 +137,55 @@ class CambiosContractTest extends IntegracionBase {
     }
 
     @Test
+    void listadoDeCambiosDelRango() throws Exception {
+        long guardiaBruno = datos.guardia(bruno, DIA_10.plusDays(5), TipoGuardia.LOCALIZADA, false, servicio);
+        registrar("{\"tipo\":\"CESION\",\"guardiaOrigenId\":" + guardiaAna + ",\"cedenteId\":" + ana
+                + ",\"receptorId\":" + bruno + "}").andExpect(status().isCreated());
+        long otraDeAna = datos.guardia(ana, DIA_10.plusDays(3), TipoGuardia.REFUERZO, false, servicio);
+        registrar("{\"tipo\":\"CAMBIO\",\"guardiaOrigenId\":" + otraDeAna + ",\"cedenteId\":" + ana
+                + ",\"receptorId\":" + bruno + ",\"guardiaDestinoId\":" + guardiaBruno + "}")
+                .andExpect(status().isCreated());
+        // Un cambio que solo conoce el legacy (sin canal APP) no se lista.
+        jdbc.update("INSERT INTO guardias_cambios (TipoCambio, FechaIniCambio, FechaFinCambio, IdMedicoSolicitante,"
+                + " IdMedicoDestino, Estado, FechaCreacion, IdServicio) VALUES ('CESION', '2030-02-20', '2030-02-20',"
+                + " ?, ?, 'APROBADA', '2030-01-10', ?)", ana, bruno, servicio);
+
+        mvc.perform(get("/api/v1/servicios/{s}/cambios", servicio)
+                        .param("desde", "2030-02-01").param("hasta", "2030-02-28").session(sesion))
+                .andExpect(status().isOk())
+                .andExpect(cumple())
+                .andExpect(jsonPath("$.length()").value(2))
+                // Más reciente primero.
+                .andExpect(jsonPath("$[0].tipo").value("CAMBIO"))
+                .andExpect(jsonPath("$[0].fechaDestino").value("2030-02-15"))
+                .andExpect(jsonPath("$[1].tipo").value("CESION"))
+                .andExpect(jsonPath("$[1].fechaDestino").doesNotExist())
+                .andExpect(jsonPath("$[1].guardiaDestino").doesNotExist());
+
+        mvc.perform(get("/api/v1/servicios/{s}/cambios", servicio)
+                        .param("desde", "2030-03-01").param("hasta", "2030-03-31").session(sesion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void listadoConRangoInvertidoEs400() throws Exception {
+        mvc.perform(get("/api/v1/servicios/{s}/cambios", servicio)
+                        .param("desde", "2030-02-28").param("hasta", "2030-02-01").session(sesion))
+                // El contrato no declara 400 en esta operación (pendiente de decidir si se añade).
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void listadoDeOtroServicioEs403() throws Exception {
+        long otro = datos.servicio("Neumología");
+        mvc.perform(get("/api/v1/servicios/{s}/cambios", otro)
+                        .param("desde", "2030-02-01").param("hasta", "2030-02-28").session(sesion))
+                .andExpect(status().isForbidden())
+                .andExpect(cumple());
+    }
+
+    @Test
     void receptoresCandidatosDeGuardiaInexistenteEs404() throws Exception {
         mvc.perform(get("/api/v1/servicios/{s}/guardias/{g}/receptores-candidatos", servicio, 999999)
                         .param("tipo", "CESION").session(sesion))

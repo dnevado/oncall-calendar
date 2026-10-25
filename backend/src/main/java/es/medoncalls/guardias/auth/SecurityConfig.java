@@ -51,6 +51,8 @@ public class SecurityConfig {
         http
                 .securityContext(s -> s.securityContextRepository(contextos))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                // Una API no repite la petición tras el login: sin esto, cada 401 crearía una sesión.
+                .requestCache(r -> r.disable())
                 .csrf(c -> c.csrfTokenRepository(csrfRepositorio).csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(a -> a

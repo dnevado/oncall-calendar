@@ -12,15 +12,22 @@ import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.web.server.Cookie.SameSite;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.ResultActions;
 
 import es.medoncalls.guardias.auth.LegacyPasswordVerifier;
+import jakarta.servlet.http.Cookie;
 import es.medoncalls.guardias.support.DatosPrueba;
 import es.medoncalls.guardias.support.IntegracionBase;
 
 class AuthIT extends IntegracionBase {
+
+    @Autowired
+    private ServerProperties servidor;
 
     private long servicio;
     private long otroServicio;
@@ -115,6 +122,46 @@ class AuthIT extends IntegracionBase {
         intentarLogin(datos.email(admin), DatosPrueba.PASSWORD).andExpect(status().isOk());
         intentarLogin(datos.email(admin), "mala").andExpect(status().isUnauthorized());
         intentarLogin(datos.email(admin), DatosPrueba.PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
+    void sinCabeceraCsrfOConOtroValorSeRechazaConSesion() throws Exception {
+        MockHttpSession sesion = login(admin);
+        String cuerpo = "{\"tipo\":\"CESION\",\"guardiaOrigenId\":1,\"cedenteId\":1,\"receptorId\":2}";
+        mvc.perform(post("/api/v1/servicios/{id}/cambios", servicio).session(sesion)
+                        .contentType(MediaType.APPLICATION_JSON).content(cuerpo))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/servicios/{id}/cambios", servicio).session(sesion)
+                        .cookie(new Cookie("XSRF-TOKEN", "uno")).header("X-XSRF-TOKEN", "otro")
+                        .contentType(MediaType.APPLICATION_JSON).content(cuerpo))
+                .andExpect(status().isForbidden());
+        assertThat(datos.contar("guardias_cambios")).isZero();
+    }
+
+    @Test
+    void cookiesDeSesionYCsrf() throws Exception {
+        // La cookie de sesión la emite el contenedor de servlets con esta configuración.
+        var cookieSesion = servidor.getServlet().getSession().getCookie();
+        assertThat(cookieSesion.getName()).isEqualTo("MOC_SESSION");
+        assertThat(cookieSesion.getHttpOnly()).isTrue();
+        assertThat(cookieSesion.getSecure()).isTrue();
+        assertThat(cookieSesion.getSameSite()).isEqualTo(SameSite.STRICT);
+
+        // La de CSRF la lee la SPA: no es HttpOnly, pero sí Secure y SameSite=Strict.
+        // Se mira el objeto Cookie: el Set-Cookie que compone la respuesta simulada omite SameSite.
+        Cookie csrf = mvc.perform(get("/api/v1/auth/me")).andReturn().getResponse().getCookie("XSRF-TOKEN");
+        assertThat(csrf).isNotNull();
+        assertThat(csrf.getSecure()).isTrue();
+        assertThat(csrf.isHttpOnly()).isFalse();
+        assertThat(csrf.getPath()).isEqualTo("/");
+        assertThat(csrf.getAttribute("SameSite")).isEqualTo("Strict");
+    }
+
+    @Test
+    void unaPeticionAnonimaNoCreaSesion() throws Exception {
+        assertThat(mvc.perform(get("/api/v1/servicios/{id}/guardias", servicio).param("desde", "2030-01-01")
+                .param("hasta", "2030-01-31")).andExpect(status().isUnauthorized())
+                .andReturn().getRequest().getSession(false)).isNull();
     }
 
     @Test

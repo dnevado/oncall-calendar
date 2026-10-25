@@ -136,6 +136,7 @@
                         <li>
                             <a href="<%=request.getContextPath()%>/config.jsp"><i class="glyphicon glyphicon-lock"></i>Configuración</a>
                         </li>
+                        <li><a href="/app/"><i class="glyphicon glyphicon-transfer"></i>Registrar cambios</a></li>
                         <% } %>
                         <!-- <li>
                             <a href="#"><i class="fa fa-bar-chart-o fa-fw"></i> Charts<span class="fa arrow"></span></a>

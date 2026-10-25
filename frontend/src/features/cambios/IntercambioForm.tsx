@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, type Cambio, type Candidato, type Guardia } from '../../api/client';
+import { api, type Cambio, type Candidato, type Guardia, type Schemas } from '../../api/client';
 import { etiquetaTipo, fechaLarga } from './fechas';
 import { Rechazo } from './Rechazo';
 import { useRegistrarCambio } from './useRegistrarCambio';
@@ -9,6 +9,9 @@ interface Props {
   guardia: Guardia;
   onRegistrado: (cambio: Cambio) => void;
   onCancelar: () => void;
+  /** Fecha y médico ya elegidos, p. ej. al registrar el cambio inverso (FR-028). */
+  fechaDestinoInicial?: string;
+  receptorInicial?: Schemas['MedicoResumen'];
 }
 
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
@@ -18,8 +21,15 @@ const FECHA = /^\d{4}-\d{2}-\d{2}$/;
  * candidatos son los médicos con guardia ese día que cumplen las reglas; el servidor vuelve a
  * validarlo todo al registrar (FR-016, FR-017).
  */
-export function IntercambioForm({ servicioId, guardia, onRegistrado, onCancelar }: Props) {
-  const [fechaDestino, setFechaDestino] = useState('');
+export function IntercambioForm({
+  servicioId,
+  guardia,
+  onRegistrado,
+  onCancelar,
+  fechaDestinoInicial = '',
+  receptorInicial,
+}: Props) {
+  const [fechaDestino, setFechaDestino] = useState(fechaDestinoInicial);
   const [candidatos, setCandidatos] = useState<Candidato[]>();
   const [elegido, setElegido] = useState<Candidato>();
   const [errorCandidatos, setErrorCandidatos] = useState<string>();
@@ -44,13 +54,17 @@ export function IntercambioForm({ servicioId, guardia, onRegistrado, onCancelar 
       })
       .then(({ data, error: problema }) => {
         if (!vigente) return;
-        if (data) setCandidatos(data);
-        else setErrorCandidatos(problema?.detail ?? 'No se han podido cargar los candidatos.');
+        if (data) {
+          setCandidatos(data);
+          setElegido(data.find((c) => c.medico.id === receptorInicial?.id));
+        } else {
+          setErrorCandidatos(problema?.detail ?? 'No se han podido cargar los candidatos.');
+        }
       });
     return () => {
       vigente = false;
     };
-  }, [servicioId, guardia.id, fechaDestino]);
+  }, [servicioId, guardia.id, fechaDestino, receptorInicial?.id]);
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
@@ -81,6 +95,11 @@ export function IntercambioForm({ servicioId, guardia, onRegistrado, onCancelar 
       {candidatos?.length === 0 && (
         <p>Ningún médico con guardia ese día cumple las reglas para el intercambio.</p>
       )}
+      {receptorInicial &&
+        candidatos &&
+        !candidatos.some((c) => c.medico.id === receptorInicial.id) && (
+          <p>{receptorInicial.nombre} no cumple ahora las reglas para este intercambio.</p>
+        )}
       {candidatos && candidatos.length > 0 && (
         <fieldset>
           <legend>Médico con el que intercambia</legend>

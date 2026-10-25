@@ -1,17 +1,38 @@
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { BrowserRouter, Navigate, NavLink, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import { LoginPage } from './features/auth/LoginPage';
 import { ServicioSelector } from './features/auth/ServicioSelector';
 import { CalendarioPage } from './features/cambios/CalendarioPage';
+import { CambiosListPage } from './features/cambios/CambiosListPage';
 import type { Usuario } from './api/client';
 
-function CalendarioDelServicio({ usuario }: { usuario: Usuario }) {
+function PaginaDelServicio({
+  usuario,
+  pagina,
+}: {
+  usuario: Usuario;
+  pagina: 'calendario' | 'cambios';
+}) {
   const servicioId = Number(useParams().servicioId);
   // Solo navegación: el servidor exige el rol en cada operación (FR-001).
   if (!usuario.serviciosAdministrados.some((s) => s.id === servicioId)) {
     return <Navigate to="/" replace />;
   }
-  return <CalendarioPage servicioId={servicioId} />;
+  return (
+    <>
+      <nav aria-label="Secciones del servicio">
+        <NavLink to={`/servicios/${servicioId}`} end>
+          Calendario
+        </NavLink>{' '}
+        <NavLink to={`/servicios/${servicioId}/cambios`}>Cambios registrados</NavLink>
+      </nav>
+      {pagina === 'calendario' ? (
+        <CalendarioPage servicioId={servicioId} />
+      ) : (
+        <CambiosListPage servicioId={servicioId} />
+      )}
+    </>
+  );
 }
 
 function Inicio({ usuario }: { usuario: Usuario }) {
@@ -37,7 +58,14 @@ export function Rutas() {
       </header>
       <Routes>
         <Route path="/" element={<Inicio usuario={usuario} />} />
-        <Route path="/servicios/:servicioId" element={<CalendarioDelServicio usuario={usuario} />} />
+        <Route
+          path="/servicios/:servicioId"
+          element={<PaginaDelServicio usuario={usuario} pagina="calendario" />}
+        />
+        <Route
+          path="/servicios/:servicioId/cambios"
+          element={<PaginaDelServicio usuario={usuario} pagina="cambios" />}
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

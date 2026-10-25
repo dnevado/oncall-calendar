@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { api, type Cambio, type Candidato, type Guardia } from '../../api/client';
+import { api, type Cambio, type Candidato, type Guardia, type Schemas } from '../../api/client';
 import { etiquetaTipo, fechaLarga } from './fechas';
 import { Rechazo } from './Rechazo';
 import { useRegistrarCambio } from './useRegistrarCambio';
@@ -9,13 +9,21 @@ interface Props {
   guardia: Guardia;
   onRegistrada: (cambio: Cambio) => void;
   onCancelar: () => void;
+  /** Receptor ya elegido, p. ej. el cedente original al registrar el cambio inverso (FR-028). */
+  receptorInicial?: Schemas['MedicoResumen'];
 }
 
 /**
  * Cesión de una guardia a otro médico. Los candidatos son una ayuda: el servidor valida todas las
  * reglas al registrar y devuelve todas las que fallan (FR-016, FR-017).
  */
-export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Props) {
+export function CesionForm({
+  servicioId,
+  guardia,
+  onRegistrada,
+  onCancelar,
+  receptorInicial,
+}: Props) {
   const [candidatos, setCandidatos] = useState<Candidato[]>();
   const [receptorId, setReceptorId] = useState<number>();
   const [errorCandidatos, setErrorCandidatos] = useState<string>();
@@ -33,13 +41,18 @@ export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Pr
       })
       .then(({ data, error: problema }) => {
         if (!vigente) return;
-        if (data) setCandidatos(data);
-        else setErrorCandidatos(problema?.detail ?? 'No se han podido cargar los candidatos.');
+        if (data) {
+          setCandidatos(data);
+          if (data.some((c) => c.medico.id === receptorInicial?.id))
+            setReceptorId(receptorInicial?.id);
+        } else {
+          setErrorCandidatos(problema?.detail ?? 'No se han podido cargar los candidatos.');
+        }
       });
     return () => {
       vigente = false;
     };
-  }, [servicioId, guardia.id]);
+  }, [servicioId, guardia.id, receptorInicial?.id]);
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
@@ -64,6 +77,11 @@ export function CesionForm({ servicioId, guardia, onRegistrada, onCancelar }: Pr
       {candidatos?.length === 0 && (
         <p>Ningún médico cumple las reglas para recibir esta guardia.</p>
       )}
+      {receptorInicial &&
+        candidatos &&
+        !candidatos.some((c) => c.medico.id === receptorInicial.id) && (
+          <p>{receptorInicial.nombre} no cumple ahora las reglas para recibir esta guardia.</p>
+        )}
       {candidatos && candidatos.length > 0 && (
         <fieldset>
           <legend>Médico que la recibe</legend>
