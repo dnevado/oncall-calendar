@@ -33,7 +33,7 @@ Registro de las comprobaciones de cierre (tasks.md, fase 6). Solo se anota como 
 | 10 | Concurrencia con una cesión | `ModificarVacacionesIT.cesionConfirmadaMientrasSeEsperaElBloqueo_*`, `vacacionesYCesionDelMismoDiaALaVez_soloUnaTieneExito` | Superada |
 | 11 | CG-012 tras añadir | `ModificarVacacionesIT.escenario11_*` | Superada |
 | 12 | Regresión legacy | `LegacyVacacionesIT` (altas y bajas con la SQL original de `VacacionesDBImpl` y `NoTieneVacaciones`) | Superada |
-| 13 | Interfaz | `EditorVacaciones.test.tsx` (10 pruebas: ratón, teclado, periodo, días pasados, rechazo) y `ResumenVacaciones.test.tsx` (6 pruebas) | Superada en jsdom; falta la comprobación en navegador (T052) |
+| 13 | Interfaz | `EditorVacaciones.test.tsx` (10 pruebas: ratón, teclado, periodo, días pasados, rechazo) y `ResumenVacaciones.test.tsx` (6 pruebas) | Superada en jsdom y en navegador (T052) |
 
 ### Comprobación de que la prueba de concurrencia detecta el fallo
 
@@ -81,10 +81,20 @@ Contrastes calculados (WCAG 2.1 AA):
 
 **Tiempos de respuesta** (por el proxy de Vite): las operaciones de vacaciones tardan de 16 a 159 ms (la más lenta, la consulta de todo el servicio en 2017). El inicio de sesión tarda 343 ms. Se cumple el objetivo de menos de 1 s del plan.
 
-**Pendiente, solo en navegador** (no hecho):
-- Recorrer la pantalla en `http://localhost:5176/app/servicios/1/vacaciones`.
-- Cronometrar el registro de un periodo de 2 semanas (SC-001, menos de 1 minuto).
-- Ver los días en el selector de la ficha del médico en el legacy (Tomcat). La parte de datos ya está comprobada arriba con su SQL.
+### En el navegador (Chrome)
+
+Mismo entorno y mismo usuario. Legacy en Tomcat local (`http://localhost:8080/Guardias/`).
+
+| Paso | Resultado |
+|---|---|
+| Resumen en `http://localhost:5176/app/servicios/1/vacaciones` | Se carga con los 26 médicos del servicio |
+| Registrar un periodo de 2 semanas (SC-001): «Editar vacaciones», modo periodo, primer y último día, «Guardar vacaciones» | «Vacaciones guardadas: 14 días añadidos.» (9 a 22 de noviembre de 2026). **24,7 s** desde «Editar» hasta la confirmación: cumple el objetivo de menos de 1 minuto. El resumen pasa a mostrar «14 días» |
+| Ficha del médico en el legacy (`medicos.jsp`, «Vacaciones») | El MultiDatesPicker marca del 9 al 22 de noviembre de 2026. `detallemedico.jsp` emite exactamente esas 14 fechas. El modal se cerró sin pulsar «Guardar» (riesgo R1) |
+| Limpieza por la API | 14 quitados; 0 días del médico 9067; `vacaciones_medicos` vuelve a 4.105 filas |
+
+**Observaciones** (no bloquean):
+- Al activar el modo periodo aparece la línea de ayuda y el calendario baja unos píxeles. Un clic justo después puede caer en otro día. En la prueba el periodo quedó en 14 días igualmente. Mejora posible: reservar el hueco de la ayuda.
+- La cabecera muestra «ValidaciÃ³n T067». Es el nombre del médico ficticio, insertado en la 001 con una codificación errónea; es un problema del dato, no de la aplicación.
 
 ## T053: revisión de migración
 
