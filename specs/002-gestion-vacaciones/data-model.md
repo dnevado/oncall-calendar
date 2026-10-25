@@ -35,17 +35,18 @@ Se gestionan todos los médicos dados de alta en el servicio, activos o inactivo
 
 Entrada: servicio, médico, `anadir` (fechas), `quitar` (fechas). Sin estados ni transiciones.
 
-1. Comprobar que el usuario administra el servicio (403) y que el médico pertenece a él (404). (FR-001)
-2. Validar la forma: alguna fecha; ninguna en las dos listas; como mucho 366 por lista (400).
-3. Abrir la transacción y bloquear el servicio (`lockServicio`, research V3).
-4. Reglas, recogiendo **todas** las infracciones (FR-011):
+1. Comprobar que el usuario administra el servicio (403). (FR-001)
+2. Validar la forma: alguna fecha; ninguna repetida en una lista ni presente en las dos; como mucho 366 por lista (400).
+3. Abrir la transacción y bloquear el servicio (`lockServicio`, research V3) como **primera sentencia**: MySQL fija la vista de lectura en la primera consulta no bloqueante, así que las lecturas siguientes ven lo ya confirmado.
+4. Comprobar que el médico pertenece al servicio (404). (FR-001)
+5. Reglas, recogiendo **todas** las infracciones (FR-011):
    - **VAC-008:** toda fecha de `anadir` o `quitar` anterior a hoy es una infracción (FR-008).
    - **VAC-003:** toda fecha de `anadir` en la que el médico tiene guardia en el servicio es una infracción, con la guardia (FR-010).
    - Si hay infracciones: 422 y no se modifica nada (FR-006).
-5. Calcular las diferencias frente a los días existentes de esas fechas:
+6. Calcular las diferencias frente a los días existentes de esas fechas:
    - `anadidos` = `anadir` − existentes, insertados con `ON DUPLICATE KEY UPDATE`;
    - `quitados` = `quitar` ∩ existentes, borrados por clave. (FR-005, FR-007)
-6. Confirmar la transacción y devolver `anadidos` y `quitados`.
+7. Confirmar la transacción y devolver `anadidos` y `quitados`.
 
 ## Consulta
 
@@ -57,12 +58,12 @@ Entrada: servicio, médico, `anadir` (fechas), `quitar` (fechas). Sin estados ni
 |---|---|
 | VAC-001 | `ServicioAccess.exigirAdministrador` en ambas operaciones (servidor) |
 | VAC-002 | Se escribe en la tabla en el acto; sin estados |
-| VAC-003 | Paso 4, solo en el servicio del administrador |
+| VAC-003 | Paso 5, solo en el servicio del administrador |
 | VAC-004 | No hay comprobación de límite futuro |
 | VAC-005 | Clave única e inserción idempotente |
 | VAC-006 | Sin servicio en la tabla; CG-012 de la 001 lee la misma tabla |
 | VAC-007 | Operación por diferencias, en una transacción |
-| VAC-008 | Paso 4 |
+| VAC-008 | Paso 5 |
 | VAC-009 | Consulta solo para administradores; conflictos derivados (V5) |
 | VAC-010 / 011 | Misma tabla y formato; regresión con la SQL del legacy (quickstart, escenario 6) |
 | VAC-012 | Sin notificaciones |

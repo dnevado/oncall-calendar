@@ -160,4 +160,7 @@ Sin violaciones de la constitución que justificar.
 
 ## Approvals
 
-Pendiente: revisión del plan por David (responsable del proyecto), en particular la dependencia nueva y la sección de capacidades.
+Aprobado por el responsable del proyecto el 2026-10-25, en particular:
+- la dependencia nueva `react-day-picker` 9.14.0;
+- la tabla de capacidades de la interfaz legacy (principio VIII);
+- el aplazamiento de la verificación en móvil hasta antes de retirar el calendario legacy o el 2027-04-30 (H4 de la 001).

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-25
 
-**Status**: Draft — sin preguntas abiertas (FR-016 decidido el 2026-10-25)
+**Status**: Aprobada el 2026-10-25 (FR-016 decidido el 2026-10-25)
 
 **Input**: User description: "Gestión de vacaciones de los médicos por el administrador del servicio. El administrador consulta, añade y quita días de vacaciones de los médicos de su servicio, eligiendo varias fechas a la vez; los cambios se aplican en el acto, sin aprobación ni avisos. Fuentes de verdad: reglas validadas en docs/rules/vacaciones-reglas-candidatas.md (BR-CAND-VAC-001 a 012, todas validadas el 2026-10-25) y evidencias legacy en docs/legacy/vacaciones-discovery.md. […] Fuera de alcance: generación de agenda, configuración de meses vacacionales, notificaciones, gestión por el propio médico, multiservicio."
 

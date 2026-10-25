@@ -6,7 +6,7 @@ Guía para comprobar la funcionalidad de extremo a extremo. Contrato: [contracts
 
 - Docker en marcha (Testcontainers con MySQL 5.7).
 - Entorno local de la 001 (`deploy/local/README.md`): backend en 8081 y Vite en 5173, o el despliegue con nginx.
-- Datos de prueba ficticios (`DatosPrueba`): un servicio con un administrador, un médico sin rol de administrador, dos médicos del servicio (uno inactivo) y un médico de otro servicio. Reloj fijo con `RelojPrueba` (hoy = 2026-10-25 en los ejemplos).
+- Datos de prueba ficticios (`DatosPrueba`): un servicio con un administrador, un médico sin rol de administrador, dos médicos del servicio (uno inactivo) y un médico de otro servicio. Reloj fijo con `RelojPrueba`. Los ejemplos de esta tabla usan hoy = 2026-10-25; las pruebas automáticas usan fechas relativas a `IntegracionBase.HOY` (2030-01-15).
 
 ## Pruebas automáticas
 
