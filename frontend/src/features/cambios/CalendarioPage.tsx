@@ -196,11 +196,11 @@ export function CalendarioPage({ servicioId, hoy = hoyEnServicio() }: Props) {
 
       <ul className="leyenda" aria-label="Leyenda">
         {Object.entries(TIPOS).map(([tipo, nombre]) => (
-          <li key={tipo} className={`guardia guardia--${tipo.toLowerCase()}`}>
+          <li key={tipo} className={`leyenda--${tipo.toLowerCase()}`}>
             {nombre}
           </li>
         ))}
-        <li className="guardia guardia--festivo">Festivo</li>
+        <li className="leyenda--festivo">Festivo</li>
       </ul>
 
       {enCurso && (

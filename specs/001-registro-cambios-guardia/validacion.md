@@ -102,4 +102,28 @@ Ejecutarlo requiere arrancar el legacy contra una MySQL 5.7 de prueba. La conexi
   - Pendiente: el resto de puntos del paso 2, los pasos 3–7 y la vista en móvil.
 - Paso 8 (legacy): requiere un legacy apuntando a la base de prueba, como T063.
 
+**Pasos 3–8 por la API contra la pila local (ejecutado el 2026-10-25)**
+
+- **Entorno**:
+  - La copia de producción del ensayo, con las guardias futuras de prueba.
+  - Backend con el código del commit `270c0c7`, en el puerto 8081.
+  - Peticiones a través del proxy de Vite, como las hace el navegador: sesión, CSRF e `Idempotency-Key`.
+- **Usuario**: un administrador ficticio, solo en la copia (`ID` 9067, `t067@prueba.local`). Tiene los mismos permisos que un administrador real del servicio 1 (adjunto R1, administrador y activo en el servicio), pero no sus datos personales. Sigue activo para las pruebas en el navegador, así que también aparece como candidato.
+- **Datos auxiliares**: para el paso 4 se creó una vacación de prueba, que se borró al terminar.
+- **Script**: `t067.py`, en el scratchpad de la sesión (no está en el repositorio).
+
+| Paso | Resultado |
+|---|---|
+| 2. Login | 200 |
+| 3. Cesión válida | 201. La guardia 19478 (2026-11-05, presencia) pasa al receptor y sigue siendo de presencia; había 7 candidatos. El cambio aparece en el listado del mes |
+| 4. Cesión inválida | 422 con CG-012, con el médico y la fecha (2026-11-02). El calendario no cambia. Con la vacación, ese médico deja de salir como candidato |
+| 5. Intercambio | 201. 2026-11-03 (presencia) y 2026-11-05 (localizada) intercambian médico; el tipo se queda con cada día |
+| 6. Ajuste R3–R5 | 201. 2026-11-07: el R2 cede al R4 y la guardia 19485 del adjunto pasa de refuerzo a localizada |
+| 7. Cambio inverso | 201. La guardia 19478 vuelve al cedente original; el listado tiene los dos cambios (5489 y 5492) |
+| 8. Legacy (parcial) | La consulta de `GuardiasDBImpl.getGuardias` del 2026-11-03 devuelve al médico nuevo. Falta verlo en la pantalla del legacy |
+
+**Resultado**: 8 de 8 comprobaciones correctas. **Pendiente** para cerrar T067:
+- en el navegador, los puntos visuales del paso 2 y el móvil;
+- el paso 8 en la pantalla del legacy, incluido el mensaje de R13.
+
 Las reglas y efectos de los pasos 3–7 están cubiertos por las pruebas de integración contra MySQL 5.7 (`RegistrarCesionIT`, `RegistrarIntercambioIT`, `AjusteResidentesIT`, `LegacyVisibilidadIT`). Esa cobertura no sustituye a la comprobación de la interfaz.

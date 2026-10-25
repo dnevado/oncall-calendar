@@ -1,124 +1,278 @@
 /*
- * Colores por tipo de guardia, como la leyenda del legacy (web/inicio.jsp: Presencia amarillo,
- * Localizada verde, Refuerzo azul, Residente rojo). El texto va oscuro sobre fondo claro para
- * cumplir el contraste AA; el color no es la única pista: el título incluye el tipo.
+ * Aspecto del calendario legacy (web/inicio.jsp: Bootstrap 3, SB Admin 2 y FullCalendar 3 con
+ * web/css/custom.css):
+ * - guardias sin fondo ni borde, en texto pequeño de color según el tipo;
+ * - festivos con fondo crema, hoy en amarillo pálido;
+ * - botones grises con degradado;
+ * - leyenda en bloques de color.
+ * Los colores de texto son los del legacy oscurecidos lo justo para el contraste AA, también sobre
+ * el fondo de festivo y el de hoy (el legacy queda en 3,0–4,0:1). Localizada es el color exacto.
  */
 :root {
-  --guardia-texto: #1f2937;
-  --guardia-presencia-fondo: #fef3c7;
-  --guardia-presencia-borde: #b45309;
-  --guardia-localizada-fondo: #dcfce7;
-  --guardia-localizada-borde: #15803d;
-  --guardia-refuerzo-fondo: #dbeafe;
-  --guardia-refuerzo-borde: #1d4ed8;
-  --guardia-residente-fondo: #fee2e2;
-  --guardia-residente-borde: #b91c1c;
-  --guardia-festivo-trama: rgb(0 0 0 / 0.08);
-  --guardia-foco: #111827;
+  /* Texto de cada tipo (legacy: #c77405, #1c94c4, rgb(26 107 29), #d9534f). */
+  --guardia-presencia: #9a5a04;
+  --guardia-refuerzo: #137096;
+  --guardia-localizada: #1a6b1d;
+  --guardia-residente: #c9302c;
+  /* Fondos (legacy: .festivoc, .fc-today, ul li:hover). */
+  --guardia-festivo-fondo: #f3f1e3;
+  --calendario-hoy-fondo: #fcf8e3;
+  --guardia-hover-fondo: #f9f4cc;
+  /* Bootstrap 3 y SB Admin 2. */
+  --texto: #333;
+  --borde: #ddd;
+  --boton-borde: #ccc;
+  --primario: #337ab7;
+  --primario-oscuro: #286090;
+  /* Leyenda (SB Admin 2: panel-yellow, panel-green, panel-primary, panel-red). */
+  --leyenda-presencia: #f0ad4e;
+  --leyenda-localizada: #5cb85c;
+  --leyenda-refuerzo: #337ab7;
+  --leyenda-residente: #c9302c;
+  --foco: #66afe9;
 }
 
-.calendario .guardia {
-  color: var(--guardia-texto);
+.calendario {
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--texto);
+
+  /* Tema de FullCalendar 6 con los valores del FullCalendar 3 del legacy. */
+  --fc-border-color: var(--borde);
+  --fc-today-bg-color: var(--calendario-hoy-fondo);
+  --fc-button-text-color: var(--texto);
+  --fc-button-bg-color: #f5f5f5;
+  --fc-button-border-color: var(--boton-borde);
+  --fc-button-hover-bg-color: #e6e6e6;
+  --fc-button-hover-border-color: #adadad;
+  --fc-button-active-bg-color: #ccc;
+  --fc-button-active-border-color: #adadad;
+  --fc-event-bg-color: transparent;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: var(--texto);
+}
+
+.calendario .fc .fc-toolbar-title {
+  font-size: 1.5em;
+  font-weight: normal;
+}
+
+.calendario .fc .fc-button {
+  background-image: linear-gradient(to bottom, #fff, #e6e6e6);
+  text-shadow: 0 1px 1px rgb(255 255 255 / 0.75);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+.calendario .fc .fc-button-primary:not(:disabled).fc-button-active,
+.calendario .fc .fc-button-primary:not(:disabled):active {
+  background-image: none;
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.15);
+}
+
+.calendario .fc .fc-button-primary:disabled {
+  background-image: none;
+  opacity: 0.65;
+}
+
+.calendario .fc .fc-button:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 1px;
+}
+
+.calendario .fc .fc-daygrid-day-number,
+.calendario .fc .fc-col-header-cell-cushion {
+  color: var(--texto);
+}
+
+/* Guardias: como .fc-event y los colores por tipo de custom.css. */
+.calendario .fc-event.guardia {
+  background: none;
   border: 0;
-  border-left: 4px solid transparent;
-  border-radius: 3px;
-  padding: 1px 4px;
+  border-radius: 0;
+  padding: 0 2px;
+  font-size: 0.8em;
   white-space: normal;
 }
 
-.calendario .fc-event.guardia .fc-event-title,
-.calendario .fc-event.guardia .fc-event-time {
-  color: var(--guardia-texto);
+.calendario .fc-event.guardia .fc-event-title {
+  font-weight: normal;
 }
 
-.calendario .guardia--presencia {
-  background-color: var(--guardia-presencia-fondo);
-  border-left-color: var(--guardia-presencia-borde);
+.calendario .guardia--presencia,
+.calendario .fc-event.guardia--presencia .fc-event-title {
+  color: var(--guardia-presencia);
 }
 
-.calendario .guardia--localizada {
-  background-color: var(--guardia-localizada-fondo);
-  border-left-color: var(--guardia-localizada-borde);
+.calendario .guardia--refuerzo,
+.calendario .fc-event.guardia--refuerzo .fc-event-title {
+  color: var(--guardia-refuerzo);
 }
 
-.calendario .guardia--refuerzo {
-  background-color: var(--guardia-refuerzo-fondo);
-  border-left-color: var(--guardia-refuerzo-borde);
+.calendario .guardia--localizada,
+.calendario .fc-event.guardia--localizada .fc-event-title {
+  color: var(--guardia-localizada);
 }
 
-.calendario .guardia--residente {
-  background-color: var(--guardia-residente-fondo);
-  border-left-color: var(--guardia-residente-borde);
+.calendario .guardia--residente,
+.calendario .fc-event.guardia--residente .fc-event-title {
+  color: var(--guardia-residente);
 }
 
-.calendario .guardia--festivo {
-  background-image: repeating-linear-gradient(
-    135deg,
-    var(--guardia-festivo-trama) 0 4px,
-    transparent 4px 8px
-  );
-}
-
-.calendario .guardia--pasada {
-  cursor: default;
+.calendario .fc-event.guardia--festivo {
+  background-color: var(--guardia-festivo-fondo);
 }
 
 .calendario .fc-event.guardia:not(.guardia--pasada) {
   cursor: pointer;
 }
 
-.calendario .guardia--seleccionada,
-.calendario .fc-event.guardia:focus-visible {
-  outline: 2px solid var(--guardia-foco);
-  outline-offset: 1px;
+.calendario .fc-event.guardia:not(.guardia--pasada):hover {
+  background-color: var(--guardia-hover-fondo);
 }
 
+.calendario .guardia--pasada {
+  cursor: default;
+}
+
+.calendario .guardia--seleccionada,
+.calendario .fc-event.guardia:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 0;
+}
+
+/* Leyenda: bloques como los paneles de SB Admin 2. */
 .calendario .leyenda {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 5px;
   list-style: none;
   padding: 0;
-  margin: 0.75rem 0;
+  margin: 10px 0;
 }
 
-.calendario .leyenda .guardia--festivo {
-  border-left-color: var(--guardia-texto);
+.calendario .leyenda li {
+  min-width: 7rem;
+  padding: 10px 15px;
+  border-radius: 4px;
+  color: #fff;
 }
 
-/* Popup de cambio (Dialogo.tsx). */
+.calendario .leyenda .leyenda--presencia {
+  background-color: var(--leyenda-presencia);
+  color: var(--texto);
+}
+
+.calendario .leyenda .leyenda--localizada {
+  background-color: var(--leyenda-localizada);
+  color: #1f2937;
+}
+
+.calendario .leyenda .leyenda--refuerzo {
+  background-color: var(--leyenda-refuerzo);
+}
+
+.calendario .leyenda .leyenda--residente {
+  background-color: var(--leyenda-residente);
+}
+
+.calendario .leyenda .leyenda--festivo {
+  background-color: var(--guardia-festivo-fondo);
+  border: 1px solid var(--borde);
+  color: var(--texto);
+}
+
+/* Popup de cambio (Dialogo.tsx): como un modal de Bootstrap 3. */
 .calendario .dialogo-fondo {
   position: fixed;
   inset: 0;
   z-index: 10000; /* por encima del popover «+N más» de FullCalendar */
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 1rem;
-  background: rgb(17 24 39 / 0.5);
+  padding: 30px 1rem;
+  background: rgb(0 0 0 / 0.5);
 }
 
 .calendario .dialogo {
-  width: min(32rem, 100%);
-  max-height: calc(100vh - 2rem);
+  width: min(600px, 100%);
+  max-height: calc(100vh - 60px);
   overflow-y: auto;
-  padding: 1.25rem;
-  border-radius: 8px;
+  border: 1px solid rgb(0 0 0 / 0.2);
+  border-radius: 6px;
   background: #fff;
-  color: var(--guardia-texto);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+  box-shadow: 0 5px 15px rgb(0 0 0 / 0.5);
 }
 
-.calendario .dialogo h2 {
+.calendario .dialogo > h2 {
+  margin: 0;
+  padding: 15px;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.calendario .dialogo > :not(h2) {
+  margin: 15px;
+}
+
+.calendario .dialogo h3 {
   margin-top: 0;
-  font-size: 1.25rem;
+  font-size: 16px;
 }
 
 .calendario .dialogo label {
   display: block;
-  margin: 0.5rem 0;
+  margin: 8px 0;
 }
 
-.calendario .dialogo button + button {
-  margin-left: 0.5rem;
+.calendario .dialogo input[type='date'] {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--boton-borde);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.calendario .dialogo fieldset {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+}
+
+.calendario .dialogo button {
+  margin: 4px 4px 0 0;
+  padding: 6px 12px;
+  border: 1px solid var(--boton-borde);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calendario .dialogo button:hover:not(:disabled) {
+  background: #e6e6e6;
+}
+
+.calendario .dialogo button[type='submit'] {
+  border-color: #2e6da4;
+  background: var(--primario);
+  color: #fff;
+}
+
+.calendario .dialogo button[type='submit']:hover:not(:disabled) {
+  background: var(--primario-oscuro);
+}
+
+.calendario .dialogo button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.calendario .dialogo button:focus-visible,
+.calendario .dialogo input:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 1px;
 }
