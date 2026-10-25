@@ -181,12 +181,12 @@ description: "Task list for feature 001 — Registro de cambios y cesiones de gu
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T056 [P] [US4] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/DatosEquilibrioIT.java`: CESION stores `TipoGuardiaOrigen/FestivoOrigen` of the ceded guardia even if the receptor has other guardias of another tipo; CAMBIO stores both origin and destination; API `CambioDto.guardiaOrigen/guardiaDestino` match (FR-003, FR-023)
-- [ ] T057 [P] [US4] Legacy regression `backend/src/test/java/es/medoncalls/guardias/legacy/LegacyEquilibrioIT.java`: with a fixed fictitious dataset, the two legacy equity queries return identical results before and after the Liquibase changesets (SC-006); a cession registered through the API is counted by the «hechas» query for the cedente with the ceded tipo/festivo (R10)
+- [X] T056 [P] [US4] Integration test `backend/src/test/java/es/medoncalls/guardias/integration/DatosEquilibrioIT.java`: CESION stores `TipoGuardiaOrigen/FestivoOrigen` of the ceded guardia even if the receptor has other guardias of another tipo; CAMBIO stores both origin and destination; API `CambioDto.guardiaOrigen/guardiaDestino` match (FR-003, FR-023)
+- [X] T057 [P] [US4] Legacy regression `backend/src/test/java/es/medoncalls/guardias/legacy/LegacyEquilibrioIT.java`: with a fixed fictitious dataset, the two legacy equity queries return identical results before and after the Liquibase changesets (SC-006); a cession registered through the API is counted by the «hechas» query for the cedente with the ceded tipo/festivo (R10)
 
 ### Implementation for User Story 4
 
-- [ ] T058 [US4] Verify and complete the snapshot mapping in `backend/src/main/resources/mappers/CambioMapper.xml` and `backend/src/main/java/es/medoncalls/guardias/cambios/api/dto/CambioDto.java` so that T056 and T057 pass (values captured **before** applying the effect)
+- [X] T058 [US4] Verify and complete the snapshot mapping in `backend/src/main/resources/mappers/CambioMapper.xml` and `backend/src/main/java/es/medoncalls/guardias/cambios/api/dto/CambioDto.java` so that T056 and T057 pass (values captured **before** applying the effect)
 
 **Checkpoint**: todas las historias funcionan de forma independiente.
 

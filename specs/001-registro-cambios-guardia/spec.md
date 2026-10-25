@@ -121,7 +121,7 @@ Al generar la agenda, el reparto equilibra el número de guardias de cada tipo e
 - **FR-011**: Ningún médico MUST recibir una guardia en un día en que tiene vacaciones; las vacaciones de un médico cuentan en todos sus servicios (CG-012).
 - **FR-012**: Ningún médico MUST quedar, tras el cambio, con guardia de presencia el día anterior o el posterior a una guardia de presencia que recibe. Sin exención para residentes simulados. No se considera el día adyacente que coincide con la otra fecha del propio cambio. Solo aplica a guardias de presencia (CG-013).
 - **FR-013**: Cedente y receptor MUST ser del mismo tipo de médico (adjunto o residente) según el tipo que tenía cada uno en la fecha de la guardia afectada; aplica también cuando registra el administrador (CG-014).
-- **FR-014**: El receptor MUST estar activo en general (no dado de baja como médico) y pertenecer al servicio, es decir, estar dado de alta en él; no se exige estar activo específicamente en ese servicio (CG-015).
+- **FR-014**: El receptor MUST estar activo en general (no dado de baja como médico) y pertenecer al servicio, es decir, estar dado de alta en él; no se exige estar activo específicamente en ese servicio (CG-015). En un CAMBIO, esta regla solo se aplica al receptor, no al cedente aunque también reciba una guardia (decisión del responsable del proyecto, 2026-10-24).
 - **FR-015**: Cedente y receptor MUST ser médicos distintos.
 - **FR-016**: Cuando el cambio se rechace, el sistema MUST informar de todas las reglas incumplidas, indicando para cada una el médico y la fecha afectados.
 - **FR-017**: Al elegir receptor, el sistema SHOULD ofrecer solo médicos que cumplan FR-010 a FR-015, sin que esto sustituya la validación de FR-001 a FR-015 en el servidor.
