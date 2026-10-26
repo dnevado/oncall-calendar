@@ -19,7 +19,7 @@ export function LoginPage() {
 
   return (
     <main className="login">
-      <h1>Cambios y cesiones de guardia</h1>
+      <h1>Gestión de guardias</h1>
       <form onSubmit={enviar}>
         <label>
           Correo electrónico
