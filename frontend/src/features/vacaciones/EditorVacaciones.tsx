@@ -212,13 +212,14 @@ export function EditorVacaciones({ servicioId, medico, hoy, onGuardado }: Props)
         />{' '}
         Elegir un periodo (primer y último día)
       </label>
-      {porPeriodo && (
-        <p className="ayuda" aria-live="polite">
-          {inicioPeriodo
+      {/* Siempre presente y con su hueco reservado: al activar el modo periodo el calendario no
+          se mueve bajo el ratón, y la región en vivo existe antes de anunciar nada. */}
+      <p className="ayuda" aria-live="polite">
+        {porPeriodo &&
+          (inicioPeriodo
             ? `Inicio del periodo: ${fechaLargaConAnio(aDate(inicioPeriodo))}. Elige el último día.`
-            : 'Elige el primer día del periodo.'}
-        </p>
-      )}
+            : 'Elige el primer día del periodo.')}
+      </p>
       <DayPicker
         mode="multiple"
         locale={es}

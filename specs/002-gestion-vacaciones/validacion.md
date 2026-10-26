@@ -93,7 +93,7 @@ Mismo entorno y mismo usuario. Legacy en Tomcat local (`http://localhost:8080/Gu
 | Limpieza por la API | 14 quitados; 0 días del médico 9067; `vacaciones_medicos` vuelve a 4.105 filas |
 
 **Observaciones** (no bloquean):
-- Al activar el modo periodo aparece la línea de ayuda y el calendario baja unos píxeles. Un clic justo después puede caer en otro día. En la prueba el periodo quedó en 14 días igualmente. Mejora posible: reservar el hueco de la ayuda.
+- Al activar el modo periodo aparece la línea de ayuda y el calendario baja unos píxeles. Un clic justo después puede caer en otro día. En la prueba el periodo quedó en 14 días igualmente. Corregido después: la línea de ayuda está siempre presente con su hueco reservado (dos líneas), así que el calendario no se mueve; `npm --prefix frontend test` 51/51, `lint` sin errores, `build` correcto. Falta repetir el paso en navegador.
 - La cabecera muestra «ValidaciÃ³n T067». Es el nombre del médico ficticio, insertado en la 001 con una codificación errónea; es un problema del dato, no de la aplicación.
 
 ## T053: revisión de migración

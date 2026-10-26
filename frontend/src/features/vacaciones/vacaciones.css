@@ -124,6 +124,8 @@
 
 .editor-vacaciones .ayuda {
   margin: 0 0 0.5rem;
+  /* Dos líneas: el texto más largo ocupa dos en móvil. */
+  min-height: 3em;
 }
 
 .leyenda-vacaciones {
