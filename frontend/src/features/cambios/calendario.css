@@ -18,25 +18,15 @@
   --guardia-festivo-fondo: #f3f1e3;
   --calendario-hoy-fondo: #fcf8e3;
   --guardia-hover-fondo: #f9f4cc;
-  /* Bootstrap 3 y SB Admin 2. */
-  --texto: #333;
-  --borde: #ddd;
-  --boton-borde: #ccc;
-  --primario: #337ab7;
-  --primario-oscuro: #286090;
   /* Leyenda (SB Admin 2: panel-yellow, panel-green, panel-primary, panel-red). */
   --leyenda-presencia: #f0ad4e;
   --leyenda-localizada: #5cb85c;
   --leyenda-refuerzo: #337ab7;
   --leyenda-residente: #c9302c;
-  --foco: #66afe9;
+  /* Texto, bordes, primario y foco: tokens comunes de src/estilos.css. */
 }
 
 .calendario {
-  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  color: var(--texto);
-
   /* Tema de FullCalendar 6 con los valores del FullCalendar 3 del legacy. */
   --fc-border-color: var(--borde);
   --fc-today-bg-color: var(--calendario-hoy-fondo);

@@ -1,5 +1,5 @@
 /*
- * Vacaciones (002). Tokens propios sobre los generales de calendario.css. Cada estado del día se
+ * Vacaciones (002). Tokens propios sobre los comunes de src/estilos.css. Cada estado del día se
  * distingue también por un símbolo, no solo por el color (FR-019, WCAG 1.4.1).
  */
 :root {
@@ -11,12 +11,6 @@
   --vacaciones-quitado-borde: #a94442;
   --vacaciones-conflicto: #a94442;
   --vacaciones-deshabilitado: #595959;
-}
-
-.vacaciones {
-  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  color: var(--texto);
 }
 
 .editor-vacaciones {

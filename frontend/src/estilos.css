@@ -1,0 +1,218 @@
+/*
+ * Sistema de estilos común a toda la aplicación: tokens y base con el aspecto del legacy
+ * (Bootstrap 3 y SB Admin 2, Open Sans). Cada pantalla añade solo lo suyo (calendario.css,
+ * vacaciones.css) y usa estos tokens, que están definidos aunque se entre directamente en ella.
+ */
+:root {
+  --fuente: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --texto: #333;
+  --texto-suave: #595959;
+  --fondo: #fff;
+  --fondo-barra: #f8f8f8;
+  --borde: #ddd;
+  --borde-barra: #e7e7e7;
+  --boton-borde: #ccc;
+  --boton-hover-fondo: #e6e6e6;
+  --boton-hover-borde: #adadad;
+  --primario: #337ab7;
+  --primario-oscuro: #286090;
+  --error: #a94442;
+  --exito: #3c763d;
+  /* Contorno de foco: 6,6:1 sobre blanco (WCAG 1.4.11). */
+  --foco: var(--primario-oscuro);
+  --radio: 4px;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente);
+  font-size: 14px;
+  line-height: 1.42857;
+}
+
+h1 {
+  margin: 20px 0 10px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+a {
+  color: var(--primario);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primario-oscuro);
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 1px;
+}
+
+/* Botones como `btn-default` y `btn-primary` de Bootstrap 3. `:where` no suma especificidad: los
+   botones de FullCalendar y del selector de fechas conservan sus estilos. */
+:where(button) {
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid var(--boton-borde);
+  border-radius: var(--radio);
+  background: var(--fondo);
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+:where(button):hover:not(:disabled) {
+  border-color: var(--boton-hover-borde);
+  background: var(--boton-hover-fondo);
+}
+
+:where(button.primario, button[type='submit']) {
+  border-color: #2e6da4;
+  background: var(--primario);
+  color: #fff;
+}
+
+:where(button.primario, button[type='submit']):hover:not(:disabled) {
+  border-color: #204d74;
+  background: var(--primario-oscuro);
+}
+
+:where(button):disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+:where(input, select, textarea) {
+  padding: 6px 12px;
+  border: 1px solid var(--boton-borde);
+  border-radius: var(--radio);
+  color: var(--texto);
+  font: inherit;
+}
+
+[role='alert'] {
+  color: var(--error);
+}
+/* Barra superior (SB Admin 2: navbar-default). */
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 15px;
+  border-bottom: 1px solid var(--borde-barra);
+  background: var(--fondo-barra);
+}
+
+.cabecera .marca {
+  margin-right: auto;
+  font-size: 18px;
+}
+
+.cabecera .usuario {
+  color: var(--texto-suave);
+}
+
+/* Secciones del servicio (Bootstrap 3: nav-tabs). */
+.secciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 10px 15px 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.secciones a {
+  margin-bottom: -1px;
+  padding: 10px 15px;
+  border: 1px solid transparent;
+  border-radius: var(--radio) var(--radio) 0 0;
+}
+
+.secciones a:hover {
+  border-color: #eee #eee var(--borde);
+  background: #eee;
+  text-decoration: none;
+}
+
+.secciones a.active {
+  border-color: var(--borde) var(--borde) transparent;
+  background: var(--fondo);
+  color: #555;
+}
+
+/* Contenido de cada pantalla. */
+main {
+  padding: 0 15px 15px;
+}
+
+/* Inicio de sesión (Bootstrap 3: panel). */
+.login {
+  max-width: 360px;
+  margin: 60px auto;
+  padding: 0 15px 20px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+.login h1 {
+  font-size: 20px;
+}
+
+.login label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.login label input {
+  font-weight: 400;
+}
+
+.login button {
+  width: 100%;
+}
+
+/* Cambios registrados. */
+.cambios > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cambios > header h2 {
+  min-width: 14rem;
+  text-align: center;
+}
+
+.cambios > ul {
+  padding: 0;
+  list-style: none;
+}
+
+.cambios > ul > li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.cambios > ul > li p {
+  margin: 0 0 6px;
+}
+
+/* Solo los mensajes: el selector de fechas también usa `role=status` en el título del mes. */
+p[role='status'] {
+  color: var(--exito);
+}

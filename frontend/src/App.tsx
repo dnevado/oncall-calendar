@@ -24,11 +24,11 @@ function PaginaDelServicio({
   }
   return (
     <>
-      <nav aria-label="Secciones del servicio">
+      <nav className="secciones" aria-label="Secciones del servicio">
         <NavLink to={`/servicios/${servicioId}`} end>
           Calendario
-        </NavLink>{' '}
-        <NavLink to={`/servicios/${servicioId}/cambios`}>Cambios registrados</NavLink>{' '}
+        </NavLink>
+        <NavLink to={`/servicios/${servicioId}/cambios`}>Cambios registrados</NavLink>
         <NavLink to={`/servicios/${servicioId}/vacaciones`}>Vacaciones</NavLink>
       </nav>
       {pagina === 'calendario' && <CalendarioPage servicioId={servicioId} />}
@@ -58,7 +58,8 @@ export function Rutas() {
   return (
     <>
       <header className="cabecera">
-        <span>{usuario.nombre}</span>
+        <span className="marca">Guardias</span>
+        <span className="usuario">{usuario.nombre}</span>
         <button type="button" onClick={() => void logout()}>
           Cerrar sesión
         </button>
